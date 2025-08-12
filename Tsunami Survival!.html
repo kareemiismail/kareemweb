@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tsunami Survival Simulator - Platform Placement</title>
+<style>
+  body, html {
+    margin: 0; padding: 0; overflow: hidden;
+    background: linear-gradient(to top, #87ceeb, #f0f8ff);
+    font-family: Arial, sans-serif;
+    user-select: none;
+  }
+  #gameCanvas {
+    display: block;
+    background: linear-gradient(to top, #1e90ff, #00bfff);
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas"></canvas>
+
+<script>
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  let width, height;
+  function resize() {
+    width = window.innerWidth;
+    height = window.innerHeight;
+    canvas.width = width;
+    canvas.height = height;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const groundHeight = 120;
+
+  const tsunami = {
+    x: width + 100,
+    y: height - groundHeight - 20,
+    width: 120,
+    height: 120,
+    speed: 2.5,
+    color: '#003366',
+  };
+
+  class Wave {
+    constructor(x) {
+      this.x = x;
+      this.width = 150;
+      this.height = 60 + Math.random() * 60;
+      this.amplitude = 30 + Math.random() * 20;
+      this.speed = tsunami.speed;
+      this.phase = 0;
+      this.baseYOffset = Math.random() * 40 - 20;
+    }
+    update() {
+      this.x -= this.speed;
+      this.phase += 0.1;
+      this.baseYOffset = 20 * Math.sin(this.phase * 2);
+    }
+    draw(ctx, baseY) {
+      const waveBaseY = baseY - 50 + this.baseYOffset;
+      ctx.fillStyle = 'rgba(0, 51, 102, 0.85)';
+      ctx.strokeStyle = '#00ffff';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(this.x, waveBaseY);
+      ctx.lineTo(this.x, waveBaseY + this.height);
+      for (let px = this.x; px <= this.x + this.width; px++) {
+        const y = waveBaseY + this.height + Math.sin((px * 0.15) + this.phase) * this.amplitude;
+        ctx.lineTo(px, y);
+      }
+      ctx.lineTo(this.x + this.width, waveBaseY);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    }
+  }
+
+  const waves = [];
+  let lastWaveTime = 0;
+  const waveInterval = 5000;
+
+  // Platforms array
+  let platforms = [];
+  const platformWidth = 120;
+  const platformHeight = 20;
+
+  // Player object
+  const player = {
+    x: 100, y: 0, width: 40, height: 60,
+    color: '#ffeb3b', velocityY: 0,
+    speedX: 7, gravity: 1,
+    jumpStrength: 20, onGround: false,
+    name: "Player"
+  };
+
+  const keys = {};
+  window.addEventListener('keydown', e => { keys[e.code] = true; });
+  window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+  function isColliding(r1, r2) {
+    return !(r1.x > r2.x + r2.width || r1.x + r1.width < r2.x || r1.y > r2.y + r2.height || r1.y + r1.height < r2.y);
+  }
+
+  let startTime;
+  let gameOver = false;
+
+  function resetGame() {
+    player.x = 100;
+    player.y = height - groundHeight - player.height;
+    player.velocityY = 0;
+    tsunami.x = width + 100;
+    waves.length = 0;
+    platforms = []; // Clear existing platforms
+    startTime = Date.now();
+    gameOver = false;
+  }
+
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Only allow placing platforms above ground
+    if (clickY + platformHeight < height - groundHeight) {
+      // Center platform on click horizontally
+      let platX = clickX - platformWidth / 2;
+      // Clamp platform so it doesn't go off screen
+      platX = Math.max(0, Math.min(platX, width - platformWidth));
+
+      platforms.push({
+        x: platX,
+        y: clickY,
+        width: platformWidth,
+        height: platformHeight,
+      });
+    }
+  });
+
+  function gameLoop(timestamp=0) {
+    if (gameOver) return;
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Draw ground
+    ctx.fillStyle = '#654321'; // Brown ground
+    ctx.fillRect(0, height - groundHeight, width, groundHeight);
+
+    // Player movement left/right
+    if (keys['ArrowLeft'] || keys['KeyA']) {
+      player.x -= player.speedX;
+      if (player.x < 0) player.x = 0;
+    }
+    if (keys['ArrowRight'] || keys['KeyD']) {
+      player.x += player.speedX;
+      if (player.x + player.width > width) player.x = width - player.width;
+    }
+
+    // Gravity and jump
+    player.velocityY += player.gravity;
+    player.y += player.velocityY;
+
+    // Platform collision
+    player.onGround = false;
+
+    // Check collision with platforms
+    for (const plat of platforms) {
+      if (player.velocityY >= 0 &&
+          player.x + player.width > plat.x &&
+          player.x < plat.x + plat.width &&
+          player.y + player.height > plat.y &&
+          player.y + player.height < plat.y + plat.height) {
+        player.y = plat.y - player.height;
+        player.velocityY = 0;
+        player.onGround = true;
+      }
+    }
+
+    // Check collision with ground
+    if (player.y + player.height >= height - groundHeight) {
+      player.y = height - groundHeight - player.height;
+      player.velocityY = 0;
+      player.onGround = true;
+    }
+
+    // Jump input
+    if ((keys['Space'] || keys['ArrowUp'] || keys['KeyW']) && player.onGround) {
+      player.velocityY = -player.jumpStrength;
+      player.onGround = false;
+    }
+
+    // Move tsunami base
+    tsunami.x -= tsunami.speed;
+    if (tsunami.x + tsunami.width < 0) {
+      tsunami.x = width + 100;
+    }
+
+    // Draw tsunami base
+    ctx.fillStyle = tsunami.color;
+    ctx.fillRect(tsunami.x, tsunami.y, tsunami.width, tsunami.height);
+
+    // Spawn new wave every 5 seconds
+    if (timestamp - lastWaveTime > waveInterval || lastWaveTime === 0) {
+      waves.push(new Wave(tsunami.x));
+      lastWaveTime = timestamp;
+    }
+
+    // Update and draw waves
+    for (let i = waves.length - 1; i >= 0; i--) {
+      const w = waves[i];
+      w.update();
+      w.draw(ctx, tsunami.y);
+      if (w.x + w.width < 0) waves.splice(i, 1);
+    }
+
+    // Draw platforms
+    ctx.fillStyle = '#886644';  // Slightly lighter brown for platforms
+    for (const plat of platforms) {
+      ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
+    }
+
+    // Draw player
+    ctx.fillStyle = player.color;
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // Player name above player
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(player.name, player.x + player.width / 2, player.y - 10);
+
+    // Check collision with tsunami
+    if (isColliding(player, tsunami)) {
+      gameOver = true;
+      alert("🌊 Tsunami caught you! Game Over.");
+      resetGame();
+    }
+
+    // Timer
+    const seconds = Math.floor((Date.now() - startTime) / 1000);
+    ctx.fillStyle = 'white';
+    ctx.font = '20px Arial';
+    ctx.fillText(`Time Survived: ${seconds}s`, 20, 40);
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  resetGame();
+  gameLoop();
+
+</script>
+
+</body>
+</html>
