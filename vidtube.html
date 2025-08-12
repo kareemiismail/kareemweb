@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>VidTube + Uploads + Accounts</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0; padding: 0;
+    background: #f9f9f9;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header {
+    background: #0073e6;
+    color: white;
+    width: 100%;
+    padding: 10px 0;
+    text-align: center;
+    font-size: 1.5em;
+  }
+  main {
+    flex-grow: 1;
+    width: 90vw;
+    max-width: 900px;
+    margin: 20px auto;
+  }
+  .hidden { display: none; }
+
+  /* Login & Signup Forms */
+  form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 350px;
+    margin: 20px auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  form > * {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  input[type="text"], input[type="password"], input[type="file"] {
+    padding: 8px;
+    font-size: 1em;
+  }
+  button {
+    background: #0073e6;
+    border: none;
+    color: white;
+    padding: 10px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  button:hover {
+    background: #005bb5;
+  }
+  .toggle-link {
+    text-align: center;
+    margin-top: 10px;
+    cursor: pointer;
+    color: #0073e6;
+  }
+  .toggle-link:hover {
+    text-decoration: underline;
+  }
+
+  /* VidTube styles */
+  #vidtube {
+    text-align: center;
+  }
+  #player-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    height: 450px;
+    margin-bottom: 30px;
+  }
+  iframe, video {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    border: 2px solid #ccc;
+  }
+  #video-list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .video-thumb {
+    cursor: pointer;
+    width: 160px;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    transition: border-color 0.3s;
+  }
+  .video-thumb:hover {
+    border-color: #0073e6;
+  }
+  .video-thumb img, .video-thumb video {
+    width: 100%;
+    border-radius: 6px;
+    display: block;
+  }
+  .video-title {
+    font-size: 0.9em;
+    margin-top: 6px;
+    user-select: none;
+  }
+
+  /* Add video form */
+  #add-video-form {
+    margin: 30px 0 10px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  #add-video-form input[type="text"] {
+    width: calc(100% - 120px);
+    padding: 8px;
+    font-size: 1em;
+  }
+  #add-video-form button {
+    width: 100px;
+  }
+
+  /* Upload local video form */
+  #upload-video-form {
+    max-width: 400px;
+    margin: 0 auto 30px;
+    background: white;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+
+  /* Logout button */
+  #logout-btn {
+    margin-top: 10px;
+    background: #d9534f;
+  }
+  #logout-btn:hover {
+    background: #b52b27;
+  }
+
+  /* User greeting */
+  #greeting {
+    margin-bottom: 20px;
+  }
+
+  /* Error messages */
+  .error {
+    color: #d9534f;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .success {
+    color: #28a745;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+<header>VidTube - Upload & Accounts Demo</header>
+
+<main>
+
+  <!-- LOGIN FORM -->
+  <form id="login-form">
+    <h2>Login</h2>
+    <div class="error" id="login-error"></div>
+    <input type="text" id="login-username" placeholder="Username" required autocomplete="username" />
+    <input type="password" id="login-password" placeholder="Password" required autocomplete="current-password" />
+    <button type="submit">Login</button>
+    <div class="toggle-link" id="show-signup">Don't have an account? Sign up</div>
+  </form>
+
+  <!-- SIGNUP FORM -->
+  <form id="signup-form" class="hidden">
+    <h2>Sign Up</h2>
+    <div class="error" id="signup-error"></div>
+    <input type="text" id="signup-username" placeholder="Choose a username" required autocomplete="username" />
+    <input type="password" id="signup-password" placeholder="Choose a password" required autocomplete="new-password" />
+    <button type="submit">Sign Up</button>
+    <div class="toggle-link" id="show-login">Already have an account? Log in</div>
+  </form>
+
+  <!-- VIDTUBE MAIN -->
+  <section id="vidtube" class="hidden">
+    <div id="greeting"></div>
+    <button id="logout-btn">Logout</button>
+
+    <!-- Video Player -->
+    <div id="player-container">
+      <!-- either iframe or video tag inserted dynamically -->
+    </div>
+
+    <!-- Add YouTube Video Form -->
+    <form id="add-video-form">
+      <input
+        type="text"
+        id="new-video-id"
+        placeholder="Enter YouTube Video ID (11 chars)"
+        required
+        pattern="[a-zA-Z0-9_-]{11}"
+        title="YouTube video IDs are 11 characters: letters, numbers, dash, underscore"
+      />
+      <button type="submit">Add YouTube Video</button>
+      <div class="error" id="add-video-error"></div>
+      <div class="success" id="add-video-success"></div>
+    </form>
+
+    <!-- Upload Local Video -->
+    <form id="upload-video-form">
+      <input type="file" id="upload-video-input" accept="video/*" multiple required />
+      <button type="submit">Upload Local Video(s)</button>
+      <div class="error" id="upload-video-error"></div>
+      <div class="success" id="upload-video-success"></div>
+    </form>
+
+    <!-- Video List -->
+    <div id="video-list"></div>
+  </section>
+</main>
+
+<script>
+  // === Simple hashing for passwords (NOT SECURE, just demo) ===
+  function simpleHash(str) {
+    let hash = 0;
+    for(let i=0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return hash.toString();
+  }
+
+  // === User Data Management ===
+  const usersKey = 'vidtube-users'; // localStorage key for users
+  const videosKey = 'vidtube-videos'; // localStorage key for videos (array of video objects)
+
+  function loadUsers() {
+    return JSON.parse(localStorage.getItem(usersKey) || '{}');
+  }
+  function saveUsers(users) {
+    localStorage.setItem(usersKey, JSON.stringify(users));
+  }
+
+  function loadVideos() {
+    return JSON.parse(localStorage.getItem(videosKey) || '[]');
+  }
+  function saveVideos(videos) {
+    localStorage.setItem(videosKey, JSON.stringify(videos));
+  }
+
+  // === DOM Elements ===
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+  const loginError = document.getElementById('login-error');
+  const signupError = document.getElementById('signup-error');
+  const showSignup = document.getElementById('show-signup');
+  const showLogin = document.getElementById('show-login');
+  const vidtubeSection = document.getElementById('vidtube');
+  const greeting = document.getElementById('greeting');
+  const logoutBtn = document.getElementById('logout-btn');
+  const playerContainer = document.getElementById('player-container');
+  const videoList = document.getElementById('video-list');
+  const addVideoForm = document.getElementById('add-video-form');
+  const newVideoIdInput = document.getElementById('new-video-id');
+  const addVideoError = document.getElementById('add-video-error');
+  const addVideoSuccess = document.getElementById('add-video-success');
+  const uploadVideoForm = document.getElementById('upload-video-form');
+  const uploadVideoInput = document.getElementById('upload-video-input');
+  const uploadVideoError = document.getElementById('upload-video-error');
+  const uploadVideoSuccess = document.getElementById('upload-video-success');
+
+  // === Current logged in user ===
+  let currentUser = null;
+
+  // Uploaded local videos in-memory storage (won't persist after reload)
+  let localVideos = [];
+
+  // === UI Toggles ===
+  function showLoginForm() {
+    loginForm.classList.remove('hidden');
+    signupForm.classList.add('hidden');
+    vidtubeSection.classList.add('hidden');
+    clearMessages();
+  }
+  function showSignupForm() {
+    signupForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+    vidtubeSection.classList.add('hidden');
+    clearMessages();
+  }
+  function showVidTube() {
+    loginForm.classList.add('hidden');
+    signupForm.classList.add('hidden');
+    vidtubeSection.classList.remove('hidden');
+    clearMessages();
+  }
+  function clearMessages() {
+    loginError.textContent = '';
+    signupError.textContent = '';
+    addVideoError.textContent = '';
+    addVideoSuccess.textContent = '';
+    uploadVideoError.textContent = '';
+    uploadVideoSuccess.textContent = '';
+  }
+
+  // === Render Videos (YouTube + local) ===
+  function renderVideos() {
+    const videos = loadVideos();
+    videoList.innerHTML = '';
+
+    if(videos.length === 0 && localVideos.length === 0) {
+      videoList.innerHTML = '<p>No videos added yet.</p>';
+      playerContainer.innerHTML = '';
+      return;
+    }
+
+    // Show all videos: YouTube first, then local
+    videos.forEach(video => {
+      videoList.appendChild(createVideoThumb(video, false));
+    });
+    localVideos.forEach(video => {
+      videoList.appendChild(createVideoThumb(video, true));
+    });
+
+    // Autoplay first video available
+    if(videos.length > 0) {
+      setVideo(videos[0].id, false);
+    } else if(localVideos.length > 0) {
+      setVideo(localVideos[0].url, true);
+    } else {
+      playerContainer.innerHTML = '';
+    }
+  }
+
+  // === Create video thumbnail element ===
+  // isLocal: true = local video, false = YouTube video
+  function createVideoThumb(video, isLocal) {
+    const div = document.createElement('div');
+    div.className = 'video-thumb';
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', `Play ${video.title}`);
+
+    if(isLocal) {
+      // Local video thumbnail uses <video> tag muted autoplay loop small
+      const vid = document.createElement('video');
+      vid.src = video.url;
+      vid.muted = true;
+      vid.autoplay = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.style.borderRadius = '6px';
+      div.appendChild(vid);
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'video-title';
+      titleDiv.textContent = video.title;
+      div.appendChild(titleDiv);
+
+      div.addEventListener('click', () => setVideo(video.url, true));
+      div.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setVideo(video.url, true);
+        }
+      });
+    } else {
+      // YouTube video thumbnail uses image
+      div.setAttribute('data-video-id', video.id);
+      div.innerHTML = `
+        <img src="https://img.youtube.com/vi/${video.id}/hqdefault.jpg" alt="${video.title} thumbnail" />
+        <div class="video-title">${video.title}</div>
+      `;
+      div.addEventListener('click', () => setVideo(video.id, false));
+      div.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setVideo(video.id, false);
+        }
+      });
+    }
+    return div;
+  }
+
+  // === Set current video in player ===
+  // isLocal true = show <video>, false = embed YouTube iframe
+  function setVideo(srcOrId, isLocal) {
+    playerContainer.innerHTML = '';
+    if(isLocal) {
+      const video = document.createElement('video');
+      video.src = srcOrId;
+      video.controls = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.style.width = '100%';
+      video.style.height = '100%';
+      video.setAttribute('title', 'Local uploaded video player');
+      playerContainer.appendChild(video);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube.com/embed/${srcOrId}`;
+      iframe.frameBorder = 0;
+      iframe.allowFullscreen = true;
+      iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+      iframe.title = 'YouTube video player';
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      playerContainer.appendChild(iframe);
+    }
+  }
+
+  // === Validate YouTube video ID ===
+  function isValidYouTubeID(id) {
+    return /^[a-zA-Z0-9_-]{11}$/.test(id);
+  }
+
+  // === Add YouTube video ===
+  function addYouTubeVideo(id) {
+    if(!isValidYouTubeID(id)) {
+      addVideoError.textContent = 'Invalid YouTube Video ID.';
+      addVideoSuccess.textContent = '';
+      return false;
+    }
+    let videos = loadVideos();
+    if(videos.find(v => v.id === id)) {
+      addVideoError.textContent = 'Video already added.';
+      addVideoSuccess.textContent = '';
+      return false;
+    }
+    videos.push({id, title: id});
+    saveVideos(videos);
+    addVideoError.textContent = '';
+    addVideoSuccess.textContent = 'Video added successfully!';
+    renderVideos();
+    return true;
+  }
+
+  // === Handle YouTube video add form ===
+  addVideoForm.addEventListener('submit', e => {
+    e.preventDefault();
+    addVideoError.textContent = '';
+    addVideoSuccess.textContent = '';
+    const newId = newVideoIdInput.value.trim();
+    if(addYouTubeVideo(newId)) {
+      newVideoIdInput.value = '';
+    }
+  });
+
+  // === Handle local video upload ===
+  uploadVideoForm.addEventListener('submit', e => {
+    e.preventDefault();
+    uploadVideoError.textContent = '';
+    uploadVideoSuccess.textContent = '';
+    const files = uploadVideoInput.files;
+    if(!files || files.length === 0) {
+      uploadVideoError.textContent = 'Please select at least one video file.';
+      return;
+    }
+
+    for(let file of files) {
+      if(!file.type.startsWith('video/')) {
+        uploadVideoError.textContent = 'Only video files are allowed.';
+        return;
+      }
+    }
+
+    // Read each file as a blob URL and add to localVideos array
+    for(let file of files) {
+      const url = URL.createObjectURL(file);
+      localVideos.push({url, title: file.name});
+    }
+    uploadVideoSuccess.textContent = 'Local video(s) uploaded successfully!';
+    uploadVideoInput.value = '';
+    renderVideos();
+  });
+
+  // === Signup handler ===
+  signupForm.addEventListener('submit', e => {
+    e.preventDefault();
+    clearMessages();
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value;
+    if(username.length < 3) {
+      signupError.textContent = 'Username must be at least 3 characters.';
+      return;
+    }
+    if(password.length < 4) {
+      signupError.textContent = 'Password must be at least 4 characters.';
+      return;
+    }
+    let users = loadUsers();
+    if(users[username]) {
+      signupError.textContent = 'Username already exists.';
+      return;
+    }
+    users[username] = { passwordHash: simpleHash(password) };
+    saveUsers(users);
+    alert('Signup successful! You can now log in.');
+    signupForm.reset();
+    showLoginForm();
+  });
+
+  // === Login handler ===
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    clearMessages();
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    let users = loadUsers();
+    if(!users[username] || users[username].passwordHash !== simpleHash(password)) {
+      loginError.textContent = 'Invalid username or password.';
+      return;
+    }
+    currentUser = username;
+    loginForm.reset();
+    startSession();
+  });
+
+  // === Show signup/login toggle links ===
+  showSignup.addEventListener('click', () => showSignupForm());
+  showLogin.addEventListener('click', () => showLoginForm());
+
+  // === Logout handler ===
+  logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    localVideos.forEach(v => URL.revokeObjectURL(v.url));
+    localVideos = [];
+    playerContainer.innerHTML = '';
+    videoList.innerHTML = '';
+    vidtubeSection.classList.add('hidden');
+    showLoginForm();
+  });
+
+  // === Start user session ===
+  function startSession() {
+    greeting.textContent = `Welcome, ${currentUser}!`;
+    showVidTube();
+    renderVideos();
+  }
+
+  // === On load ===
+  showLoginForm();
+</script>
+</body>
+</html>
