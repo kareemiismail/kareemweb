@@ -5,13 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>KareemWeb</title>
 <style>
-  /* Rainbow background animation for the whole page */
   @keyframes rainbowBG {
     0%{background-position:0% 50%;}
     50%{background-position:100% 50%;}
     100%{background-position:0% 50%;}
   }
-
+  @keyframes reverseRainbow {
+    0%{background-position:100% 50%;}
+    50%{background-position:0% 50%;}
+    100%{background-position:100% 50%;}
+  }
   body {
     font-family: Arial, sans-serif;
     margin: 40px 20px;
@@ -19,15 +22,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    /* Rainbow gradient background */
     background: linear-gradient(270deg,
       red, orange, yellow, green, blue, indigo, violet);
     background-size: 1400% 1400%;
     animation: rainbowBG 20s ease infinite;
     min-height: 100vh;
   }
-
   .torture-text {
     margin-bottom: 40px;
     font-size: 1.2rem;
@@ -35,7 +35,6 @@
     color: #fff;
     text-shadow: 1px 1px 3px #0008;
   }
-
   .gallery {
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
@@ -43,14 +42,6 @@
     width: 100%;
     max-width: 600px;
   }
-
-  /* Reverse rainbow gradient for buttons */
-  @keyframes reverseRainbow {
-    0%{background-position:100% 50%;}
-    50%{background-position:0% 50%;}
-    100%{background-position:100% 50%;}
-  }
-
   .game-button {
     background: linear-gradient(270deg,
       violet, indigo, blue, green, yellow, orange, red);
@@ -73,30 +64,69 @@
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
     transition: box-shadow 0.3s ease;
   }
-
   .game-button:hover {
     box-shadow: 0 0 18px 4px rgba(255,255,255,0.7);
+  }
+  /* Music controls button */
+  #musicToggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(255 255 255 / 0.7);
+    border: none;
+    padding: 10px 14px;
+    font-size: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    user-select: none;
+    transition: background 0.3s ease;
+  }
+  #musicToggle:hover {
+    background: rgba(255 255 255 / 0.9);
   }
 </style>
 </head>
 <body>
 
-<div class="torture-text">i torture chatgpt here* (*and myself)</div>
+<div class="torture-text">(i torture chatgpt here *and myself)</div>
 
 <div class="gallery">
   <a href="vidtube.html" class="game-button" target="_blank" rel="noopener">Vidtube</a>
   <a href="Bullet Dodger 1.html" class="game-button" target="_blank" rel="noopener">Bullet Dodger 1</a>
-  <a href="2dPlat.html" class="game-button" target="_blank" rel="noopener">2dPlatformer</a>
+  <a href="2dPlat.html" class="game-button" target="_blank" rel="noopener">2dPlat</a>
   <a href="algonquin_apples.html" class="game-button" target="_blank" rel="noopener">Algonquin Apples</a>
-  <a href="minecraft.html" class="game-button" target="_blank" rel="noopener">Meincraft</a>
+  <a href="minecraft.html" class="game-button" target="_blank" rel="noopener">Minecraft</a>
   <a href="netkareem.html" class="game-button" target="_blank" rel="noopener">NetKareem</a>
-  <a href="solar.html" class="game-button" target="_blank" rel="noopener">Solar Sandbox</a>
-  <a href="the thing.html" class="game-button" target="_blank" rel="noopener">Sandbox</a>
+  <a href="solar.html" class="game-button" target="_blank" rel="noopener">Solar</a>
+  <a href="the thing.html" class="game-button" target="_blank" rel="noopener">The Thing (Sandbox)</a>
 </div>
+
+<audio id="bgMusic" src="bgmusic.mp3" loop autoplay></audio>
+<button id="musicToggle" aria-label="Toggle music">🔊</button>
+
+<script>
+  const music = document.getElementById('bgMusic');
+  const toggleBtn = document.getElementById('musicToggle');
+
+  toggleBtn.addEventListener('click', () => {
+    if (music.paused) {
+      music.play();
+      toggleBtn.textContent = '🔊';
+    } else {
+      music.pause();
+      toggleBtn.textContent = '🔈';
+    }
+  });
+
+  // Handle autoplay blocking by browsers:
+  music.volume = 0.3; // start softer
+  music.play().catch(() => {
+    toggleBtn.textContent = '▶️'; // show play icon if autoplay blocked
+  });
+</script>
 
 </body>
 </html>
-
-
 
 
