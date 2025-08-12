@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>City Simulator</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #87ceeb;
+    margin: 0; padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+  #game-container {
+    margin-top: 10px;
+    position: relative;
+  }
+  canvas {
+    border: 2px solid #333;
+    background: #3a6b35;
+    display: block;
+  }
+  #info {
+    margin-top: 10px;
+    font-size: 18px;
+    color: #fff;
+    text-shadow: 1px 1px 2px black;
+  }
+  #nameInputSection {
+    margin-top: 50px;
+    text-align: center;
+  }
+  #nameInputSection input {
+    font-size: 18px;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #333;
+  }
+  #nameInputSection button {
+    font-size: 18px;
+    padding: 6px 15px;
+    margin-left: 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    background-color: #2d7f2d;
+    color: white;
+    transition: background-color 0.3s;
+  }
+  #nameInputSection button:hover {
+    background-color: #236823;
+  }
+  #controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #controls button {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background-color: #8b4513;
+    color: white;
+    user-select: none;
+    transition: background-color 0.3s;
+    min-width: 110px;
+  }
+  #controls button:hover:not(:disabled) {
+    background-color: #613412;
+  }
+  #controls button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+  }
+  #modeDisplay {
+    margin-top: 10px;
+    font-size: 20px;
+    color: white;
+    text-shadow: 1px 1px 3px black;
+  }
+</style>
+</head>
+<body>
+
+<div id="nameInputSection">
+  <label for="playerName">Enter your name to start deforestation in rural Ontario:</label><br />
+  <input id="playerName" type="text" maxlength="15" placeholder="Your name" />
+  <button id="startBtn">Start</button>
+</div>
+
+<div id="game-container" style="display:none;">
+  <canvas id="forestCanvas" width="600" height="400"></canvas>
+
+  <div id="controls" style="display:none;">
+    <button id="btnHouse">Build House ($100)</button>
+    <button id="btnBuilding">Build Building ($300)</button>
+    <button id="btnRoad">Build Road ($50)</button>
+    <button id="btnLuxury">Build Luxury Home ($1000)</button>
+    <button id="btnShop">Build Shop ($400/$700)</button>
+    <button id="btnFactory">Build Factory ($700/$1200)</button>
+    <button id="btnClearMode">Clear Mode</button>
+    <button id="btnBuildArea">Build Area</button>
+    <button id="btnRotateRoad" title="Rotate Road Orientation">Rotate Road: Horizontal</button>
+  </div>
+
+  <button id="deforestBtn" style="margin-top:10px;">Deforest</button>
+  <div id="info"></div>
+  <div id="modeDisplay"></div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('forestCanvas');
+  const ctx = canvas.getContext('2d');
+  const deforestBtn = document.getElementById('deforestBtn');
+  const infoDiv = document.getElementById('info');
+  const nameInputSection = document.getElementById('nameInputSection');
+  const startBtn = document.getElementById('startBtn');
+  const playerNameInput = document.getElementById('playerName');
+  const gameContainer = document.getElementById('game-container');
+  const controlsDiv = document.getElementById('controls');
+
+  const btnHouse = document.getElementById('btnHouse');
+  const btnBuilding = document.getElementById('btnBuilding');
+  const btnRoad = document.getElementById('btnRoad');
+  const btnLuxury = document.getElementById('btnLuxury');
+  const btnShop = document.getElementById('btnShop');
+  const btnFactory = document.getElementById('btnFactory');
+  const btnClearMode = document.getElementById('btnClearMode');
+  const btnBuildArea = document.getElementById('btnBuildArea');
+  const btnRotateRoad = document.getElementById('btnRotateRoad');
+
+  const modeDisplay = document.getElementById('modeDisplay');
+
+  const tileSize = 20;
+  const cols = canvas.width / tileSize; // 30
+  const rows = canvas.height / tileSize; // 20
+
+  let playerName = '';
+  let forestGrid = [];
+  let money = 2000;
+  const deforestMoneyGainPerTree = 15;
+
+  /*
+   * Grid codes:
+   * 0 = cleared land
+   * 1 = tree
+   * 2 = house
+   * 3 = building
+   * 4 = road horizontal
+   * 5 = road vertical
+   * 6 = luxury home
+   * 7 = shop
+   * 8 = factory
+   * 9 = road intersection (both horizontal & vertical)
+   */
+
+  // Zones by rows:
+  // 0 - 6 : Rural zone (top 7 rows) cheapest
+  // 7 - 13 : Suburban zone medium
+  // 14 - 19 : Luxury zone expensive
+
+  // Costs for zones and buildings:
+  // Houses: Rural $100, Suburban $200, Luxury $400
+  // Buildings: Suburban $300, Luxury $600 (not in Rural)
+  // Roads: all zones $50
+  // Luxury Homes: only in Luxury zone $1000
+  // Shops: Suburban $400, Luxury $700 (not rural)
+  // Factories: Suburban $700, Luxury $1200 (not rural)
+
+  // Income generated per building every 3 seconds
+  const incomeIntervalMs = 3000;
+  const shopIncome = 100;
+  const factoryIncome = 250;
+
+  // Current build mode and road orientation
+  let buildMode = null;
+  let roadOrientation = 'horizontal';
+  let buildAreaMode = false;
+
+  // For area building drag
+  let isDragging = false;
+  let dragStart = null;
+  let dragEnd = null;
+
+  function generateForest() {
+    forestGrid = [];
+    for(let r=0; r<rows; r++) {
+      let row = [];
+      for(let c=0; c<cols; c++) {
+        row.push(1);
+      }
+      forestGrid.push(row);
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        const x = c * tileSize;
+        const y = r * tileSize;
+
+        // Background by zone:
+        if(r <= 6) {
+          ctx.fillStyle = '#4a704a';
+          ctx.fillRect(x, y, tileSize, tileSize);
+        } else if(r <= 13) {
+          ctx.fillStyle = '#3a5f3a';
+          ctx.fillRect(x, y, tileSize, tileSize);
+        } else {
+          ctx.fillStyle = '#2a4f2a';
+          ctx.fillRect(x, y, tileSize, tileSize);
+        }
+
+        const cell = forestGrid[r][c];
+
+        // Draw intersection roads first for clarity
+        if(cell === 9) {
+          // Intersection road (crossroads)
+          ctx.fillStyle = '#555555';
+          ctx.fillRect(x, y + tileSize/3, tileSize, tileSize/3);
+          ctx.fillRect(x + tileSize/3, y, tileSize/3, tileSize);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          // horizontal line
+          ctx.beginPath();
+          ctx.moveTo(x + 3, y + tileSize/2);
+          ctx.lineTo(x + tileSize - 3, y + tileSize/2);
+          ctx.stroke();
+          // vertical line
+          ctx.beginPath();
+          ctx.moveTo(x + tileSize/2, y + 3);
+          ctx.lineTo(x + tileSize/2, y + tileSize - 3);
+          ctx.stroke();
+          continue;
+        }
+
+        if(cell === 1) {
+          // Tree
+          ctx.fillStyle = '#2e8b57';
+          ctx.beginPath();
+          ctx.arc(x + tileSize/2, y + tileSize/2, tileSize/2.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#654321';
+          ctx.fillRect(x + tileSize/2 - 2, y + tileSize/2, 4, tileSize/2);
+        } else if(cell === 2) {
+          // House
+          ctx.fillStyle = '#ffcc99';
+          ctx.fillRect(x + 3, y + 5, tileSize - 6, tileSize - 10);
+          ctx.fillStyle = '#a52a2a';
+          ctx.beginPath();
+          ctx.moveTo(x + 3, y + 5);
+          ctx.lineTo(x + tileSize/2, y);
+          ctx.lineTo(x + tileSize - 3, y + 5);
+          ctx.closePath();
+          ctx.fill();
+        } else if(cell === 3) {
+          // Building
+          ctx.fillStyle = '#6666cc';
+          ctx.fillRect(x + 2, y + 2, tileSize - 4, tileSize - 4);
+          ctx.fillStyle = '#ffff99';
+          ctx.fillRect(x + 5, y + 8, 5, 5);
+          ctx.fillRect(x + 10, y + 8, 5, 5);
+          ctx.fillRect(x + 5, y + 15, 5, 5);
+          ctx.fillRect(x + 10, y + 15, 5, 5);
+        } else if(cell === 4) {
+          // Road horizontal
+          ctx.fillStyle = '#555555';
+          ctx.fillRect(x, y + tileSize/3, tileSize, tileSize/3);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x + 3, y + tileSize/2);
+          ctx.lineTo(x + tileSize - 3, y + tileSize/2);
+          ctx.stroke();
+        } else if(cell === 5) {
+          // Road vertical
+          ctx.fillStyle = '#555555';
+          ctx.fillRect(x + tileSize/3, y, tileSize/3, tileSize);
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x + tileSize/2, y + 3);
+          ctx.lineTo(x + tileSize/2, y + tileSize - 3);
+          ctx.stroke();
+        } else if(cell === 6) {
+          // Luxury home
+          ctx.fillStyle = '#ffd700';
+          ctx.fillRect(x + 3, y + 5, tileSize - 6, tileSize - 10);
+          ctx.fillStyle = '#8b0000';
+          ctx.beginPath();
+          ctx.moveTo(x + 3, y + 5);
+          ctx.lineTo(x + tileSize/2, y);
+          ctx.lineTo(x + tileSize - 3, y + 5);
+          ctx.closePath();
+          ctx.fill();
+        } else if(cell === 7) {
+          // Shop - blue building with a "$" sign
+          ctx.fillStyle = '#004080';
+          ctx.fillRect(x + 2, y + 5, tileSize - 4, tileSize - 10);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('$', x + tileSize / 2, y + tileSize / 2);
+        } else if(cell === 8) {
+          // Factory - grey building with smokestack
+          ctx.fillStyle = '#555555';
+          ctx.fillRect(x + 3, y + 8, tileSize - 6, tileSize - 10);
+          // smokestack
+          ctx.fillStyle = '#333333';
+          ctx.fillRect(x + tileSize/2 - 3, y + 3, 6, 6);
+          ctx.fillStyle = '#aaa';
+          ctx.beginPath();
+          ctx.moveTo(x + tileSize/2 - 6, y + 3);
+          ctx.lineTo(x + tileSize/2, y);
+          ctx.lineTo(x + tileSize/2 + 6, y + 3);
+          ctx.fill();
+        }
+      }
+    }
+  }
+
+  // Check and update roads for intersections (code 9)
+  function updateRoadIntersections() {
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        const cell = forestGrid[r][c];
+        if(cell === 4 || cell === 5 || cell === 9) {
+          // Check neighbors for horizontal and vertical roads
+          const hasHorRoad = (
+            (c > 0 && (forestGrid[r][c-1] === 4 || forestGrid[r][c-1] === 9)) ||
+            (c < cols-1 && (forestGrid[r][c+1] === 4 || forestGrid[r][c+1] === 9))
+          );
+          const hasVerRoad = (
+            (r > 0 && (forestGrid[r-1][c] === 5 || forestGrid[r-1][c] === 9)) ||
+            (r < rows-1 && (forestGrid[r+1][c] === 5 || forestGrid[r+1][c] === 9))
+          );
+
+          if(hasHorRoad && hasVerRoad) {
+            forestGrid[r][c] = 9; // intersection
+          } else if(cell === 9) {
+            // If previously intersection but no longer both roads, revert to one road
+            if(hasHorRoad) forestGrid[r][c] = 4;
+            else if(hasVerRoad) forestGrid[r][c] = 5;
+            else forestGrid[r][c] = 0; // no connected roads? clear
+          }
+        }
+      }
+    }
+  }
+
+  function countTrees() {
+    return forestGrid.flat().filter(t => t === 1).length;
+  }
+
+  function deforest(n = 10) {
+    let cleared = 0;
+    const treePositions = [];
+
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        if(forestGrid[r][c] === 1) {
+          treePositions.push({r, c});
+        }
+      }
+    }
+
+    if(treePositions.length === 0) return 0;
+
+    shuffleArray(treePositions);
+    const toClear = treePositions.slice(0, Math.min(n, treePositions.length));
+
+    toClear.forEach(pos => {
+      forestGrid[pos.r][pos.c] = 0;
+      cleared++;
+    });
+
+    return cleared;
+  }
+
+  function shuffleArray(arr) {
+    for(let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+  }
+
+  function getZone(row) {
+    if(row <= 6) return 'rural';
+    if(row <= 13) return 'suburban';
+    return 'luxury';
+  }
+
+  function getBuildCost(type, zone) {
+    switch(type) {
+      case 'house':
+        if(zone === 'rural') return 100;
+        if(zone === 'suburban') return 200;
+        return 400;
+      case 'building':
+        if(zone === 'suburban') return 300;
+        if(zone === 'luxury') return 600;
+        return null;
+      case 'road':
+        return 50;
+      case 'luxury':
+        if(zone === 'luxury') return 1000;
+        return null;
+      case 'shop':
+        if(zone === 'suburban') return 400;
+        if(zone === 'luxury') return 700;
+        return null;
+      case 'factory':
+        if(zone === 'suburban') return 700;
+        if(zone === 'luxury') return 1200;
+        return null;
+    }
+    return null;
+  }
+
+  function updateInfo() {
+    const treesLeft = countTrees();
+    infoDiv.textContent = `${playerName} | Money: $${money.toFixed(2)} | Trees left: ${treesLeft}`;
+    if(treesLeft === 0) {
+      infoDiv.textContent += " | Forest fully cleared! You can now build.";
+      deforestBtn.disabled = true;
+      controlsDiv.style.display = "flex";
+    }
+    updateModeDisplay();
+  }
+
+  function updateModeDisplay() {
+    if(buildMode === null) {
+      modeDisplay.textContent = "Mode: Deforest cleared land (click grid)";
+    } else {
+      if(buildMode === 'road') {
+        modeDisplay.textContent = `Build mode: Road (${capitalize(roadOrientation)})${buildAreaMode ? " (Build Area)" : ""} (click or drag cleared tiles)`;
+      } else {
+        modeDisplay.textContent = "Build mode: " + (buildMode === 'luxury' ? 'Luxury Home' : capitalize(buildMode)) + (buildAreaMode ? " (Build Area)" : "") + " (click or drag cleared tiles)";
+      }
+    }
+  }
+
+  function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function canBuildOn(r, c) {
+    if(r < 0 || r >= rows || c < 0 || c >= cols) return false;
+    if(forestGrid[r][c] !== 0) return false; // must be cleared land
+    return true;
+  }
+
+  // Attempt to build one tile, returns true if success
+  function tryBuildAt(r, c) {
+    if(!canBuildOn(r, c)) return false;
+
+    const zone = getZone(r);
+    if(buildMode === 'building' && zone === 'rural') return false;
+    if(buildMode === 'luxury' && zone !== 'luxury') return false;
+    if(buildMode === 'shop' && zone !== 'suburban' && zone !== 'luxury') return false;
+    if(buildMode === 'factory' && zone !== 'suburban' && zone !== 'luxury') return false;
+
+    const cost = getBuildCost(buildMode, zone);
+    if(cost === null) return false;
+    if(money < cost) return false;
+
+    money -= cost;
+
+    switch(buildMode) {
+      case 'house': forestGrid[r][c] = 2; break;
+      case 'building': forestGrid[r][c] = 3; break;
+      case 'road':
+        forestGrid[r][c] = (roadOrientation === 'horizontal') ? 4 : 5;
+        break;
+      case 'luxury': forestGrid[r][c] = 6; break;
+      case 'shop': forestGrid[r][c] = 7; break;
+      case 'factory': forestGrid[r][c] = 8; break;
+    }
+    return true;
+  }
+
+  // Build in area from dragStart to dragEnd (rectangular)
+  function buildArea() {
+    if(!dragStart || !dragEnd) return;
+
+    const rStart = Math.min(dragStart.r, dragEnd.r);
+    const rEnd = Math.max(dragStart.r, dragEnd.r);
+    const cStart = Math.min(dragStart.c, dragEnd.c);
+    const cEnd = Math.max(dragStart.c, dragEnd.c);
+
+    // Collect all possible tiles that can be built on in the area
+    const buildPositions = [];
+    for(let r = rStart; r <= rEnd; r++) {
+      for(let c = cStart; c <= cEnd; c++) {
+        if(canBuildOn(r, c)) buildPositions.push({r, c});
+      }
+    }
+
+    if(buildPositions.length === 0) {
+      alert("No valid cleared land in selected area to build on.");
+      return;
+    }
+
+    // Calculate total cost first to check money availability
+    let totalCost = 0;
+    for(const pos of buildPositions) {
+      const zone = getZone(pos.r);
+      const cost = getBuildCost(buildMode, zone);
+      if(cost === null) continue; // skip invalid
+      totalCost += cost;
+    }
+
+    if(money < totalCost) {
+      alert(`Not enough money to build entire area. Need $${totalCost.toFixed(2)}, have $${money.toFixed(2)}.`);
+      return;
+    }
+
+    // Deduct money and build all
+    for(const pos of buildPositions) {
+      tryBuildAt(pos.r, pos.c);
+    }
+
+    updateRoadIntersections();
+    updateInfo();
+    draw();
+  }
+
+  // Single tile building for clicks
+  function buildSingleTile(r, c) {
+    if(!canBuildOn(r, c)) {
+      alert("You can only build on cleared land.");
+      return;
+    }
+
+    const zone = getZone(r);
+    if(buildMode === 'building' && zone === 'rural') {
+      alert("Buildings cannot be built in the rural zone.");
+      return;
+    }
+    if(buildMode === 'luxury' && zone !== 'luxury') {
+      alert("Luxury homes can only be built in the luxury zone.");
+      return;
+    }
+    if(buildMode === 'shop' && zone !== 'suburban' && zone !== 'luxury') {
+      alert("Shops can only be built in suburban or luxury zones.");
+      return;
+    }
+    if(buildMode === 'factory' && zone !== 'suburban' && zone !== 'luxury') {
+      alert("Factories can only be built in suburban or luxury zones.");
+      return;
+    }
+
+    const cost = getBuildCost(buildMode, zone);
+    if(cost === null) {
+      alert("You cannot build this type here.");
+      return;
+    }
+    if(money < cost) {
+      alert("Not enough money to build this.");
+      return;
+    }
+
+    tryBuildAt(r, c);
+
+    updateRoadIntersections();
+    updateInfo();
+    draw();
+  }
+
+  canvas.addEventListener('mousedown', e => {
+    if(countTrees() > 0) return; // No building until deforest done
+    if(buildMode === null) {
+      alert("Select a build mode to start building.");
+      return;
+    }
+    if(!buildAreaMode) return; // Only if area build enabled
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const c = Math.floor(x / tileSize);
+    const r = Math.floor(y / tileSize);
+
+    if(canBuildOn(r, c)) {
+      isDragging = true;
+      dragStart = {r, c};
+      dragEnd = {r, c};
+    }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    if(!isDragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const c = Math.floor(x / tileSize);
+    const r = Math.floor(y / tileSize);
+
+    if(canBuildOn(r, c)) {
+      dragEnd = {r, c};
+      draw();
+      drawDragRect();
+    }
+  });
+
+  canvas.addEventListener('mouseup', e => {
+    if(!isDragging) return;
+    isDragging = false;
+    buildArea();
+    dragStart = null;
+    dragEnd = null;
+    draw();
+  });
+
+  // For single click building
+  canvas.addEventListener('click', e => {
+    if(countTrees() > 0) {
+      // Still deforesting
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+
+      const c = Math.floor(clickX / tileSize);
+      const r = Math.floor(clickY / tileSize);
+
+      if(r < 0 || r >= rows || c < 0 || c >= cols) return;
+
+      if(forestGrid[r][c] === 1) {
+        forestGrid[r][c] = 0;
+        money += deforestMoneyGainPerTree;
+        updateInfo();
+        draw();
+        if(countTrees() === 0) {
+          alert("Forest fully cleared! You can now build houses, buildings, roads, shops, factories, and luxury homes.");
+          deforestBtn.disabled = true;
+          controlsDiv.style.display = "flex";
+        }
+      }
+      return;
+    }
+
+    if(buildMode === null || buildAreaMode) return; // Don't single build when in area mode or no build mode selected
+
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    const c = Math.floor(clickX / tileSize);
+    const r = Math.floor(clickY / tileSize);
+
+    if(r < 0 || r >= rows || c < 0 || c >= cols) return;
+
+    buildSingleTile(r, c);
+  });
+
+  function drawDragRect() {
+    if(!dragStart || !dragEnd) return;
+
+    const x = Math.min(dragStart.c, dragEnd.c) * tileSize;
+    const y = Math.min(dragStart.r, dragEnd.r) * tileSize;
+    const width = (Math.abs(dragEnd.c - dragStart.c) + 1) * tileSize;
+    const height = (Math.abs(dragEnd.r - dragStart.r) + 1) * tileSize;
+
+    ctx.save();
+    ctx.strokeStyle = 'yellow';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(x + 1.5, y + 1.5, width - 3, height - 3);
+    ctx.restore();
+  }
+
+  deforestBtn.addEventListener('click', () => {
+    if(countTrees() === 0) return;
+    const cleared = deforest(15);
+    money += cleared * deforestMoneyGainPerTree;
+    updateInfo();
+    draw();
+    if(countTrees() === 0) {
+      alert("Forest fully cleared! You can now build houses, buildings, roads, shops, factories, and luxury homes.");
+      deforestBtn.disabled = true;
+      controlsDiv.style.display = "flex";
+    }
+  });
+
+  function generateIncome() {
+    let shopsCount = 0;
+    let factoriesCount = 0;
+
+    for(let r=0; r<rows; r++) {
+      for(let c=0; c<cols; c++) {
+        if(forestGrid[r][c] === 7) shopsCount++;
+        else if(forestGrid[r][c] === 8) factoriesCount++;
+      }
+    }
+
+    const totalIncome = (shopsCount * shopIncome) + (factoriesCount * factoryIncome);
+    if(totalIncome > 0) {
+      money += totalIncome;
+      updateInfo();
+      draw();
+    }
+  }
+
+  function startGame() {
+    const name = playerNameInput.value.trim();
+    if(name.length === 0) {
+      alert("Please enter your name!");
+      return;
+    }
+    playerName = name;
+    nameInputSection.style.display = "none";
+    gameContainer.style.display = "block";
+    controlsDiv.style.display = "none";
+    buildMode = null;
+    money = 2000;
+    roadOrientation = 'horizontal';
+    buildAreaMode = false;
+    btnRotateRoad.textContent = `Rotate Road: Horizontal`;
+    btnBuildArea.textContent = "Build Area: OFF";
+    generateForest();
+    updateInfo();
+    draw();
+    deforestBtn.disabled = false;
+
+    if(window.incomeInterval) clearInterval(window.incomeInterval);
+    window.incomeInterval = setInterval(generateIncome, incomeIntervalMs);
+  }
+
+  startBtn.addEventListener('click', startGame);
+  playerNameInput.addEventListener('keydown', e => {
+    if(e.key === 'Enter') startGame();
+  });
+
+  btnHouse.addEventListener('click', () => { setBuildMode('house'); });
+  btnBuilding.addEventListener('click', () => { setBuildMode('building'); });
+  btnRoad.addEventListener('click', () => { setBuildMode('road'); });
+  btnLuxury.addEventListener('click', () => { setBuildMode('luxury'); });
+  btnShop.addEventListener('click', () => { setBuildMode('shop'); });
+  btnFactory.addEventListener('click', () => { setBuildMode('factory'); });
+  btnClearMode.addEventListener('click', () => { setBuildMode(null); });
+
+  btnRotateRoad.addEventListener('click', () => {
+    if(roadOrientation === 'horizontal') roadOrientation = 'vertical';
+    else roadOrientation = 'horizontal';
+
+    btnRotateRoad.textContent = `Rotate Road: ${capitalize(roadOrientation)}`;
+    updateModeDisplay();
+  });
+
+  btnBuildArea.addEventListener('click', () => {
+    buildAreaMode = !buildAreaMode;
+    btnBuildArea.textContent = `Build Area: ${buildAreaMode ? 'ON' : 'OFF'}`;
+    updateModeDisplay();
+  });
+
+  function setBuildMode(mode) {
+    buildMode = mode;
+    updateModeDisplay();
+  }
+
+})();
+</script>
+
+</body>
+</html>
