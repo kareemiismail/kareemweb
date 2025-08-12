@@ -80,6 +80,27 @@
         50% { background-position: 0% 50%; }
         100% { background-position: 100% 50%; }
     }
+            #emojiBtn {
+      font-size: 24px;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: linear-gradient(270deg, violet, indigo, blue, green, yellow, orange, red);
+      background-size: 1400% 1400%;
+      animation: reverseRainbow 8s ease infinite;
+      color: white;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+    #emojiBtn:hover {
+      transform: scale(1.2);
+    }
+    @keyframes reverseRainbow {
+      0%{background-position:0% 50%;}
+      50%{background-position:100% 50%;}
+      100%{background-position:0% 50%;}
+    }
     </style>
 </head>
 <body>
@@ -88,9 +109,10 @@
         <p>(i torture chatgpt here)</p>
     </header>
     
-  <button id="playBtn" style="font-size:20px; padding:10px 20px; cursor:pointer;">
-    ▶️ Play Music
-  </button>
+
+  <button id="emojiBtn" title="Play/Pause Music">🎵</button>
+  <audio id="bgmusic" src="elevator-music.mp3" loop></audio>
+
 
     <div class="container">
         <div class="game-buttons">
@@ -109,18 +131,23 @@
   <audio id="bgmusic" src="elevator-music.mp3" loop></audio>
 
   <script>
-    const playBtn = document.getElementById('playBtn');
-    const bgmusic = document.getElementById('bgmusic');
-
-    playBtn.addEventListener('click', () => {
-      bgmusic.play();
-      playBtn.style.display = 'none';
+    const btn = document.getElementById('emojiBtn');
+    const music = document.getElementById('bgmusic');
+    
+    btn.addEventListener('click', () => {
+      if (music.paused) {
+        music.play();
+        btn.textContent = "⏸️"; // Pause icon
+      } else {
+        music.pause();
+        btn.textContent = "🎵"; // Music note icon
+      }
     });
   </script>
-
 </body>
 
 </html>
+
 
 
 
