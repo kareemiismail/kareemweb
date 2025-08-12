@@ -87,6 +87,11 @@
         <h1>Welcome to KareemWeb!</h1>
         <p>(i torture chatgpt here)</p>
     </header>
+    
+  <button id="playBtn" style="font-size:20px; padding:10px 20px; cursor:pointer;">
+    ▶️ Play Music
+  </button>
+
     <div class="container">
         <div class="game-buttons">
             <button onclick="location.href='the thing.html'">Play SandBox</button>
@@ -101,93 +106,22 @@
             <h3>hey, what are you doing here? ;)</h3>
         </div>
     </div>
-   <script>
-       /*
-heh, nobody will ever know that chatgpt did the script.
-*/
-const statusEl = document.getElementById('status');
-function setStatus(s){ statusEl.textContent = s; }
+  <audio id="bgmusic" src="elevator-music.mp3" loop></audio>
 
-const audio = new Audio('elevator.mp3'); // <-- put your file here
-audio.loop = true;
-audio.preload = 'auto';
+  <script>
+    const playBtn = document.getElementById('playBtn');
+    const bgmusic = document.getElementById('bgmusic');
 
-async function tryAutoplay(){
-  try {
-    await audio.play();
-    setStatus('Playing — looping forever 🎵');
-    hideOverlay();
-  } catch (err) {
-    // autoplay blocked by browser
-    setStatus('Autoplay blocked — click anywhere to start');
-    showOverlay();
-  }
-}
-
-function showOverlay(){
-  const ov = document.getElementById('overlay');
-  if (!ov) return;
-  ov.hidden = false;
-
-  // handler for any user gesture (covers mouse & touch)
-  const onGesture = async (e) => {
-    // remove to avoid duplicate calls
-    document.removeEventListener('pointerdown', onGesture);
-    try {
-      await audio.play();
-      ov.hidden = true;
-      setStatus('Playing — looping forever 🎵');
-    } catch (err) {
-      // if still blocked, offer native controls as a fallback
-      setStatus('Still blocked — use the native controls below.');
-      addNativeControls();
-    }
-  };
-
-  document.addEventListener('pointerdown', onGesture, { once: true });
-  document.getElementById('startBtn').addEventListener('click', onGesture, { once: true });
-}
-
-function hideOverlay(){
-  const ov = document.getElementById('overlay');
-  if (ov) ov.hidden = true;
-}
-
-function addNativeControls(){
-  const card = document.querySelector('.card') || document.body;
-  // avoid adding multiple times
-  if (document.querySelector('audio.native-controls')) return;
-  const el = document.createElement('audio');
-  el.className = 'native-controls';
-  el.src = audio.src;
-  el.loop = true;
-  el.controls = true;
-  el.setAttribute('aria-label','Elevator music controls');
-  card.appendChild(el);
-}
-
-// try autoplay immediately
-tryAutoplay();
-
-// If audio is paused unexpectedly while page is visible, show overlay so user can resume
-audio.addEventListener('pause', () => {
-  if (!document.hidden && audio.currentTime > 0 && !audio.ended) {
-    setStatus('Paused — click to resume');
-    showOverlay();
-  }
-});
-
-// When page becomes visible again, try to resume (may still require user gesture)
-document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && audio.paused) {
-    tryAutoplay();
-  }
-});
-</script>
+    playBtn.addEventListener('click', () => {
+      bgmusic.play();
+      playBtn.style.display = 'none';
+    });
+  </script>
 
 </body>
 
 </html>
+
 
 
 
