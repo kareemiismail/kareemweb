@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Algonquin Apples</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      background: url('https://i.imgur.com/HqQ4rIx.jpg') no-repeat center center;
+      background-size: cover;
+      font-family: 'Arial', sans-serif;
+      overflow: hidden;
+    }
+    canvas {
+      display: block;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: white;
+      font-size: 20px;
+      text-shadow: 1px 1px 2px black;
+      z-index: 5;
+    }
+    .menu, .overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: white;
+      font-size: 24px;
+      z-index: 10;
+      display: none;
+    }
+    .menu button, .overlay button {
+      display: block;
+      margin: 10px auto;
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      background: #2e8b57;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    #muteButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 5;
+    }
+    #loadingScreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+  </style>
+</head>
+<body>
+  <div id="loadingScreen">Loading Algonquin Apples...</div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="ui">
+    <div id="score">Score: 0</div>
+    <div id="level">Level: 1</div>
+  </div>
+  <div id="startMenu" class="menu">
+    <h1>Algonquin Apples 🍎</h1>
+    <button onclick="startGame('challenge')">Challenge Mode</button>
+    <button onclick="startGame('hardcore')">Hardcore Mode</button>
+    <button onclick="startGame('arcade')">Arcade Mode</button>
+  </div>
+  <div id="pauseMenu" class="overlay">
+    <p>Game Paused</p>
+    <button onclick="resumeGame()">Resume</button>
+  </div>
+  <div id="gameOverMenu" class="overlay">
+    <p id="gameOverText"></p>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+  <button id="muteButton" onclick="toggleMute()">🔊</button>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const loadingScreen = document.getElementById('loadingScreen');
+    window.onload = () => setTimeout(() => loadingScreen.style.display = 'none', 1000);
+
+    let apples = [];
+    let basket = { x: canvas.width / 2 - 50, y: canvas.height - 50, width: 100, height: 30, dx: 0 };
+    let score = 0;
+    let level = 1;
+    let mode = '';
+    let gameRunning = false;
+    let paused = false;
+    let muted = false;
+    let appleInterval;
+
+    const scoreText = document.getElementById('score');
+    const levelText = document.getElementById('level');
+    const startMenu = document.getElementById('startMenu');
+    const pauseMenu = document.getElementById('pauseMenu');
+    const gameOverMenu = document.getElementById('gameOverMenu');
+    const gameOverText = document.getElementById('gameOverText');
+    const muteButton = document.getElementById('muteButton');
+
+    function resetGame() {
+      apples = [];
+      score = 0;
+      level = 1;
+      basket.x = canvas.width / 2 - basket.width / 2;
+      scoreText.textContent = 'Score: 0';
+      levelText.textContent = 'Level: 1';
+    }
+
+    function startGame(selectedMode) {
+      mode = selectedMode;
+      resetGame();
+      gameRunning = true;
+      startMenu.style.display = 'none';
+      gameOverMenu.style.display = 'none';
+      appleInterval = setInterval(spawnApple, 1000);
+    }
+
+    function spawnApple() {
+      const size = 30;
+      const x = Math.random() * (canvas.width - size);
+      const speed = 2 + level * 0.5;
+      apples.push({ x, y: -size, size, speed });
+    }
+
+    function update() {
+      if (!gameRunning || paused) return;
+
+      basket.x += basket.dx;
+      if (basket.x < 0) basket.x = 0;
+      if (basket.x + basket.width > canvas.width) basket.x = canvas.width - basket.width;
+
+      for (let i = apples.length - 1; i >= 0; i--) {
+        let apple = apples[i];
+        apple.y += apple.speed;
+        if (
+          apple.y + apple.size >= basket.y &&
+          apple.x + apple.size > basket.x &&
+          apple.x < basket.x + basket.width
+        ) {
+          apples.splice(i, 1);
+          score++;
+          scoreText.textContent = 'Score: ' + score;
+          if (score % 5 === 0 && level < 20) {
+            level++;
+            levelText.textContent = 'Level: ' + level;
+          }
+          if (level >= 20 && (mode === 'challenge' || mode === 'arcade')) endGame(true);
+        } else if (apple.y > canvas.height) {
+          apples.splice(i, 1);
+          if (mode !== 'hardcore') endGame(false);
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#8B4513';
+      ctx.fillRect(basket.x, basket.y, basket.width, basket.height);
+      ctx.fillStyle = 'red';
+      apples.forEach(a => {
+        ctx.beginPath();
+        ctx.arc(a.x + a.size / 2, a.y + a.size / 2, a.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function endGame(won) {
+      clearInterval(appleInterval);
+      gameRunning = false;
+      gameOverText.textContent = won ? 'You Win!' : 'Game Over!';
+      gameOverMenu.style.display = 'block';
+    }
+
+    function resumeGame() {
+      paused = false;
+      pauseMenu.style.display = 'none';
+    }
+
+    function restartGame() {
+      startGame(mode);
+    }
+
+    function toggleMute() {
+      muted = !muted;
+      muteButton.textContent = muted ? '🔇' : '🔊';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') basket.dx = -7;
+      else if (e.key === 'ArrowRight' || e.key === 'd') basket.dx = 7;
+      else if (e.key === 'p') {
+        if (paused) resumeGame();
+        else if (gameRunning) {
+          paused = true;
+          pauseMenu.style.display = 'block';
+        }
+      } else if (e.key === 'r' && !gameRunning) {
+        restartGame();
+      }
+    });
+
+    document.addEventListener('keyup', e => {
+      if (
+        e.key === 'ArrowLeft' || e.key === 'ArrowRight' ||
+        e.key === 'a' || e.key === 'd'
+      ) basket.dx = 0;
+    });
+
+    startMenu.style.display = 'block';
+    gameLoop();
+  </script>
+</body>
+</html>

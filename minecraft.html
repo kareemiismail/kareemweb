@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>MiniCraft - WebGL Voxel Game</title>
+<style>
+  html, body {
+    margin: 0; padding: 0; overflow: hidden;
+    background: #87ceeb;
+    height: 100%;
+    user-select: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  #gameCanvas {
+    display: block;
+    width: 100vw; height: 100vh;
+    background: #87ceeb;
+    cursor: crosshair;
+  }
+  #hud {
+    position: absolute;
+    bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    user-select: none;
+  }
+  .slot {
+    width: 40px; height: 40px;
+    background: rgba(255 255 255 / 0.5);
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 24px;
+    color: white;
+    text-shadow: 0 0 3px black;
+    cursor: pointer;
+  }
+  .slot.selected {
+    border-color: gold;
+    box-shadow: 0 0 8px 2px gold;
+  }
+  #info {
+    position: absolute;
+    top: 10px; left: 10px;
+    color: black;
+    background: rgba(255 255 255 / 0.8);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    max-width: 300px;
+    user-select: none;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="gameCanvas" tabindex="0"></canvas>
+
+<div id="hud"></div>
+<div id="info">
+  <p><b>MiniCraft Controls:</b></p>
+  <p>WASD to move, mouse to look, Space to jump</p>
+  <p>Left-click: Place block | Right-click: Break block</p>
+  <p>Number keys (1-4) select block type</p>
+  <p>Press 'P' to toggle pointer lock</p>
+  <p>Blocks: 1=Grass 🌿, 2=Dirt 🟫, 3=Stone ⬜, 4=Bedrock ⬛</p>
+</div>
+
+<script>
+(() => {
+  // === Setup WebGL context ===
+  const canvas = document.getElementById('gameCanvas');
+  const gl = canvas.getContext('webgl');
+  if (!gl) {
+    alert('WebGL not supported in this browser');
+    return;
+  }
+
+  // Resize canvas to fill window
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    gl.viewport(0,0,canvas.width, canvas.height);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // === Utility math functions ===
+
+  // Mat4 helper (minimal)
+  function perspective(fovy, aspect, near, far) {
+    const f = 1/Math.tan(fovy/2);
+    const nf = 1/(near - far);
+    return new Float32Array([
+      f/aspect,0,0,0,
+      0,f,0,0,
+      0,0,(far+near)*nf,-1,
+      0,0,(2*far*near)*nf,0,
+    ]);
+  }
+  function lookAt(eye, center, up) {
+    const f = normalize(sub(center, eye));
+    const s = normalize(cross(f, up));
+    const u = cross(s, f);
+    return new Float32Array([
+      s[0], u[0], -f[0], 0,
+      s[1], u[1], -f[1], 0,
+      s[2], u[2], -f[2], 0,
+      -dot(s, eye), -dot(u, eye), dot(f, eye), 1,
+    ]);
+  }
+  function normalize(v) {
+    const len = Math.sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]);
+    return [v[0]/len, v[1]/len, v[2]/len];
+  }
+  function cross(a,b) {
+    return [
+      a[1]*b[2]-a[2]*b[1],
+      a[2]*b[0]-a[0]*b[2],
+      a[0]*b[1]-a[1]*b[0],
+    ];
+  }
+  function dot(a,b) {
+    return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  }
+  function sub(a,b) {
+    return [a[0]-b[0], a[1]-b[1], a[2]-b[2]];
+  }
+  function add(a,b) {
+    return [a[0]+b[0], a[1]+b[1], a[2]+b[2]];
+  }
+  function scale(v,s) {
+    return [v[0]*s,v[1]*s,v[2]*s];
+  }
+
+  // === Shader sources ===
+  const vertexSrc = `
+  attribute vec3 aPosition;
+  attribute vec3 aColor;
+  uniform mat4 uProjection;
+  uniform mat4 uView;
+  uniform vec3 uModelPos;
+  varying vec3 vColor;
+  void main() {
+    vec3 pos = aPosition + uModelPos;
+    gl_Position = uProjection * uView * vec4(pos, 1.0);
+    vColor = aColor;
+  }
+  `;
+
+  const fragmentSrc = `
+  precision mediump float;
+  varying vec3 vColor;
+  void main() {
+    gl_FragColor = vec4(vColor, 1.0);
+  }
+  `;
+
+  // === Compile shader program ===
+  function createShader(type, src) {
+    const shader = gl.createShader(type);
+    gl.shaderSource(shader, src);
+    gl.compileShader(shader);
+    if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)){
+      console.error('Shader compile error:', gl.getShaderInfoLog(shader));
+      gl.deleteShader(shader);
+      return null;
+    }
+    return shader;
+  }
+  function createProgram(vsSrc, fsSrc) {
+    const vs = createShader(gl.VERTEX_SHADER, vsSrc);
+    const fs = createShader(gl.FRAGMENT_SHADER, fsSrc);
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){
+      console.error('Program link error:', gl.getProgramInfoLog(prog));
+      return null;
+    }
+    return prog;
+  }
+
+  const program = createProgram(vertexSrc, fragmentSrc);
+  gl.useProgram(program);
+
+  // === Cube geometry ===
+  // 36 vertices, each vertex 3 position + 3 color
+  // Cube size 1 unit, centered at (0,0,0)
+  // We'll position cube by adding uModelPos uniform
+
+  // Cube vertex positions for each face (6 faces, 2 triangles each)
+  // Cube from 0 to 1 on x,y,z for easier block placement (shifted later)
+
+  const cubeVertices = new Float32Array([
+    // positions       // colors (will be replaced dynamically)
+    // Front face (z=1)
+    0,0,1,  1,0,0,
+    1,0,1,  1,0,0,
+    1,1,1,  1,0,0,
+    0,0,1,  1,0,0,
+    1,1,1,  1,0,0,
+    0,1,1,  1,0,0,
+
+    // Back face (z=0)
+    0,0,0,  0,1,0,
+    1,1,0,  0,1,0,
+    1,0,0,  0,1,0,
+    0,0,0,  0,1,0,
+    0,1,0,  0,1,0,
+    1,1,0,  0,1,0,
+
+    // Top face (y=1)
+    0,1,0,  0,0,1,
+    1,1,1,  0,0,1,
+    1,1,0,  0,0,1,
+    0,1,0,  0,0,1,
+    0,1,1,  0,0,1,
+    1,1,1,  0,0,1,
+
+    // Bottom face (y=0)
+    0,0,0,  1,1,0,
+    1,0,0,  1,1,0,
+    1,0,1,  1,1,0,
+    0,0,0,  1,1,0,
+    1,0,1,  1,1,0,
+    0,0,1,  1,1,0,
+
+    // Right face (x=1)
+    1,0,0,  0,1,1,
+    1,1,1,  0,1,1,
+    1,0,1,  0,1,1,
+    1,0,0,  0,1,1,
+    1,1,0,  0,1,1,
+    1,1,1,  0,1,1,
+
+    // Left face (x=0)
+    0,0,0,  1,0,1,
+    0,0,1,  1,0,1,
+    0,1,1,  1,0,1,
+    0,0,0,  1,0,1,
+    0,1,1,  1,0,1,
+    0,1,0,  1,0,1,
+  ]);
+
+  // We'll replace colors dynamically per block type
+
+  // Buffer data - only positions, colors will be changed per block
+  const vertexDataLength = 36; // vertices
+  const vertexStride = 6 * 4; // 3 pos + 3 color, 4 bytes each
+
+  const vertexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, cubeVertices, gl.DYNAMIC_DRAW);
+
+  // Get attribute locations
+  const aPositionLoc = gl.getAttribLocation(program, 'aPosition');
+  const aColorLoc = gl.getAttribLocation(program, 'aColor');
+  gl.enableVertexAttribArray(aPositionLoc);
+  gl.vertexAttribPointer(aPositionLoc, 3, gl.FLOAT, false, vertexStride, 0);
+  gl.enableVertexAttribArray(aColorLoc);
+  gl.vertexAttribPointer(aColorLoc, 3, gl.FLOAT, false, vertexStride, 3*4);
+
+  // Uniform locations
+  const uProjectionLoc = gl.getUniformLocation(program, 'uProjection');
+  const uViewLoc = gl.getUniformLocation(program, 'uView');
+  const uModelPosLoc = gl.getUniformLocation(program, 'uModelPos');
+
+  // === Game constants ===
+
+  const worldSizeX = 64;
+  const worldSizeY = 16;
+  const worldSizeZ = 64;
+
+  // Block types:
+  // 0 = air
+  // 1 = grass (top layer)
+  // 2 = dirt
+  // 3 = stone
+  // 4 = bedrock (lowest layer)
+  // 5 = leaves (tree canopy)
+  // 6 = wood (tree trunk)
+
+  // Colors per block type: RGB [0-1]
+  const blockColors = {
+    1: [0.2, 0.8, 0.2], // grass green
+    2: [0.59, 0.29, 0], // dirt brown
+    3: [0.5, 0.5, 0.5], // stone gray
+    4: [0, 0, 0],       // bedrock black
+    5: [0.2, 0.7, 0.2], // leaves darker green
+    6: [0.55, 0.27, 0.07] // wood brown
+  };
+
+  // === World data ===
+  // 3D array [x][y][z]
+  // We'll create a Uint8Array for performance
+  const world = new Uint8Array(worldSizeX * worldSizeY * worldSizeZ);
+
+  function worldIndex(x,y,z) {
+    return x + worldSizeX*(y + worldSizeY*z);
+  }
+  function getBlock(x,y,z) {
+    if(x<0 || x>=worldSizeX || y<0 || y>=worldSizeY || z<0 || z>=worldSizeZ) return 0;
+    return world[worldIndex(x,y,z)];
+  }
+  function setBlock(x,y,z,type) {
+    if(x<0 || x>=worldSizeX || y<0 || y>=worldSizeY || z<0 || z>=worldSizeZ) return;
+    world[worldIndex(x,y,z)] = type;
+  }
+
+  // === Generate terrain ===
+
+  // Simple flat terrain with height variation by sine waves for grass and dirt under it
+  function generateTerrain() {
+    for(let x=0; x<worldSizeX; x++) {
+      for(let z=0; z<worldSizeZ; z++) {
+        // Height map with sine waves
+        const height = Math.floor(5 + 2*Math.sin(x/8) + 2*Math.cos(z/10));
+        for(let y=0; y<worldSizeY; y++) {
+          if(y < height - 3) {
+            setBlock(x,y,z,3); // stone
+          } else if(y < height - 1) {
+            setBlock(x,y,z,2); // dirt
+          } else if(y === height -1) {
+            setBlock(x,y,z,1); // grass
+          } else if(y === 0) {
+            setBlock(x,y,z,4); // bedrock bottom layer
+          } else {
+            setBlock(x,y,z,0); // air
+          }
+        }
+      }
+    }
+  }
+
+  // === Tree generation ===
+  // Spawn trees every ~25 blocks in x,z
+
+  function generateTrees() {
+    for(let x=2; x<worldSizeX-2; x+=25) {
+      for(let z=2; z<worldSizeZ-2; z+=25) {
+        // Find highest grass block at x,z
+        let y = worldSizeY - 1;
+        while(y>0 && getBlock(x,y,z) === 0) y--;
+        if(getBlock(x,y,z) !== 1) continue; // must be grass
+
+        // Build tree trunk 3 blocks high
+        for(let i=1; i<=3; i++){
+          setBlock(x,y+i,z,6); // wood
+        }
+        // Build leaf canopy 3x3x3 around top trunk
+        const topY = y+4;
+        for(let dx=-1; dx<=1; dx++){
+          for(let dz=-1; dz<=1; dz++){
+            for(let dy=0; dy<=2; dy++){
+              const lx = x+dx;
+              const ly = topY+dy;
+              const lz = z+dz;
+              if(getBlock(lx,ly,lz) === 0) {
+                setBlock(lx,ly,lz,5); // leaves
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // === Initialize world ===
+  generateTerrain();
+  generateTrees();
+
+  // === Player data ===
+  const player = {
+    pos: [worldSizeX/2, 10, worldSizeZ/2],
+    rot: [0, 0], // pitch, yaw radians
+    height: 1.8,
+    velocity: [0,0,0],
+    onGround: false,
+  };
+
+  // === Controls ===
+  const keys = {};
+  let pointerLocked = false;
+  canvas.tabIndex = 0;
+  canvas.focus();
+
+  // === Inventory and block selection ===
+  const blockTypesSelectable = [1,2,3,4];
+  let selectedBlock = 1;
+
+  // HUD slots
+  const hud = document.getElementById('hud');
+  blockTypesSelectable.forEach((b, i) => {
+    const slot = document.createElement('div');
+    slot.classList.add('slot');
+    if(b === selectedBlock) slot.classList.add('selected');
+    slot.textContent = b;
+    slot.title = `Block ${b}`;
+    slot.addEventListener('click', () => {
+      selectedBlock = b;
+      updateHUD();
+    });
+    hud.appendChild(slot);
+  });
+
+  function updateHUD() {
+    [...hud.children].forEach((slot,i) => {
+      const b = blockTypesSelectable[i];
+      if(b === selectedBlock){
+        slot.classList.add('selected');
+      } else {
+        slot.classList.remove('selected');
+      }
+    });
+  }
+
+  // Keyboard input
+  window.addEventListener('keydown', e => {
+    keys[e.code] = true;
+
+    // Number keys 1-4 select block
+    if(e.code.startsWith('Digit')) {
+      const n = parseInt(e.code.slice(5));
+      if(n>=1 && n<=blockTypesSelectable.length){
+        selectedBlock = blockTypesSelectable[n-1];
+        updateHUD();
+      }
+    }
+    // Toggle pointer lock with P
+    if(e.code === 'KeyP') {
+      if(pointerLocked) {
+        document.exitPointerLock();
+      } else {
+        canvas.requestPointerLock();
+      }
+    }
+  });
+  window.addEventListener('keyup', e => {
+    keys[e.code] = false;
+  });
+
+  // Mouse movement for camera rotation
+  window.addEventListener('mousemove', e => {
+    if(!pointerLocked) return;
+    const sensitivity = 0.002;
+    player.rot[1] -= e.movementX * sensitivity; // yaw (left/right)
+    player.rot[0] -= e.movementY * sensitivity; // pitch (up/down)
+    // Clamp pitch to avoid flipping
+    if(player.rot[0] < -Math.PI/2 + 0.1) player.rot[0] = -Math.PI/2 + 0.1;
+    if(player.rot[0] > Math.PI/2 - 0.1) player.rot[0] = Math.PI/2 - 0.1;
+  });
+
+  document.addEventListener('pointerlockchange', () => {
+    pointerLocked = document.pointerLockElement === canvas;
+  });
+
+  // Prevent context menu on right click inside canvas
+  canvas.addEventListener('contextmenu', e => {
+    e.preventDefault();
+  });
+
+  // === Raycasting to find block aimed at ===
+  // Returns block coords and face normal to place adjacent block
+  // Uses simple step method for block hit
+
+  function raycastBlock(origin, direction, maxDist=6) {
+    let pos = origin.slice();
+    let step = 0.1;
+    for(let i=0; i<maxDist/step; i++) {
+      pos = add(pos, scale(direction, step));
+      const bx = Math.floor(pos[0]);
+      const by = Math.floor(pos[1]);
+      const bz = Math.floor(pos[2]);
+      if(getBlock(bx, by, bz) !== 0) {
+        return {blockPos: [bx, by, bz], hitPos: pos};
+      }
+    }
+    return null;
+  }
+
+  // Get face normal by comparing hit position to block coords
+  // We'll do a simple check on the difference between hit pos and block coords
+  function getFaceNormal(blockPos, hitPos) {
+    const [bx,by,bz] = blockPos;
+    const local = [hitPos[0]-bx, hitPos[1]-by, hitPos[2]-bz];
+    let maxDist = 0;
+    let normal = [0,0,0];
+    const candidates = [
+      [[1,0,0], Math.abs(local[0]-1)],
+      [[-1,0,0], Math.abs(local[0]-0)],
+      [[0,1,0], Math.abs(local[1]-1)],
+      [[0,-1,0], Math.abs(local[1]-0)],
+      [[0,0,1], Math.abs(local[2]-1)],
+      [[0,0,-1], Math.abs(local[2]-0)],
+    ];
+    let minDist = 2;
+    for(const [n,dist] of candidates) {
+      if(dist < minDist) {
+        minDist = dist;
+        normal = n;
+      }
+    }
+    return normal;
+  }
+
+  // === Game update ===
+
+  const gravity = -9.8;
+  const jumpSpeed = 5;
+  const moveSpeed = 5;
+
+  let lastTime = 0;
+
+  // Collision detection with blocks
+  // Simple AABB for player (0.6x0.6 horizontal, height player.height)
+  // Check blocks around player position, prevent walking into blocks
+
+  function collisionCheck(pos) {
+    // returns adjusted position after collision
+    const size = 0.3; // half width and depth
+    let newPos = pos.slice();
+
+    // Check X axis collision
+    for(let dy=0; dy<player.height; dy += 0.9){
+      if(getBlock(Math.floor(newPos[0] - size), Math.floor(newPos[1]+dy), Math.floor(newPos[2])) !== 0){
+        newPos[0] = Math.ceil(newPos[0] - size) + size + 0.001;
+      }
+      if(getBlock(Math.floor(newPos[0] + size), Math.floor(newPos[1]+dy), Math.floor(newPos[2])) !== 0){
+        newPos[0] = Math.floor(newPos[0] + size) - size - 0.001;
+      }
+    }
+
+    // Check Z axis collision
+    for(let dy=0; dy<player.height; dy += 0.9){
+      if(getBlock(Math.floor(newPos[0]), Math.floor(newPos[1]+dy), Math.floor(newPos[2] - size)) !== 0){
+        newPos[2] = Math.ceil(newPos[2] - size) + size + 0.001;
+      }
+      if(getBlock(Math.floor(newPos[0]), Math.floor(newPos[1]+dy), Math.floor(newPos[2] + size)) !== 0){
+        newPos[2] = Math.floor(newPos[2] + size) - size - 0.001;
+      }
+    }
+
+    // Check Y axis collision
+    if(getBlock(Math.floor(newPos[0] - size), Math.floor(newPos[1]), Math.floor(newPos[2] - size)) !== 0){
+      newPos[1] = Math.ceil(newPos[1]) + 0.001;
+      player.velocity[1] = 0;
+      player.onGround = true;
+    }
+    else if(getBlock(Math.floor(newPos[0]), Math.floor(newPos[1] - 0.1), Math.floor(newPos[2])) !== 0){
+      player.onGround = true;
+    }
+    else {
+      player.onGround = false;
+    }
+
+    return newPos;
+  }
+
+  // === World mesh generation ===
+  // We'll render only visible faces of blocks, as separate cubes.
+
+  // To optimize, we could use chunk mesh, but here we render all visible faces with instancing.
+
+  // For simplicity: We'll draw one cube per block by updating uniforms and draw calls for each block.
+  // Since performance can be an issue, keep world small.
+
+  // We need to draw all non-air blocks with their colors.
+
+  // === Draw loop ===
+
+  function setCubeColor(blockType) {
+    const color = blockColors[blockType] || [1,1,1];
+    // We update colors in buffer on CPU side:
+    // Each face 6 vertices, each vertex 3 floats color
+    // 36 vertices total, color offset at 3 floats after position
+    for(let face=0; face<6; face++){
+      for(let vert=0; vert<6; vert++){
+        const idx = (face*6+vert)*6 + 3; // color offset
+        cubeVertices[idx] = color[0];
+        cubeVertices[idx+1] = color[1];
+        cubeVertices[idx+2] = color[2];
+      }
+    }
+    // Update buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubeVertices);
+  }
+
+  // Clear color depending on day/night cycle
+  function clearColorFromTime(time) {
+    // time is seconds in day cycle
+    const dayDuration = 60;
+    const t = (time % dayDuration) / dayDuration;
+    // color lerp between night and day
+    const dayColor = [0.53, 0.81, 0.92]; // sky blue
+    const nightColor = [0.05, 0.05, 0.1]; // dark blue/black
+    const c = dayColor.map((dc, i) => {
+      // Simple smooth step for day/night
+      if(t < 0.25) {
+        // Dawn
+        return nightColor[i] + (dc - nightColor[i]) * (t/0.25);
+      } else if(t < 0.75) {
+        // Day
+        return dc;
+      } else {
+        // Dusk
+        return dc + (nightColor[i] - dc)*((t-0.75)/0.25);
+      }
+    });
+    gl.clearColor(c[0], c[1], c[2], 1);
+  }
+
+  // === Main loop ===
+
+  function gameLoop(timeNow) {
+    if(!lastTime) lastTime = timeNow;
+    const deltaTime = (timeNow - lastTime)/1000;
+    lastTime = timeNow;
+
+    // Update player velocity from input
+    const forward = [
+      Math.sin(player.rot[1]),
+      0,
+      Math.cos(player.rot[1])
+    ];
+    const right = [
+      Math.cos(player.rot[1]),
+      0,
+      -Math.sin(player.rot[1])
+    ];
+
+    let moveDir = [0,0,0];
+    if(keys['KeyW']) moveDir = add(moveDir, forward);
+    if(keys['KeyS']) moveDir = sub(moveDir, forward);
+    if(keys['KeyA']) moveDir = sub(moveDir, right);
+    if(keys['KeyD']) moveDir = add(moveDir, right);
+
+    if(moveDir[0]!==0 || moveDir[2]!==0){
+      moveDir = normalize(moveDir);
+      player.velocity[0] = moveDir[0]*moveSpeed;
+      player.velocity[2] = moveDir[2]*moveSpeed;
+    } else {
+      player.velocity[0] = 0;
+      player.velocity[2] = 0;
+    }
+
+    // Jump
+    if(keys['Space'] && player.onGround) {
+      player.velocity[1] = jumpSpeed;
+      player.onGround = false;
+    }
+
+    // Gravity
+    player.velocity[1] += gravity * deltaTime;
+
+    // Update position
+    let newPos = [
+      player.pos[0] + player.velocity[0]*deltaTime,
+      player.pos[1] + player.velocity[1]*deltaTime,
+      player.pos[2] + player.velocity[2]*deltaTime,
+    ];
+
+    // Collision
+    newPos = collisionCheck(newPos);
+
+    player.pos = newPos;
+
+    // Clear screen with day/night cycle
+    clearColorFromTime(timeNow*0.001);
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+
+    // Setup projection
+    const aspect = canvas.width / canvas.height;
+    const proj = perspective(Math.PI/4, aspect, 0.1, 1000);
+    gl.uniformMatrix4fv(uProjectionLoc, false, proj);
+
+    // Setup view matrix (camera)
+    const eye = add(player.pos, [0, player.height, 0]);
+    const lookDir = [
+      Math.cos(player.rot[0]) * Math.sin(player.rot[1]),
+      Math.sin(player.rot[0]),
+      Math.cos(player.rot[0]) * Math.cos(player.rot[1])
+    ];
+    const center = add(eye, lookDir);
+    const up = [0,1,0];
+    const view = lookAt(eye, center, up);
+    gl.uniformMatrix4fv(uViewLoc, false, view);
+
+    // Draw world blocks
+    for(let x=0; x<worldSizeX; x++){
+      for(let y=0; y<worldSizeY; y++){
+        for(let z=0; z<worldSizeZ; z++){
+          const b = getBlock(x,y,z);
+          if(b === 0) continue;
+
+          // Check if block is visible (at least one adjacent block air)
+          let visible = false;
+          const adjacentOffsets = [
+            [1,0,0], [-1,0,0],
+            [0,1,0], [0,-1,0],
+            [0,0,1], [0,0,-1]
+          ];
+          for(const o of adjacentOffsets){
+            if(getBlock(x+o[0], y+o[1], z+o[2]) === 0){
+              visible = true; break;
+            }
+          }
+          if(!visible) continue;
+
+          setCubeColor(b);
+
+          gl.uniform3fv(uModelPosLoc, [x, y, z]);
+          gl.drawArrays(gl.TRIANGLES, 0, 36);
+        }
+      }
+    }
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  requestAnimationFrame(gameLoop);
+
+  // === Block placing and breaking ===
+  // Left click = place block adjacent to targeted block
+  // Right click = break targeted block
+
+  canvas.addEventListener('mousedown', e => {
+    if(!pointerLocked) return;
+    if(e.button !== 0 && e.button !== 2) return;
+
+    // Raycast from eye position in look direction
+    const eye = add(player.pos, [0, player.height, 0]);
+    const lookDir = [
+      Math.cos(player.rot[0]) * Math.sin(player.rot[1]),
+      Math.sin(player.rot[0]),
+      Math.cos(player.rot[0]) * Math.cos(player.rot[1])
+    ];
+
+    const hit = raycastBlock(eye, lookDir);
+    if(!hit) return;
+
+    const {blockPos, hitPos} = hit;
+    const normal = getFaceNormal(blockPos, hitPos);
+
+    if(e.button === 0) {
+      // Left click = place block adjacent if empty
+      const placePos = add(blockPos, normal);
+      if(getBlock(...placePos) === 0) {
+        // Can't place block inside player bounding box
+        if(!pointInsidePlayer(placePos)) {
+          setBlock(...placePos, selectedBlock);
+        }
+      }
+    }
+    else if(e.button === 2) {
+      // Right click = break block if not bedrock
+      if(getBlock(...blockPos) !== 4) {
+        setBlock(...blockPos, 0);
+      }
+    }
+  });
+
+  // Prevent placing blocks inside player volume
+  function pointInsidePlayer(pos) {
+    const px = player.pos[0];
+    const py = player.pos[1];
+    const pz = player.pos[2];
+    const size = 0.3;
+    const height = player.height;
+    if(pos[0] >= px - size && pos[0] <= px + size &&
+       pos[1] >= py && pos[1] <= py + height &&
+       pos[2] >= pz - size && pos[2] <= pz + size) return true;
+    return false;
+  }
+
+  // === Save/load world to localStorage ===
+  // Save every 15 seconds
+  setInterval(() => {
+    try {
+      localStorage.setItem('minicraft_world', btoa(String.fromCharCode(...world)));
+      localStorage.setItem('minicraft_player_pos', JSON.stringify(player.pos));
+      localStorage.setItem('minicraft_player_rot', JSON.stringify(player.rot));
+      console.log('Game saved');
+    } catch(e) {
+      console.warn('Save failed:', e);
+    }
+  }, 15000);
+
+  // Load saved world on start
+  function loadGame() {
+    try {
+      const worldStr = localStorage.getItem('minicraft_world');
+      if(worldStr) {
+        const arr = Uint8Array.from(atob(worldStr), c => c.charCodeAt(0));
+        if(arr.length === world.length){
+          world.set(arr);
+        }
+      }
+      const posStr = localStorage.getItem('minicraft_player_pos');
+      if(posStr){
+        const pos = JSON.parse(posStr);
+        if(pos.length === 3){
+          player.pos = pos;
+        }
+      }
+      const rotStr = localStorage.getItem('minicraft_player_rot');
+      if(rotStr){
+        const rot = JSON.parse(rotStr);
+        if(rot.length === 2){
+          player.rot = rot;
+        }
+      }
+    } catch(e) {
+      console.warn('Load failed:', e);
+    }
+  }
+  loadGame();
+
+  // === Pointer lock instruction ===
+  // On first click on canvas, request pointer lock
+  canvas.addEventListener('click', () => {
+    if(!pointerLocked) {
+      canvas.requestPointerLock();
+    }
+  });
+
+  // === Done ===
+  updateHUD();
+
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2D Platformer with Enemies and Collectibles</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #87ceeb;
+    }
+    canvas {
+      display: block;
+      background: #d0f4f7;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const gravity = 0.6;
+    const friction = 0.8;
+
+    let score = 0;
+
+    const player = {
+      x: 100,
+      y: 0,
+      width: 40,
+      height: 40,
+      color: 'red',
+      dx: 0,
+      dy: 0,
+      speed: 4,
+      jumpPower: -12,
+      grounded: false
+    };
+
+    // Platforms array (including ground)
+    const platforms = [
+      { x: 0, y: 350, width: 800, height: 50, color: 'green' }, // ground
+      { x: 200, y: 280, width: 120, height: 10, color: '#444' },
+      { x: 400, y: 230, width: 100, height: 10, color: '#444' },
+      { x: 600, y: 180, width: 100, height: 10, color: '#444' },
+      { x: 100, y: 150, width: 80, height: 10, color: '#444' },
+      { x: 350, y: 150, width: 100, height: 10, color: 'blue' }  // moving platform
+    ];
+
+    const keys = {};
+    document.addEventListener('keydown', e => keys[e.code] = true);
+    document.addEventListener('keyup', e => keys[e.code] = false);
+
+    // Enemies (moving back and forth)
+    const enemies = [
+      { x: 250, y: 230, width: 40, height: 40, color: 'purple', dx: 1, speed: 1, direction: 1 },
+      { x: 500, y: 180, width: 40, height: 40, color: 'purple', dx: 1, speed: 1, direction: -1 }
+    ];
+
+    // Collectibles (coins)
+    const collectibles = [
+      { x: 250, y: 220, width: 20, height: 20, color: 'yellow', collected: false },
+      { x: 400, y: 120, width: 20, height: 20, color: 'yellow', collected: false },
+      { x: 600, y: 90, width: 20, height: 20, color: 'yellow', collected: false }
+    ];
+
+    function update() {
+      // Movement
+      if (keys['ArrowRight']) player.dx = player.speed;
+      else if (keys['ArrowLeft']) player.dx = -player.speed;
+      else player.dx *= friction;
+
+      if (keys['ArrowUp'] && player.grounded) {
+        player.dy = player.jumpPower;
+        player.grounded = false;
+      }
+
+      player.dy += gravity;
+      player.x += player.dx;
+      player.y += player.dy;
+
+      player.grounded = false;
+
+      // Check collision with platforms
+      for (const p of platforms) {
+        // Player collides with platform from above (jumping)
+        if (
+          player.x + player.width > p.x &&
+          player.x < p.x + p.width &&
+          player.y + player.height > p.y &&
+          player.y + player.height < p.y + p.height &&
+          player.dy >= 0
+        ) {
+          player.y = p.y - player.height;
+          player.dy = 0;
+          player.grounded = true;
+        }
+
+        // Prevent player from passing through platforms below
+        if (
+          player.x + player.width > p.x &&
+          player.x < p.x + p.width &&
+          player.y < p.y + p.height &&
+          player.y > p.y &&
+          player.dy <= 0
+        ) {
+          player.y = p.y + p.height;
+          player.dy = 0;
+        }
+
+        // Moving platform (horizontal movement)
+        if (p.color === 'blue') {
+          p.x += p.direction * p.speed;
+          if (p.x <= 200 || p.x >= 600) p.direction *= -1;  // Move between 200 and 600
+        }
+      }
+
+      // Check for collision with enemies
+      for (const e of enemies) {
+        if (
+          player.x + player.width > e.x &&
+          player.x < e.x + e.width &&
+          player.y + player.height > e.y &&
+          player.y < e.y + e.height
+        ) {
+          // Reset player position if they hit an enemy
+          player.x = 100;
+          player.y = 0;
+          player.dy = 0;
+          score -= 5; // Lose points on collision
+        }
+      }
+
+      // Check for collision with collectibles (coins)
+      for (const c of collectibles) {
+        if (
+          player.x + player.width > c.x &&
+          player.x < c.x + c.width &&
+          player.y + player.height > c.y &&
+          player.y < c.y + c.height &&
+          !c.collected
+        ) {
+          c.collected = true;
+          score += 10; // Gain points on collection
+        }
+      }
+
+      draw();
+      requestAnimationFrame(update);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw platforms
+      for (const p of platforms) {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.width, p.height);
+      }
+
+      // Draw enemies
+      for (const e of enemies) {
+        ctx.fillStyle = e.color;
+        ctx.fillRect(e.x, e.y, e.width, e.height);
+      }
+
+      // Draw collectibles (coins)
+      for (const c of collectibles) {
+        if (!c.collected) {
+          ctx.fillStyle = c.color;
+          ctx.beginPath();
+          ctx.arc(c.x + c.width / 2, c.y + c.height / 2, c.width / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // Draw player
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Display score
+      ctx.fillStyle = 'black';
+      ctx.font = '20px Arial';
+      ctx.fillText('Score: ' + score, 10, 30);
+    }
+
+    update();
+  </script>
+</body>
+</html>
+

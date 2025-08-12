@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3D Playground — Spawn Spheres, Draw, Spawn House</title>
+  <style>
+    html,body { height:100%; margin:0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; }
+    #app { height:100vh; width:100vw; overflow:hidden; position:relative }
+    #ui { position:absolute; right:12px; top:12px; z-index:3; }
+    .hint { position:absolute; left:12px; top:12px; z-index:3; background:rgba(0,0,0,0.45); color:#fff; padding:8px 10px; border-radius:6px; font-size:13px }
+    .small { font-size:12px; opacity:0.9 }
+    canvas { display:block }
+    #madeBy {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      color: #888;
+      font-size: 14px;
+      user-select: none;
+      z-index: 4;
+      font-family: monospace;
+      background: rgba(0,0,0,0.3);
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="hint">Left-click to place • Right-drag to rotate camera • Hold Shift + drag to draw • Press H to spawn house • Press C to clear</div>
+    <div id="ui"></div>
+    <div id="madeBy">chatgpt was tortured in the process of making this</div>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+      "three/": "https://unpkg.com/three@0.158.0/"
+    }
+  }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js';
+    import { GUI } from 'https://unpkg.com/lil-gui@0.18.0/dist/lil-gui.esm.min.js';
+
+    // --- Setup renderer, scene, camera ---
+    const container = document.getElementById('app');
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio || 1);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.left = '0';
+    renderer.domElement.style.top = '0';
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x20232a);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 2000);
+    camera.position.set(10, 12, 18);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    // --- Lights ---
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.7);
+    hemi.position.set(0, 50, 0);
+    scene.add(hemi);
+
+    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+    dir.position.set(5, 10, 7.5);
+    dir.castShadow = true;
+    dir.shadow.camera.left = -30;
+    dir.shadow.camera.right = 30;
+    dir.shadow.camera.top = 30;
+    dir.shadow.camera.bottom = -30;
+    dir.shadow.mapSize.set(1024,1024);
+    scene.add(dir);
+
+    // --- Ground plane & grid ---
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x324b3f, roughness:0.9 });
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), groundMat);
+    ground.rotation.x = -Math.PI/2;
+    ground.receiveShadow = true;
+    ground.name = 'ground';
+    scene.add(ground);
+
+    const grid = new THREE.GridHelper(200, 200, 0x303030, 0x202020);
+    grid.material.opacity = 0.55;
+    grid.material.transparent = true;
+    scene.add(grid);
+
+    // --- Raycaster for placing objects ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    // Object containers
+    const objects = new THREE.Group();
+    scene.add(objects);
+
+    // --- State / GUI options ---
+    const state = {
+      mode: 'spawn-sphere', // spawn-sphere | spawn-box | spawn-house | draw
+      sphereRadius: 1,
+      sphereSegments: 24,
+      color: '#ff5533',
+      houseSize: 2.5,
+      drawLineWidth: 0.08,
+      clearAll: () => clearAllObjects(),
+      exportPNG: () => exportPNG(),
+    };
+
+    const gui = new GUI({ container: document.getElementById('ui') });
+    gui.add(state, 'mode', ['spawn-sphere','spawn-box','spawn-house','draw']).name('Mode');
+    gui.add(state, 'sphereRadius', 0.1, 5, 0.1).name('Sphere radius');
+    gui.add(state, 'sphereSegments', 3, 64, 1).name('Segments');
+    gui.addColor(state, 'color').name('Color');
+    gui.add(state, 'houseSize', 0.5, 6, 0.1).name('House size');
+    gui.add(state, 'drawLineWidth', 0.01, 0.5, 0.01).name('Line width');
+    gui.add(state, 'clearAll').name('Clear all (C)');
+    gui.add(state, 'exportPNG').name('Export PNG');
+
+    // --- Helpers ---
+    function spawnSphere(position){
+      const geo = new THREE.SphereGeometry(state.sphereRadius, Math.max(3, Math.floor(state.sphereSegments)), Math.max(2, Math.floor(state.sphereSegments/2)));
+      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(state.color), metalness:0.1, roughness:0.6 });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(position);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.userData.type = 'sphere';
+      objects.add(mesh);
+      return mesh;
+    }
+
+    function spawnBox(position){
+      const size = state.sphereRadius*1.5;
+      const geo = new THREE.BoxGeometry(size, size, size);
+      const mat = new THREE.MeshStandardMaterial({ color: new THREE.Color(state.color) });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.position.copy(position).setY(position.y + size/2);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      objects.add(mesh);
+      mesh.userData.type = 'box';
+      return mesh;
+    }
+
+    function spawnHouse(position){
+      const s = state.houseSize;
+      const baseGeo = new THREE.BoxGeometry(s, s*0.6, s);
+      const baseMat = new THREE.MeshStandardMaterial({ color: 0xffe6a2 });
+      const base = new THREE.Mesh(baseGeo, baseMat);
+      base.position.copy(position).setY(position.y + (s*0.6)/2);
+      base.castShadow = true;
+      base.receiveShadow = true;
+
+      // roof (simple pyramid)
+      const roofGeo = new THREE.ConeGeometry(s*0.9, s*0.6, 4);
+      const roofMat = new THREE.MeshStandardMaterial({ color: 0x8b2e2e });
+      const roof = new THREE.Mesh(roofGeo, roofMat);
+      roof.position.copy(position).setY(position.y + s*0.6 + (s*0.3));
+      roof.rotation.y = Math.PI/4;
+      roof.castShadow = true;
+
+      const house = new THREE.Group();
+      house.add(base, roof);
+      house.userData.type = 'house';
+      objects.add(house);
+
+      return house;
+    }
+
+    // Recursively remove and dispose of objects (fixes leftover memory / materials)
+    function disposeObject(obj){
+      for (let i = obj.children.length - 1; i >= 0; --i){
+        disposeObject(obj.children[i]);
+        obj.remove(obj.children[i]);
+      }
+      if (obj.geometry) { obj.geometry.dispose(); }
+      if (obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach(m=>{ if (m.dispose) m.dispose(); });
+        else if (obj.material.dispose) obj.material.dispose();
+      }
+    }
+
+    function clearAllObjects(){
+      while(objects.children.length) {
+        const o = objects.children[0];
+        objects.remove(o);
+        disposeObject(o);
+      }
+    }
+
+    // --- Drawing lines ---
+    let drawing = false;
+    let currentLine = null;
+    let currentLinePoints = null;
+
+    function startLine(position){
+      currentLinePoints = [position.clone()];
+      const mat = new THREE.LineBasicMaterial({ color: new THREE.Color(state.color), linewidth: state.drawLineWidth });
+      const geom = new THREE.BufferGeometry().setFromPoints(currentLinePoints);
+      const line = new THREE.Line(geom, mat);
+      line.userData.type = 'line';
+      objects.add(line);
+      currentLine = line;
+    }
+
+    function extendLine(position){
+      if (!currentLine) return;
+      const last = currentLinePoints[currentLinePoints.length-1];
+      if (last.distanceTo(position) < 0.05) return;
+      currentLinePoints.push(position.clone());
+      currentLine.geometry.setFromPoints(currentLinePoints);
+    }
+
+    function finishLine(){
+      currentLine = null;
+      currentLinePoints = null;
+    }
+
+    // Mouse handlers
+    function getMousePosition(event){
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function intersectGround(){
+      raycaster.setFromCamera(mouse, camera);
+      const hits = raycaster.intersectObject(ground, false);
+      if (hits.length) return hits[0].point.clone();
+      return null;
+    }
+
+    // --- New variables to track drag vs click ---
+    let pointerDownPos = null;
+    let dragging = false;
+    let isPointerDown = false;
+
+    // Input behavior: left click places depending on mode, shift-drag to draw
+    renderer.domElement.addEventListener('pointerdown', (ev) => {
+      isPointerDown = true;
+      pointerDownPos = { x: ev.clientX, y: ev.clientY };
+      dragging = false;
+      getMousePosition(ev);
+    });
+
+    renderer.domElement.addEventListener('pointermove', (ev) => {
+      if (!pointerDownPos) return;
+      const dx = ev.clientX - pointerDownPos.x;
+      const dy = ev.clientY - pointerDownPos.y;
+      const distSq = dx*dx + dy*dy;
+      if (distSq > 25) dragging = true;
+      getMousePosition(ev);
+      const pos = intersectGround();
+      if (!pos) return;
+      if (drawing) {
+        extendLine(pos);
+      }
+    });
+
+    renderer.domElement.addEventListener('pointerup', (ev) => {
+      isPointerDown = false;
+      if (drawing) finishLine();
+      if (!dragging) {
+        const pos = intersectGround();
+        if (!pos) return;
+        if (state.mode === 'spawn-sphere' && ev.button === 0 && !ev.shiftKey) {
+          spawnSphere(pos.setY(pos.y + state.sphereRadius));
+        } else if (state.mode === 'spawn-box' && ev.button === 0 && !ev.shiftKey) {
+          spawnBox(pos);
+        } else if (state.mode === 'spawn-house' && ev.button === 0 && !ev.shiftKey) {
+          spawnHouse(pos);
+        }
+      }
+      drawing = false;
+      pointerDownPos = null;
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      if (k === 'c') clearAllObjects();
+      if (k === 'h') {
+        // spawn house roughly 8 units ahead, but with random offset so not exactly center
+        const dir = new THREE.Vector3();
+        camera.getWorldDirection(dir);
+
+        const pos = camera.position.clone().add(dir.multiplyScalar(8));
+        pos.y = 0;
+
+        pos.x += (Math.random() - 0.5) * 4; 
+        pos.z += (Math.random() - 0.5) * 4;
+
+        spawnHouse(pos);
+      }
+    });
+
+    // Resize handling
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Select objects with double click (remove)
+    renderer.domElement.addEventListener('dblclick', (ev) => {
+      getMousePosition(ev);
+      raycaster.setFromCamera(mouse, camera);
+      const hit = raycaster.intersectObjects(objects.children, true)[0];
+      if (hit) {
+        let removable = hit.object;
+        while (removable && removable.parent !== objects) removable = removable.parent;
+        if (!removable) removable = hit.object;
+        objects.remove(removable);
+        disposeObject(removable);
+      }
+    });
+
+    // Export PNG
+    function exportPNG(){
+      renderer.render(scene, camera);
+      const data = renderer.domElement.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = data;
+      a.download = 'scene.png';
+      a.click();
+    }
+
+    // Animation loop
+    function animate(){
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // initial demo objects
+    spawnSphere(new THREE.Vector3(0, 1.2, 0));
+    spawnHouse(new THREE.Vector3(5,0, -4));
+    spawnBox(new THREE.Vector3(-4,0,3));
+
+    // Prevent context menu on right click for smoother controls
+    renderer.domElement.addEventListener('contextmenu', (ev)=>ev.preventDefault());
+
+  </script>
+</body>
+</html>

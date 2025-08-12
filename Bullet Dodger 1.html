@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bullet Dodger 1</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background-color: #111;
+      color: white;
+      margin: 0;
+      overflow: hidden;
+    }
+    canvas {
+      background: black;
+      display: block;
+      margin: auto;
+      border: 3px solid white;
+    }
+    #menu, #pauseMenu {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid white;
+    }
+    button {
+      padding: 10px 15px;
+      font-size: 16px;
+      margin: 5px;
+      cursor: pointer;
+      background: #444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+    button:hover {
+      background: #666;
+    }
+    #controls {
+      position: absolute;
+      bottom: 10px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      z-index: 5;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>Bullet Dodger 1</h1>
+    <p style="color: gray; font-size: 16px; margin-top: -10px;">v1.3</p>
+    <label>Enter Name:</label>
+    <input type="text" id="playerName" placeholder="Player 1"><br><br>
+    <label>Choose Starting Level:</label>
+    <input type="number" id="levelInput" value="1" min="1"><br><br>
+    <button onclick="startGame(false)">Start Normal</button>
+    <button onclick="startGame(true)">Start Hardcore</button>
+  </div>
+
+  <div id="pauseMenu" style="display: none;">
+    <h2>Paused</h2>
+    <button onclick="resumeGame()">Resume</button>
+    <button onclick="quitGame()">Quit</button>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- On-Screen Controls -->
+  <div id="controls" style="display: none;">
+    <button onclick="move('up')">⬆</button>
+    <div>
+      <button onclick="move('left')">⬅</button>
+      <button onclick="pauseToggle()">⏯</button>
+      <button onclick="move('right')">➡</button>
+    </div>
+    <button onclick="move('down')">⬇</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = 800;
+    canvas.height = 500;
+
+    let player = { x: 375, y: 250, size: 20, speed: 5 };
+    let bullets = [];
+    let score = 0;
+    let playing = false;
+    let paused = false;
+    let level = 1;
+    let playerName = "Player 1";
+    let hardcoreMode = false;
+
+    function startGame(isHardcore) {
+      playerName = document.getElementById("playerName").value || "Player 1";
+      level = parseInt(document.getElementById("levelInput").value);
+      score = 0;
+      bullets = [];
+      playing = true;
+      paused = false;
+      hardcoreMode = isHardcore;
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("pauseMenu").style.display = "none";
+      document.getElementById("controls").style.display = "flex";
+      canvas.style.display = "block";
+      spawnBullets();
+      gameLoop();
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = "yellow";
+      ctx.fillRect(player.x, player.y, player.size, player.size);
+    }
+
+    function drawBullets() {
+      ctx.fillStyle = "red";
+      bullets.forEach(bullet => ctx.fillRect(bullet.x, bullet.y, bullet.size, bullet.size));
+    }
+
+    function moveBullets() {
+      bullets.forEach((bullet, index) => {
+        bullet.x += bullet.dx;
+        bullet.y += bullet.dy;
+        if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+          bullets.splice(index, 1);
+        }
+      });
+    }
+
+    function spawnBullets() {
+      if (!playing || paused) return;
+
+      const speed = (2 + level * 0.5) * (hardcoreMode ? 1.5 : 1);
+      const dx = speed * (Math.random() > 0.5 ? 1 : -1);
+      const dy = speed * (Math.random() > 0.5 ? 1 : -1);
+
+      bullets.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        dx,
+        dy,
+        size: 15
+      });
+
+      const spawnRate = hardcoreMode ? Math.max(600 - level * 40, 150) : Math.max(800 - level * 30, 200);
+      setTimeout(spawnBullets, spawnRate);
+    }
+
+    function checkCollisions() {
+      bullets.forEach((bullet) => {
+        if (
+          player.x < bullet.x + bullet.size &&
+          player.x + player.size > bullet.x &&
+          player.y < bullet.y + bullet.size &&
+          player.y + player.size > bullet.y
+        ) {
+          endGame();
+        }
+      });
+    }
+
+    function updateScore() {
+      if (!paused) {
+        score++;
+        if (score % 100 === 0) level++;
+      }
+    }
+
+    function endGame() {
+      playing = false;
+      alert(`${playerName} got hit! Final Score: ${score} | Level Reached: ${level}`);
+      document.getElementById("menu").style.display = "block";
+      document.getElementById("controls").style.display = "none";
+      canvas.style.display = "none";
+    }
+
+    function gameLoop() {
+      if (!playing) return;
+      if (paused) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawPlayer();
+      drawBullets();
+      moveBullets();
+      checkCollisions();
+      updateScore();
+
+      ctx.fillStyle = "white";
+      ctx.font = "20px Arial";
+      ctx.fillText(`${playerName} | Score: ${score} | Level: ${level} | ${hardcoreMode ? "HARDCORE" : "NORMAL"}`, 20, 30);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function pauseGame() {
+      paused = true;
+      document.getElementById("pauseMenu").style.display = "block";
+    }
+
+    function resumeGame() {
+      paused = false;
+      document.getElementById("pauseMenu").style.display = "none";
+      gameLoop();
+    }
+
+    function quitGame() {
+      playing = false;
+      paused = false;
+      document.getElementById("pauseMenu").style.display = "none";
+      document.getElementById("menu").style.display = "block";
+      document.getElementById("controls").style.display = "none";
+      canvas.style.display = "none";
+    }
+
+    function pauseToggle() {
+      if (paused) resumeGame();
+      else pauseGame();
+    }
+
+    function move(dir) {
+      if (!playing || paused) return;
+      if (dir === "left") player.x = Math.max(0, player.x - player.speed);
+      if (dir === "right") player.x = Math.min(canvas.width - player.size, player.x + player.speed);
+      if (dir === "up") player.y = Math.max(0, player.y - player.speed);
+      if (dir === "down") player.y = Math.min(canvas.height - player.size, player.y + player.speed);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") move("left");
+      if (e.key === "ArrowRight") move("right");
+      if (e.key === "ArrowUp") move("up");
+      if (e.key === "ArrowDown") move("down");
+      if (e.key === "p" || e.key === "P") pauseToggle();
+    });
+  </script>
+  
+  <div id="footer">
+    <p>
+      <a href="https://www.youtube.com/@karemeon">youtube: kareemi ismail</a> |  
+      <a href="https://kareemiismail.itch.io/" target="_blank">itch.io: karemeon</a>
+    </p>
+  </div>
+</body>
+</html>

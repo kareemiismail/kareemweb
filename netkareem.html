@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NetKareem</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f0f8ff;
+      padding: 2rem;
+    }
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    select, input, button {
+      font-size: 1rem;
+      margin: 0.5rem;
+      padding: 0.5rem;
+    }
+    #feedback {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+    #musicBtn {
+      background: #eee;
+      border: none;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>NetKareem</h1>
+
+    <label for="grade">Select Grade:</label>
+    <select id="grade">
+      <option value="K">0 - Kindergarten</option>
+      <option value="1">1 - Grade 1</option>
+      <option value="2">2 - Grade 2</option>
+      <option value="3">3 - Grade 3</option>
+      <option value="4">4 - Grade 4</option>
+      <option value="5">5 - Grade 5</option>
+      <option value="6">6 - Grade 6</option>
+    </select>
+    <br>
+    <button onclick="generateQuestion()">Generate Question</button>
+    <div id="questionBox" style="margin-top: 1rem;"></div>
+    <input type="number" id="answer" placeholder="Your answer" />
+    <button onclick="checkAnswer()">Check Answer</button>
+    <div id="feedback"></div>
+    <button id="musicBtn" onclick="toggleMusic()">Play Music 🎵</button>
+  </div>
+
+  <!-- Sound and music files -->
+  <audio id="bgMusic" loop>
+    <source src="bgmusic.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="correctSound">
+    <source src="correct.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="wrongSound">
+    <source src="wrong.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    let correctAnswer = null;
+    let musicPlaying = false;
+    const music = document.getElementById('bgMusic');
+    const correctSound = document.getElementById('correctSound');
+    const wrongSound = document.getElementById('wrongSound');
+    const musicBtn = document.getElementById('musicBtn');
+
+    function getRandomInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function generateQuestion() {
+      let grade = document.getElementById('grade').value;
+      let num1, num2, operator;
+
+      switch (grade) {
+        case 'K': num1 = getRandomInt(1, 5); num2 = getRandomInt(1, 5); operator = '+'; break;
+        case '1': num1 = getRandomInt(1, 10); num2 = getRandomInt(1, 10); operator = '+'; break;
+        case '2': case '3':
+          num1 = getRandomInt(5, 15); num2 = getRandomInt(1, 10);
+          operator = ['+', '-'][getRandomInt(0, 1)];
+          break;
+        case '4': case '5':
+          num1 = getRandomInt(2, 15); num2 = getRandomInt(2, 15);
+          operator = ['+', '-', '*'][getRandomInt(0, 2)];
+          break;
+        case '6':
+          num1 = getRandomInt(2, 20); num2 = getRandomInt(2, 10);
+          operator = ['+', '-', '*', '/'][getRandomInt(0, 3)];
+          break;
+      }
+
+      if (operator === '+') correctAnswer = num1 + num2;
+      else if (operator === '-') correctAnswer = num1 - num2;
+      else if (operator === '*') correctAnswer = num1 * num2;
+      else if (operator === '/') {
+        correctAnswer = num1;
+        num1 = num1 * num2;
+      }
+
+      // If answer would be negative, make it a Grade 6 question instead
+      if (correctAnswer < 0) {
+        grade = '6';
+        num1 = getRandomInt(10, 50); num2 = getRandomInt(1, 20);
+        operator = ['+', '-', '*', '/'][getRandomInt(0, 3)];
+        if (operator === '+') correctAnswer = num1 + num2;
+        else if (operator === '-') correctAnswer = num1 - num2;
+        else if (operator === '*') correctAnswer = num1 * num2;
+        else if (operator === '/') {
+          correctAnswer = num1;
+          num1 = num1 * num2;
+        }
+      }
+
+      document.getElementById('questionBox').innerText = `Grade ${grade} Question: What is ${num1} ${operator} ${num2}?`;
+      document.getElementById('feedback').innerText = '';
+      document.getElementById('answer').value = '';
+    }
+
+    function checkAnswer() {
+      const userAnswer = Number(document.getElementById('answer').value);
+      const feedback = document.getElementById('feedback');
+      if (userAnswer === correctAnswer) {
+        feedback.innerText = "Correct! 🎉";
+        feedback.style.color = "green";
+        correctSound.play();
+      } else {
+        feedback.innerText = `Incorrect. The correct answer was ${correctAnswer}.`;
+        feedback.style.color = "red";
+        wrongSound.play();
+      }
+    }
+
+    function toggleMusic() {
+      if (musicPlaying) {
+        music.pause();
+        musicBtn.innerText = "Play Music 🎵";
+      } else {
+        music.play();
+        musicBtn.innerText = "Pause Music 🔇";
+      }
+      musicPlaying = !musicPlaying;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Pictures",
+  "productName": "Pictures",
+  "description": "My Electron application description",
+  "keywords": [],
+  "main": "./main.js",
+  "version": "1.0.0",
+  "author": "ismailk",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "electron": "35.0.0"
+  }
+}

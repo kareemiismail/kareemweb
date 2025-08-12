@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Solar System Evolved</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+    }
+    canvas {
+      display: block;
+    }
+    #ui {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-family: sans-serif;
+      color: white;
+      z-index: 2;
+    }
+    .btn {
+      background: #222;
+      color: white;
+      border: 1px solid #555;
+      padding: 6px 12px;
+      margin-right: 5px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .btn.active {
+      background: #444;
+      border-color: #999;
+    }
+  </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div id="ui">
+  <button class="btn active" id="sunBtn">☀️ Sun Mode</button>
+  <button class="btn" id="planetBtn">🪐 Planet Mode</button>
+  <button class="btn" id="deleteBtn">❌ Delete Mode</button>
+</div>
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let mode = "sun";
+const buttons = {
+  sun: document.getElementById("sunBtn"),
+  planet: document.getElementById("planetBtn"),
+  delete: document.getElementById("deleteBtn")
+};
+
+Object.keys(buttons).forEach(m => {
+  buttons[m].addEventListener("click", () => {
+    mode = m;
+    Object.values(buttons).forEach(b => b.classList.remove("active"));
+    buttons[m].classList.add("active");
+  });
+});
+
+const planetNames = ["Zarno", "Krell", "Vortax", "Xena", "Lumora", "Drakos", "Aeon", "Targon", "Omira", "Zephra"];
+function getName(prefix) {
+  return prefix + Math.floor(Math.random() * 100);
+}
+
+let suns = [], debris = [], stars = [];
+for (let i = 0; i < 400; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    size: Math.random() * 1.5,
+    color: `hsl(${Math.random() * 360}, 50%, 70%)`
+  });
+}
+
+canvas.addEventListener("click", (e) => {
+  const x = e.clientX, y = e.clientY;
+  for (let s of suns) {
+    const dx = x - s.x, dy = y - s.y, dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < s.radius + 10) {
+      if (mode === "delete") {
+        suns = suns.filter(sun => sun !== s);
+        return;
+      } else if (mode === "planet") {
+        const distance = 80 + s.planets.length * 50;
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 0.004 + Math.random() * 0.003;
+        const name = getName(planetNames[Math.floor(Math.random() * planetNames.length)]);
+        const isGas = Math.random() < 0.5;
+        const color = isGas ? `hsl(${Math.random() * 360}, 80%, 60%)` : `hsl(${Math.random() * 360}, 30%, 50%)`;
+        const radius = isGas ? 18 + Math.random() * 10 : 8 + Math.random() * 5;
+        const moons = !isGas ? Array.from({length: Math.floor(Math.random() * 3)}, (_, j) => ({
+          distance: 15 + j * 10,
+          angle: Math.random() * Math.PI * 2,
+          speed: 0.02 + Math.random() * 0.02,
+          radius: 3 + Math.random() * 2,
+          color: "gray",
+          name: getName("Moon")
+        })) : [];
+        const isHabitable = !isGas && distance >= 100 && distance <= 200;
+        const hasAliens = isHabitable && Math.random() < 0.1;
+        s.planets.push({ distance, angle, speed, radius, color, name, moons, exploded: false, isGas, isHabitable, hasAliens });
+        return;
+      }
+    }
+    for (let p of s.planets) {
+      const px = s.x + p.distance * Math.cos(p.angle);
+      const py = s.y + p.distance * Math.sin(p.angle);
+      if (Math.sqrt((px - x) ** 2 + (py - y) ** 2) < p.radius + 5 && !p.exploded) {
+        p.exploded = true;
+        for (let i = 0; i < 20; i++) {
+          debris.push({
+            x: px, y: py,
+            dx: (Math.random() - 0.5) * 4,
+            dy: (Math.random() - 0.5) * 4,
+            size: 2 + Math.random() * 2,
+            life: 200,
+            color: p.color,
+            originX: px, originY: py,
+            originSun: s,
+            originalMoons: p.moons
+          });
+        }
+      }
+    }
+  }
+  if (mode === "sun") suns.push({ x, y, radius: 20, color: "yellow", planets: [] });
+});
+
+function createReformedPlanet(x, y, sun, moons) {
+  const angle = Math.atan2(y - sun.y, x - sun.x);
+  const distance = Math.sqrt((x - sun.x) ** 2 + (y - sun.y) ** 2);
+  sun.planets.push({
+    distance, angle, speed: 0.004,
+    radius: 15 + Math.random() * 5,
+    color: "orange",
+    name: getName("Neo"),
+    moons: moons || [],
+    exploded: false,
+    isGas: false,
+    isHabitable: distance >= 100 && distance <= 200,
+    hasAliens: Math.random() < 0.2
+  });
+}
+
+function drawStars() {
+  for (let s of stars) {
+    ctx.fillStyle = s.color;
+    ctx.fillRect(s.x, s.y, s.size, s.size);
+  }
+}
+
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawStars();
+  debris.forEach((d, i) => {
+    d.life--;
+    d.x += d.dx;
+    d.y += d.dy;
+    if (d.life < 50) {
+      d.dx += (d.originX - d.x) * 0.001;
+      d.dy += (d.originY - d.y) * 0.001;
+    }
+    ctx.fillStyle = d.color;
+    ctx.fillRect(d.x, d.y, d.size, d.size);
+    if (d.life <= 0) {
+      createReformedPlanet(d.originX, d.originY, d.originSun, d.originalMoons);
+      debris.splice(i, 1);
+    }
+  });
+  suns.forEach(sun => {
+    ctx.beginPath();
+    ctx.arc(sun.x, sun.y, 20, 0, Math.PI * 2);
+    ctx.fillStyle = sun.color;
+    ctx.fill();
+    ctx.strokeStyle = "rgba(0,255,0,0.2)";
+    ctx.lineWidth = 100;
+    ctx.beginPath();
+    ctx.arc(sun.x, sun.y, 150, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.lineWidth = 1;
+    sun.planets.forEach(p => {
+      if (p.exploded) return;
+      p.angle += p.speed;
+      const px = sun.x + p.distance * Math.cos(p.angle);
+      const py = sun.y + p.distance * Math.sin(p.angle);
+      ctx.beginPath();
+      ctx.arc(px, py, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.strokeStyle = "rgba(255,255,255,0.05)";
+      ctx.beginPath();
+      ctx.arc(sun.x, sun.y, p.distance, 0, Math.PI * 2);
+      ctx.stroke();
+      let label = p.name;
+      if (p.isHabitable) label += " (Habitable)";
+      if (p.hasAliens) label += " 👽";
+      ctx.fillStyle = p.isHabitable ? "#0f0" : "white";
+      ctx.font = "12px sans-serif";
+      ctx.fillText(label, px - 25, py - p.radius - 6);
+      p.moons.forEach(m => {
+        m.angle += m.speed;
+        const mx = px + m.distance * Math.cos(m.angle);
+        const my = py + m.distance * Math.sin(m.angle);
+        ctx.beginPath();
+        ctx.arc(mx, my, m.radius, 0, Math.PI * 2);
+        ctx.fillStyle = m.color;
+        ctx.fill();
+        ctx.fillStyle = "lightgray";
+        ctx.font = "10px sans-serif";
+        ctx.fillText(m.name, mx - 10, my - m.radius - 4);
+      });
+    });
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
