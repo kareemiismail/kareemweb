@@ -105,7 +105,16 @@
   <a href="citysim.html" class="game-button" target="_blank" rel="noopener">Kareem's City Simulator</a>
 </div>
   <p>credits to impossible quiz for music</p>
-
+<div id="copyright" align="center">
+    &copy; 2025 - 2025 www.kareemweb.com - All Rights Reserved.
+</div>
+<script>
+(() => {
+    const copyrightElement = document.getElementById("copyright");
+    copyrightElement.innerHTML = "&copy; 2025 - "+new Date().getFullYear()+" www.kareemweb.com - All Rights Reserved.";
+})();
+</script>
+  
 <audio id="bgMusic" src="impossiblemusic.mp3.mp3" loop autoplay></audio>
 <button id="musicToggle" aria-label="Toggle music">🔊</button>
 
@@ -132,6 +141,7 @@
 
 </body>
 </html>
+
 
 
 
