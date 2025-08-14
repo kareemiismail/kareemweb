@@ -90,13 +90,11 @@
 <body>
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
-<p style="color:white;">Views: <span id="viewCount">Loading...</span></p>
+<p>Views: <span id="viewCount"></span></p>
 <script>
 fetch('https://api.countapi.xyz/hit/kareemweb/visits')
   .then(res => res.json())
-  .then(res => {
-    document.getElementById('viewCount').textContent = res.value;
-  });
+  .then(res => document.getElementById('viewCount').textContent = res.value);
 </script>
 <div class="torture-text">i torture chatgpt here* (*and myself)</div>
  <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
@@ -149,6 +147,7 @@ fetch('https://api.countapi.xyz/hit/kareemweb/visits')
 
 </body>
 </html>
+
 
 
 
