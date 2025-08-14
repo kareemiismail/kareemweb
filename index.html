@@ -126,7 +126,7 @@
 
 <script>
   const container = document.getElementById('visit-counter');
-  const DIGITS = 10;
+  const DIGITS = 15; // number of digits
   let currentNumber = Array(DIGITS).fill(0);
 
   // Create digit elements
@@ -141,39 +141,34 @@
     digits.push(span);
   }
 
-  async function fetchCount() {
+  async function updateCounter() {
     try {
+      // Increment the counter on CountAPI
       const response = await fetch('https://api.countapi.xyz/hit/kareemweb/visits');
       const data = await response.json();
-      return data.value.toString().padStart(DIGITS, '0').split('').map(Number);
+      let newNumber = data.value.toString().padStart(DIGITS, '0').split('').map(Number);
+
+      newNumber.forEach((num, i) => {
+        if (num !== currentNumber[i]) {
+          // Flip animation
+          digits[i].parentElement.classList.add('flip');
+          setTimeout(() => {
+            digits[i].textContent = num;
+            digits[i].parentElement.classList.remove('flip');
+          }, 150);
+        }
+      });
+
+      currentNumber = newNumber;
     } catch (err) {
       console.error('Failed to fetch counter:', err);
-      return Array(DIGITS).fill(0);
     }
   }
 
-  async function updateCounter() {
-    const newNumber = await fetchCount();
-
-    newNumber.forEach((num, i) => {
-      if (num !== currentNumber[i]) {
-        // Animate flip
-        digits[i].parentElement.classList.add('flip');
-        setTimeout(() => {
-          digits[i].textContent = num;
-          digits[i].parentElement.classList.remove('flip');
-        }, 150);
-      }
-    });
-
-    currentNumber = newNumber;
-  }
-
+  // Update immediately on page load
   updateCounter();
-
-  // Optional: refresh every 10 seconds
-  setInterval(updateCounter, 10000);
 </script>
+
 
 
 <div class="torture-text">i torture chatgpt here* (*and myself)</div>
@@ -227,6 +222,7 @@
 
 </body>
 </html>
+
 
 
 
