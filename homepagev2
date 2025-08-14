@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KareemWeb - Homepage V2</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #111;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    margin: 30px 0;
+    font-size: 2rem;
+    text-align: center;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    width: 90%;
+    max-width: 1000px;
+    margin-bottom: 50px;
+  }
+  .card {
+    background: #222;
+    border-radius: 10px;
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+  }
+  .thumb {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: #444;
+  }
+  .title {
+    padding: 10px;
+    font-size: 1rem;
+  }
+</style>
+</head>
+<body>
+  <h1>Welcome to KareemWeb</h1>
+  <div class="grid">
+    <a href="2dPlat.html" class="card">
+      <img src="2d platformer.png" alt="2D Platformer" class="thumb" />
+      <div class="title">2D Platformer</div>
+    </a>
+    <a href="Bullet Dodger 1.html" class="card">
+      <img src="bullet photot.png" alt="Bullet Dodger" class="thumb" />
+      <div class="title">Bullet Dodger</div>
+    </a>
+    <a href="Tsunami Survival!.html" class="card">
+      <img src="algonquin.png" alt="Tsunami Survival" class="thumb" />
+      <div class="title">Tsunami Survival</div>
+    </a>
+    <a href="citysim.html" class="card">
+      <div class="thumb"></div>
+      <div class="title">City Simulator</div>
+    </a>
+    <a href="netkareem.html" class="card">
+      <img src="netkareem photo.png" alt="NetKareem" class="thumb" />
+      <div class="title">NetKareem</div>
+    </a>
+    <a href="minecraft.html" class="card">
+      <img src="stone.png" alt="Minecraft" class="thumb" />
+      <div class="title">Minecraft</div>
+    </a>
+    <a href="solar.html" class="card">
+      <img src="solar photo.png" alt="Solar" class="thumb" />
+      <div class="title">Solar</div>
+    </a>
+    <a href="the thing.html" class="card">
+      <div class="thumb"></div>
+      <div class="title">The Thing</div>
+    </a>
+    <a href="vidtube.html" class="card">
+      <img src="vidtube.png" alt="Vidtube" class="thumb" />
+      <div class="title">Vidtube</div>
+    </a>
+    <a href="about me.html" class="card">
+      <div class="thumb"></div>
+      <div class="title">About Me</div>
+    </a>
+  </div>
+</body>
+</html>
