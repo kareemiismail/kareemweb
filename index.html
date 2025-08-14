@@ -90,12 +90,47 @@
 <body>
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
-<p>Views: <span id="viewCount"></span></p>
+<div id="visit-counter" style="display:inline-block;"></div>
+
 <script>
-fetch('https://api.countapi.xyz/hit/kareemweb/visits')
-  .then(res => res.json())
-  .then(res => document.getElementById('viewCount').textContent = res.value);
+  // Counter container
+  const container = document.getElementById('visit-counter');
+
+  // Styles specific to the counter
+  const style = document.createElement('style');
+  style.textContent = `
+    #visit-counter {
+      font-family: 'Courier New', monospace;
+      font-size: 2em;
+      letter-spacing: 0.1em;
+      background: #000;
+      color: #0f0;
+      padding: 5px 15px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px #0f0;
+      display: inline-block;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Fetch and display the counter
+  async function updateCounter() {
+    try {
+      const response = await fetch('https://api.countapi.xyz/hit/kareemweb/visits');
+      const data = await response.json();
+      let count = data.value;
+      // Pad the number to 10 digits with leading zeros
+      container.textContent = count.toString().padStart(10, '0');
+    } catch (err) {
+      container.textContent = '0000000001';
+      console.error('Failed to fetch counter:', err);
+    }
+  }
+
+  updateCounter();
 </script>
+
+
 <div class="torture-text">i torture chatgpt here* (*and myself)</div>
  <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
 <div class="gallery">
@@ -147,6 +182,7 @@ fetch('https://api.countapi.xyz/hit/kareemweb/visits')
 
 </body>
 </html>
+
 
 
 
