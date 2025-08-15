@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banana World</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #fffae5;
+    font-family: Arial, sans-serif;
+  }
+  #startBtn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 24px;
+    padding: 15px 30px;
+    cursor: pointer;
+    background: gold;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px #d4af37;
+  }
+  .banana {
+    position: absolute;
+    width: 50px;
+    height: auto;
+    cursor: grab;
+  }
+  #bananaMan {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    width: 80px;
+    height: auto;
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<button id="startBtn">Start</button>
+<audio id="music" src="banana.mp3"></audio>
+
+<img id="bananaMan" src="banana-man.png" style="display:none;"> <!-- Half-peeled banana avatar -->
+
+<script>
+const startBtn = document.getElementById('startBtn');
+const music = document.getElementById('music');
+const bananaMan = document.getElementById('bananaMan');
+
+let bananaManX = window.innerWidth / 2;
+let keys = {};
+
+function createBanana() {
+    const banana = document.createElement('img');
+    banana.src = 'banana.png'; // Your banana image
+    banana.className = 'banana';
+    banana.style.left = Math.random() * window.innerWidth + 'px';
+    banana.style.top = '-60px';
+    document.body.appendChild(banana);
+
+    let fallSpeed = 2 + Math.random() * 5;
+    let isDragging = false;
+    let offsetX = 0, offsetY = 0;
+
+    // Drag start
+    banana.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        offsetX = e.clientX - banana.getBoundingClientRect().left;
+        offsetY = e.clientY - banana.getBoundingClientRect().top;
+        banana.style.cursor = 'grabbing';
+    });
+
+    // Drag end
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        banana.style.cursor = 'grab';
+    });
+
+    // Drag move
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            banana.style.left = (e.clientX - offsetX) + 'px';
+            banana.style.top = (e.clientY - offsetY) + 'px';
+        }
+    });
+
+    function fall() {
+        if (!isDragging) {
+            let topPos = parseFloat(banana.style.top);
+            banana.style.top = topPos + fallSpeed + 'px';
+        }
+        if (parseFloat(banana.style.top) < window.innerHeight) {
+            requestAnimationFrame(fall);
+        } else {
+            banana.remove();
+        }
+    }
+    fall();
+}
+
+// Keyboard controls for banana man
+window.addEventListener('keydown', (e) => keys[e.key] = true);
+window.addEventListener('keyup', (e) => keys[e.key] = false);
+
+function moveBananaMan() {
+    if (keys['ArrowLeft'] || keys['a']) bananaManX -= 5;
+    if (keys['ArrowRight'] || keys['d']) bananaManX += 5;
+    bananaMan.style.left = bananaManX + 'px';
+    requestAnimationFrame(moveBananaMan);
+}
+
+startBtn.addEventListener('click', () => {
+    startBtn.style.display = 'none';
+    bananaMan.style.display = 'block';
+    music.play();
+    setInterval(createBanana, 100); // Rain bananas
+    moveBananaMan();
+});
+</script>
+
+</body>
+</html>
