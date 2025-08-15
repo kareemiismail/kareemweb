@@ -3,7 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" type="image/png" href="k man.apng.png">
+  
+<link id="favicon" rel="icon" href="frame1.png">
+
+<script>
+const frames = ['frame1.png', 'frame2.png', 'frame3.png']; // add all your frames
+let i = 0;
+
+setInterval(() => {
+    document.getElementById('favicon').href = frames[i % frames.length];
+    i++;
+}, 150); // 150ms per frame, adjust speed as needed
+</script>
+
 <title>KareemWeb</title>
 <style>
   @keyframes rainbowBG {
@@ -144,6 +156,7 @@
 
 </body>
 </html>
+
 
 
 
