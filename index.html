@@ -125,13 +125,13 @@ setInterval(() => {
     left: 0;
     width: 100%;
     height: 100%;
-    pointer-events: none; 
+    pointer-events: none; /* clicks pass through */
     z-index: 9999;
   }
   .canada-side {
     position: absolute;
     top: 0;
-    width: 270px;
+    width: 270px; /* match GIF width */
     height: 100%;
     background-image: url('Canada.gif');
     background-repeat: repeat-y;
@@ -142,6 +142,8 @@ setInterval(() => {
   }
   .canada-side.right {
     right: 0;
+    transform: scaleX(-1);       /* flip horizontally */
+    transform-origin: center;    /* pivot for flip */
   }
 </style>
 </head>
@@ -205,6 +207,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
