@@ -102,7 +102,6 @@ setInterval(() => {
   .game-button:hover {
     box-shadow: 0 0 18px 4px rgba(255,255,255,0.7);
   }
-  /* Music controls button */
   #musicToggle {
     position: fixed;
     bottom: 20px;
@@ -120,15 +119,43 @@ setInterval(() => {
   #musicToggle:hover {
     background: rgba(255 255 255 / 0.9);
   }
+  .canada-sides {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* so clicks pass through */
+    z-index: 9999; /* on top */
+  }
+  .canada-side {
+    position: absolute;
+    top: 0;
+    width: 100px; /* match your GIF width */
+    height: 100%;
+    background-image: url('Canada.gif');
+    background-repeat: repeat-y;
+    background-position: center;
+  }
+  .canada-side.left {
+    left: 0;
+  }
+  .canada-side.right {
+    right: 0;
+  }
 </style>
 </head>
 <body>
+<div class="canada-sides">
+  <div class="canada-side left"></div>
+  <div class="canada-side right"></div>
+</div>
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
 <div class="torture-text">i torture chatgpt here* (*and myself)</div>
  <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
-  <a href="MusicPlayer.html" class="game-button" target="_blank" rel="noopener">Kareem's Music Player (NEW!)</a>
 <div class="gallery">
+  <a href="MusicPlayer.html" class="game-button" target="_blank" rel="noopener">Kareem's Music Player</a>
   <a href="vidtube.html" class="game-button" target="_blank" rel="noopener">Vidtube</a>
   <a href="Bullet Dodger 1.html" class="game-button" target="_blank" rel="noopener">Bullet Dodger 1</a>
   <a href="2dPlat.html" class="game-button" target="_blank" rel="noopener">2dPlat</a>
@@ -139,7 +166,7 @@ setInterval(() => {
   <a href="the thing.html" class="game-button" target="_blank" rel="noopener">Sandbox</a>
   <a href="Tsunami Survival!.html" class="game-button" target="_blank" rel="noopener">Tsunami Survival!</a>
   <a href="citysim.html" class="game-button" target="_blank" rel="noopener">Kareem's City Simulator</a>
-   <a href="banana.html" class="game-button" target="_blank" rel="noopener">Banana World (NEW!)</a>
+   <a href="banana.html" class="game-button" target="_blank" rel="noopener">Banana World</a>
 </div>
   <p>credits to impossible quiz for music</p>
 <div id="copyright" align="center">
@@ -178,6 +205,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
