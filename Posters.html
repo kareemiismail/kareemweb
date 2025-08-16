@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Posters</title>
+<title>Posters App</title>
 <style>
-  body { font-family: Arial, sans-serif; background:#f0f2f5; margin:0; }
-  #app { max-width:600px; margin:20px auto; background:white; padding:20px; border-radius:10px; }
-  .post, .comment { border:1px solid #ccc; border-radius:5px; padding:10px; margin:10px 0; background:#fafafa; }
-  img { max-width:100%; border-radius:5px; }
-  input, textarea { width:100%; margin:5px 0; padding:8px; }
-  button { padding:8px 12px; margin-top:5px; cursor:pointer; }
-  .commentBox { margin-left:20px; }
+body { font-family: Arial, sans-serif; background:#f0f2f5; margin:0; }
+#app { max-width:600px; margin:20px auto; background:white; padding:20px; border-radius:10px; }
+.post, .comment { border:1px solid #ccc; border-radius:5px; padding:10px; margin:10px 0; background:#fafafa; }
+img { max-width:100%; border-radius:5px; }
+input, textarea { width:100%; margin:5px 0; padding:8px; }
+button { padding:8px 12px; margin-top:5px; cursor:pointer; }
+.commentBox { margin-left:20px; }
 </style>
 </head>
 <body>
@@ -20,8 +20,8 @@
 // ----- CONFIG -----
 const GITHUB_USERNAME = "kareemiismail";
 const GITHUB_REPO = "Posters";
-const GITHUB_TOKEN = "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";
-const POSTS_PATH = "posts"; // folder in repo where JSON files will be stored
+const GITHUB_TOKEN = "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"; // ⚠️ keep this secret
+const POSTS_FILE = "posts2/posts.json"; // single file containing all posts
 
 // ----- UTILS -----
 function apiHeaders() {
@@ -32,26 +32,26 @@ function apiHeaders() {
 }
 
 async function fetchPosts() {
-  const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${POSTS_PATH}`, { headers: apiHeaders() });
-  if (!res.ok) return [];
-  const files = await res.json();
-  let posts = [];
-  for (let file of files) {
-    const fileRes = await fetch(file.download_url);
-    const data = await fileRes.json();
-    posts.push(data);
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${POSTS_FILE}`, { headers: apiHeaders() });
+    if (!res.ok) return [];
+    const fileData = await res.json();
+    const content = atob(fileData.content);
+    const posts = JSON.parse(content);
+    posts.sort((a,b)=>b.timestamp - a.timestamp);
+    return posts;
+  } catch(e) {
+    console.error(e);
+    return [];
   }
-  posts.sort((a,b)=>b.timestamp - a.timestamp);
-  return posts;
 }
 
-async function savePostToGitHub(post) {
-  const filename = `${POSTS_PATH}/${Date.now()}-${post.user}.json`;
-  const content = btoa(JSON.stringify(post)); // base64 encode
-  await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filename}`, {
+async function savePostsToGitHub(posts) {
+  const content = btoa(JSON.stringify(posts));
+  await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${POSTS_FILE}`, {
     method: "PUT",
     headers: apiHeaders(),
-    body: JSON.stringify({ message: "New post", content })
+    body: JSON.stringify({ message: "Update posts", content })
   });
 }
 
@@ -155,8 +155,10 @@ async function createPost() {
     });
   }
 
+  let posts = await fetchPosts();
   const post = { user: currentUser, text, image: imageData, comments: [], timestamp: Date.now() };
-  await savePostToGitHub(post);
+  posts.push(post);
+  await savePostsToGitHub(posts);
   document.getElementById("postText").value="";
   document.getElementById("postImage").value="";
   render();
@@ -169,24 +171,15 @@ async function addComment(index){
   if(!text) return;
 
   let posts = await fetchPosts();
-  let post = posts[index];
-  post.comments.push({ user: currentUser, text });
-
-  // Save updated post back to GitHub
-  const filename = `${POSTS_PATH}/${post.timestamp}-${post.user}.json`;
-  const content = btoa(JSON.stringify(post));
-  await fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${GITHUB_REPO}/contents/${filename}`, {
-    method:"PUT",
-    headers:apiHeaders(),
-    body:JSON.stringify({ message:"Update post", content })
-  });
+  posts[index].comments.push({ user: currentUser, text });
+  await savePostsToGitHub(posts);
   input.value="";
   render();
 }
 
-// ----- INIT -----
+// ----- INIT & AUTO-REFRESH -----
 render();
-setInterval(render, 5000); // refresh feed every 5 seconds
+setInterval(render, 5000); // refresh every 5 seconds
 </script>
 </body>
 </html>
