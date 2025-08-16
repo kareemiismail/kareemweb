@@ -172,30 +172,50 @@ setInterval(() => {
     background: transparent;
   }
 
-  /* Animated gradient text */
-  #counterApp-display {
-    font-size: 36px;
-    margin: 15px 0;
+  /* Reusable gradient animation */
+  .gradientText {
     background: linear-gradient(270deg, #888, #fff, #888);
     background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
-    animation: gradientMove 3s ease-in-out infinite;
+    animation: gradientMove 8s ease-in-out infinite;
   }
 
-  @keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+  /* Apply gradient to counter */
+  #counterApp-display {
+    font-size: 36px;
+    margin: 15px 0;
   }
 
+  /* Apply gradient to heading */
+  #counterApp h6 {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  /* Gradient button text */
   #counterApp button {
     font-size: 16px;
     padding: 8px 15px;
     margin: 5px;
     cursor: pointer;
+    border: 2px solid #888; /* subtle border */
+    background: transparent; /* no solid background */
+    border-radius: 6px;
+  }
+
+  /* Keep button text gradient */
+  #counterApp button.gradientText {
+    font-weight: bold;
+  }
+
+  /* Animation keyframes */
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 </style>
 
@@ -207,6 +227,11 @@ setInterval(() => {
 
     const display = document.getElementById("counterApp-display");
     display.textContent = count;
+
+    // add gradient class to all text elements
+    display.classList.add("gradientText");
+    document.querySelector("#counterApp h6").classList.add("gradientText");
+    document.querySelector("#counterApp button").classList.add("gradientText");
 
     document.getElementById("counterApp-clickBtn").addEventListener("click", () => {
       count++;
@@ -270,6 +295,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
