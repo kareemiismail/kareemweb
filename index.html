@@ -166,22 +166,29 @@ setInterval(() => {
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 20px;
-    border: none;         /* no border */
-    border-radius: 0;     /* no rounded box */
-    width: fit-content;   /* shrink to content */
+    border: none;
+    width: fit-content;
     margin: 20px auto;
-    background: transparent; /* transparent background */
+    background: transparent;
   }
 
-  /* Gradient text for counter number */
+  /* Animated gradient text */
   #counterApp-display {
     font-size: 36px;
     margin: 15px 0;
-    background: linear-gradient(to top, #888, #fff);
+    background: linear-gradient(270deg, #888, #fff, #888);
+    background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     color: transparent;
+    animation: gradientMove 3s ease-in-out infinite;
+  }
+
+  @keyframes gradientMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
   #counterApp button {
@@ -263,6 +270,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
