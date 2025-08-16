@@ -155,6 +155,58 @@ setInterval(() => {
 </div>
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
+  <div id="counterApp">
+  <h4>Click here to say you were here!</h4>
+  <div id="counterApp-display">0</div>
+  <button id="counterApp-clickBtn">Click Me!</button>
+  <button id="counterApp-resetBtn">Reset</button>
+</div>
+
+<style>
+  #counterApp {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    width: 250px;
+    margin: 20px auto;
+    background: #f9f9f9;
+  }
+  #counterApp-display {
+    font-size: 36px;
+    margin: 15px 0;
+  }
+  #counterApp button {
+    font-size: 16px;
+    padding: 8px 15px;
+    margin: 5px;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  (function() {
+    let count = localStorage.getItem("clickCount") 
+      ? parseInt(localStorage.getItem("clickCount")) 
+      : 0;
+
+    const display = document.getElementById("counterApp-display");
+    display.textContent = count;
+
+    document.getElementById("counterApp-clickBtn").addEventListener("click", () => {
+      count++;
+      display.textContent = count;
+      localStorage.setItem("clickCount", count);
+    });
+
+    document.getElementById("counterApp-resetBtn").addEventListener("click", () => {
+      count = 0;
+      display.textContent = count;
+      localStorage.setItem("clickCount", count);
+    });
+  })();
+</script>
 <div class="torture-text">i torture chatgpt here* (*and myself)</div>
  <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
 <div class="gallery">
@@ -209,6 +261,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
