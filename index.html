@@ -158,7 +158,7 @@ setInterval(() => {
 <div id="counterApp">
   <h4>Click to (basically) say you were here!</h4>
   <div id="counterApp-display">0</div>
-  <button id="counterApp-clickBtn">Click Me!</button>
+  <button id="counterApp-clickBtn"></button>
 </div>
 
 <style>
@@ -172,10 +172,17 @@ setInterval(() => {
     background: transparent;
   }
 
-  /* Reusable gradient animation */
-  .gradientText {
+  /* Gradient animation class */
+  .gradientBackground {
     background: linear-gradient(270deg, #888, #fff, #888);
     background-size: 200% 200%;
+    animation: gradientMove 8s ease-in-out infinite;
+  }
+
+  #counterApp-display {
+    font-size: 36px;
+    margin: 15px 0;
+    background: linear-gradient(270deg, #888, #fff, #888);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -183,35 +190,32 @@ setInterval(() => {
     animation: gradientMove 8s ease-in-out infinite;
   }
 
-  /* Apply gradient to counter */
-  #counterApp-display {
-    font-size: 36px;
-    margin: 15px 0;
-  }
-
-  /* Apply gradient to heading */
-  #counterApp h6 {
+  #counterApp h4 {
     font-size: 16px;
     margin-bottom: 10px;
+    background: linear-gradient(270deg, #888, #fff, #888);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 8s ease-in-out infinite;
   }
 
-  /* Gradient button text */
+  /* Small gradient button */
   #counterApp button {
-    font-size: 16px;
-    padding: 8px 15px;
-    margin: 5px;
+    width: 30px;           /* small size */
+    height: 30px;
+    border: none;
+    border-radius: 50%;    /* circular */
     cursor: pointer;
-    border: 2px solid #888; /* subtle border */
-    background: transparent; /* no solid background */
-    border-radius: 6px;
+    padding: 0;
   }
 
-  /* Keep button text gradient */
-  #counterApp button.gradientText {
-    font-weight: bold;
+  /* Animate button gradient */
+  #counterApp button.gradientBackground {
+    background: linear-gradient(270deg, #888, #fff, #888);
+    background-size: 200% 200%;
+    animation: gradientMove 8s ease-in-out infinite;
   }
 
-  /* Animation keyframes */
   @keyframes gradientMove {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -228,10 +232,9 @@ setInterval(() => {
     const display = document.getElementById("counterApp-display");
     display.textContent = count;
 
-    // add gradient class to all text elements
-    display.classList.add("gradientText");
-    document.querySelector("#counterApp h6").classList.add("gradientText");
-    document.querySelector("#counterApp button").classList.add("gradientText");
+    document.querySelector("#counterApp h4").classList.add("gradientBackground");
+    display.classList.add("gradientBackground");
+    document.getElementById("counterApp-clickBtn").classList.add("gradientBackground");
 
     document.getElementById("counterApp-clickBtn").addEventListener("click", () => {
       count++;
@@ -295,6 +298,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
