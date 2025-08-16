@@ -155,11 +155,10 @@ setInterval(() => {
 </div>
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
-  <div id="counterApp">
-  <h4>Click here to say you were here!</h4>
+<div id="counterApp">
+  <h6>Click to (basically) say you were here!</h6>
   <div id="counterApp-display">0</div>
   <button id="counterApp-clickBtn">Click Me!</button>
-  <button id="counterApp-resetBtn">Reset</button>
 </div>
 
 <style>
@@ -167,11 +166,11 @@ setInterval(() => {
     font-family: Arial, sans-serif;
     text-align: center;
     padding: 20px;
-    border: 2px solid #ccc;
-    border-radius: 10px;
-    width: 250px;
+    border: none;         /* no border */
+    border-radius: 0;     /* no rounded box */
+    width: fit-content;   /* shrink to content */
     margin: 20px auto;
-    background: #f9f9f9;
+    background: transparent; /* transparent background */
   }
   #counterApp-display {
     font-size: 36px;
@@ -199,14 +198,9 @@ setInterval(() => {
       display.textContent = count;
       localStorage.setItem("clickCount", count);
     });
-
-    document.getElementById("counterApp-resetBtn").addEventListener("click", () => {
-      count = 0;
-      display.textContent = count;
-      localStorage.setItem("clickCount", count);
-    });
   })();
 </script>
+
 <div class="torture-text">i torture chatgpt here* (*and myself)</div>
  <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
 <div class="gallery">
@@ -261,6 +255,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
