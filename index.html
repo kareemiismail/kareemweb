@@ -156,7 +156,7 @@ setInterval(() => {
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
 <div id="counterApp">
-  <h5>Click to (basically) say you were here!</h5>
+  <h6>Click to (basically) say you were here!</h6>
   <div id="counterApp-display">0</div>
   <button id="counterApp-clickBtn">Click Me!</button>
 </div>
@@ -172,10 +172,18 @@ setInterval(() => {
     margin: 20px auto;
     background: transparent; /* transparent background */
   }
+
+  /* Gradient text for counter number */
   #counterApp-display {
     font-size: 36px;
     margin: 15px 0;
+    background: linear-gradient(to top, #888, #fff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
   }
+
   #counterApp button {
     font-size: 16px;
     padding: 8px 15px;
@@ -255,6 +263,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
