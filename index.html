@@ -119,7 +119,7 @@ setInterval(() => {
   #musicToggle:hover {
     background: rgba(255 255 255 / 0.9);
   }
-  .canada-sides {
+   .canada-sides {
     position: fixed;
     top: 0;
     left: 0;
@@ -131,11 +131,12 @@ setInterval(() => {
   .canada-side {
     position: absolute;
     top: 0;
-    width: 270px; /* match GIF width */
+    width: 270px; /* keep full strip width */
     height: 100%;
     background-image: url('Canada.gif');
     background-repeat: repeat-y;
     background-position: center;
+    background-size: 10% auto; /* scale GIF to 10% of original size */
   }
   .canada-side.left {
     left: 0;
@@ -207,6 +208,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
