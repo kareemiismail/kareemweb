@@ -154,47 +154,8 @@ setInterval(() => {
 </div>
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
-<div id="counterApp">
-  <h4>Visitors:</h4>
-  <div id="counterApp-display">0</div>
-</div>
-
-<style>
-  #counterApp { font-family: Arial; text-align: center; padding: 20px; background: transparent; }
-  h4, #counterApp-display {
-    margin-bottom: 10px;
-    background: linear-gradient(270deg, #888, #fff, #888);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradientMove 8s ease-in-out infinite;
-  }
-  @keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-</style>
-
-<script>
-const workspace = "karee"; // your workspace/team
-const counterKey = "562";   // your counter id/key
-const display = document.getElementById("counterApp-display");
-
-// Increment once per visitor
-fetch(`https://api.counterapi.dev/c/${workspace}/${counterKey}/hit`)
-  .then(res => res.json())
-  .then(data => display.textContent = data.value);
-
-// Refresh every 5 seconds without incrementing
-function refreshCount() {
-  fetch(`https://api.counterapi.dev/c/${workspace}/${counterKey}`)
-    .then(res => res.json())
-    .then(data => display.textContent = data.value);
-}
-
-setInterval(refreshCount, 5000);
-</script>
-
+<h2>oof, the counter is down!</h2>
+  <p>counters r shitty, aren't they?</p>
 <div class="torture-text">My Games</div>
  <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
 <div class="gallery">
@@ -249,6 +210,7 @@ setInterval(refreshCount, 5000);
 
 </body>
 </html>
+
 
 
 
