@@ -155,66 +155,19 @@ setInterval(() => {
   <h1>Welcome to KareemWeb!</h1>
   <a href= "homepagev2.html">new homepage</a>
 <div id="counterApp">
-  <h4>Click to (basically) say you were here!</h4>
+  <h4>Visitors:</h4>
   <div id="counterApp-display">0</div>
-  <button id="counterApp-clickBtn"></button>
 </div>
 
 <style>
-  #counterApp {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-    border: none;
-    width: fit-content;
-    margin: 20px auto;
-    background: transparent;
-  }
-
-  /* Gradient animation class */
-  .gradientBackground {
-    background: linear-gradient(270deg, #888, #fff, #888);
-    background-size: 200% 200%;
-    animation: gradientMove 8s ease-in-out infinite;
-  }
-
-  #counterApp-display {
-    font-size: 36px;
-    margin: 15px 0;
-    background: linear-gradient(270deg, #888, #fff, #888);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    color: transparent;
-    animation: gradientMove 8s ease-in-out infinite;
-  }
-
-  #counterApp h4 {
-    font-size: 16px;
+  #counterApp { font-family: Arial; text-align: center; padding: 20px; background: transparent; }
+  h4, #counterApp-display {
     margin-bottom: 10px;
     background: linear-gradient(270deg, #888, #fff, #888);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 8s ease-in-out infinite;
   }
-
-  /* Small gradient button */
-  #counterApp button {
-    width: 30px;           /* small size */
-    height: 30px;
-    border: none;
-    border-radius: 50%;    /* circular */
-    cursor: pointer;
-    padding: 0;
-  }
-
-  /* Animate button gradient */
-  #counterApp button.gradientBackground {
-    background: linear-gradient(270deg, #888, #fff, #888);
-    background-size: 200% 200%;
-    animation: gradientMove 8s ease-in-out infinite;
-  }
-
   @keyframes gradientMove {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -223,24 +176,23 @@ setInterval(() => {
 </style>
 
 <script>
-  (function() {
-    let count = localStorage.getItem("clickCount") 
-      ? parseInt(localStorage.getItem("clickCount")) 
-      : 0;
+const workspace = "karee"; // your workspace/team
+const counterKey = "562";   // your counter id/key
+const display = document.getElementById("counterApp-display");
 
-    const display = document.getElementById("counterApp-display");
-    display.textContent = count;
+// Increment once per visitor
+fetch(`https://api.counterapi.dev/c/${workspace}/${counterKey}/hit`)
+  .then(res => res.json())
+  .then(data => display.textContent = data.value);
 
-    document.querySelector("#counterApp h4").classList.add("gradientBackground");
-    display.classList.add("gradientBackground");
-    document.getElementById("counterApp-clickBtn").classList.add("gradientBackground");
+// Refresh every 5 seconds without incrementing
+function refreshCount() {
+  fetch(`https://api.counterapi.dev/c/${workspace}/${counterKey}`)
+    .then(res => res.json())
+    .then(data => display.textContent = data.value);
+}
 
-    document.getElementById("counterApp-clickBtn").addEventListener("click", () => {
-      count++;
-      display.textContent = count;
-      localStorage.setItem("clickCount", count);
-    });
-  })();
+setInterval(refreshCount, 5000);
 </script>
 
 <div class="torture-text">My Games</div>
@@ -297,6 +249,7 @@ setInterval(() => {
 
 </body>
 </html>
+
 
 
 
