@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>jdnmokdsp</title>
+<style>
+:root {
+  --bg:#0f1724;
+  --card:#0b1220;
+  --accent:#4f46e5;
+  --muted:#94a3b8;
+  --glass:rgba(255,255,255,0.03);
+}
+* { box-sizing:border-box; font-family:Inter, system-ui, Segoe UI, Roboto, Arial; }
+html, body { height:100%; margin:0; background:url('wallpaper.png') no-repeat center center fixed; background-size:cover; color:#e6eef8; }
+.app { max-width:1100px; margin:28px auto; padding:20px; }
+.header { display:flex; gap:12px; align-items:center; }
+h1 { margin:0; font-size:20px; }
+.row { display:flex; gap:16px; margin-top:18px; }
+.card { background:var(--card); padding:16px; border-radius:12px; flex:1; min-height:140px; box-shadow:0 6px 18px rgba(2,6,23,0.6); }
+.menu { display:flex; gap:12px; flex-direction:column; }
+button { background:var(--glass); border:1px solid rgba(255,255,255,0.04); color:inherit; padding:10px 12px; border-radius:10px; cursor:pointer; }
+.big-btn { padding:14px 18px; font-weight:600; background:linear-gradient(90deg,var(--accent),#06b6d4); }
+.list { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+.file-item { display:flex; justify-content:space-between; align-items:center; padding:8px; border-radius:8px; background:rgba(255,255,255,0.02); }
+.viewer { margin-top:12px; background:#071426; padding:12px; border-radius:10px; }
+#gameCanvas { background:#000; border-radius:8px; width:100%; height:480px; display:block; }
+.hidden { display:none; }
+.controls { display:flex; gap:8px; flex-wrap:wrap; }
+.footer { margin-top:18px; color:var(--muted); font-size:13px; }
+img.viewer-img { max-width:100%; max-height:480px; border-radius:8px; display:block; margin:auto; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <h1>jdnmokdsp</h1>
+  </div>
+
+  <div class="row">
+    <div class="card" style="flex:0.9">
+      <div class="menu">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button id="homeBtn" class="big-btn">Home</button>
+          <button id="gamesBtn">Games</button>
+          <button id="booksBtn">Books</button>
+          <button id="videosBtn">Videos</button>
+          <button id="picturesBtn">Pictures</button>
+          <div style="flex:1"></div>
+          <label style="font-size:13px;color:var(--muted)">
+            Import files (PDF / MP4 / images):
+            <input id="fileInput" type="file" multiple class="hidden">
+          </label>
+          <button id="openFiles">Select files</button>
+        </div>
+
+        <!-- Home Screen -->
+        <div id="homeScreen" class="card" style="margin-top:12px; background:linear-gradient(180deg, rgba(79,70,229,0.12),transparent);">
+          <h3 style="margin:0 0 8px 0">Welcome</h3>
+          <div style="color:var(--muted)">Use the buttons above to open Games, Books (PDF), Videos, or Pictures. Import files with the "Select files" button — they are kept in session.</div>
+          <div style="margin-top:12px; display:flex; gap:10px;">
+            <button id="quickPlaySnake">Play Snake</button>
+            <button id="quickPlayPac">Play Pac-Man</button>
+          </div>
+        </div>
+
+        <!-- Games Screen -->
+        <div id="gamesScreen" class="hidden">
+          <h3>Games</h3>
+          <div class="controls">
+            <button id="startSnake">Start Snake</button>
+            <button id="startPac">Start Pac-Man</button>
+            <button id="stopGame">Exit Game</button>
+          </div>
+          <div class="viewer" id="gameArea">
+            <canvas id="gameCanvas" width="800" height="480"></canvas>
+          </div>
+          <div style="color:var(--muted); font-size:13px; margin-top:8px">Controls: Arrow keys. Snake grows on apple; Pac-Man eats dots, avoid ghosts.</div>
+        </div>
+
+        <!-- Books Screen -->
+        <div id="booksScreen" class="hidden">
+          <h3>Books / PDFs</h3>
+          <div style="color:var(--muted)">Open a PDF from imported files below.</div>
+          <div class="list" id="booksList"></div>
+          <div class="viewer" id="pdfViewerArea" style="min-height:320px">
+            <iframe id="pdfFrame" class="hidden" style="width:100%;height:520px;border:0;border-radius:8px"></iframe>
+          </div>
+        </div>
+
+        <!-- Videos Screen -->
+        <div id="videosScreen" class="hidden">
+          <h3>Videos</h3>
+          <div style="color:var(--muted)">Open a video from imported files below.</div>
+          <div class="list" id="videosList"></div>
+          <div class="viewer" id="videoViewerArea" style="min-height:320px">
+            <video id="videoPlayer" class="hidden" style="width:100%;height:480px;" controls></video>
+          </div>
+        </div>
+
+        <!-- Pictures Screen -->
+        <div id="picturesScreen" class="hidden">
+          <h3>Pictures</h3>
+          <div style="color:var(--muted)">View imported images here.</div>
+          <div class="list" id="picturesList"></div>
+          <div class="viewer" id="pictureViewerArea" style="min-height:320px">
+            <img id="pictureImg" class="hidden viewer-img">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <div class="footer">DIY Tablet — jdnmokdsp</div>
+</div>
+
+<script>
+// --- Screen Navigation ---
+const screens = { home: document.getElementById('homeScreen'), games: document.getElementById('gamesScreen'), books: document.getElementById('booksScreen'), videos: document.getElementById('videosScreen'), pictures: document.getElementById('picturesScreen') };
+function hideAllScreens(){ Object.values(screens).forEach(s=>s.classList.add('hidden')); }
+document.getElementById('homeBtn').onclick = ()=>{ hideAllScreens(); screens.home.classList.remove('hidden'); }
+document.getElementById('gamesBtn').onclick = ()=>{ hideAllScreens(); screens.games.classList.remove('hidden'); }
+document.getElementById('booksBtn').onclick = ()=>{ hideAllScreens(); screens.books.classList.remove('hidden'); }
+document.getElementById('videosBtn').onclick = ()=>{ hideAllScreens(); screens.videos.classList.remove('hidden'); }
+document.getElementById('picturesBtn').onclick = ()=>{ hideAllScreens(); screens.pictures.classList.remove('hidden'); }
+
+// --- File Imports ---
+const files={books:[],videos:[],pictures:[]};
+document.getElementById('openFiles').onclick=()=>document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange=e=>{
+  const fileList=Array.from(e.target.files);
+  fileList.forEach(file=>{
+    if(file.type==='application/pdf'){ files.books.push(file); updateList('books'); }
+    else if(file.type.startsWith('video/')){ files.videos.push(file); updateList('videos'); }
+    else if(file.type.startsWith('image/')){ files.pictures.push(file); updateList('pictures'); }
+  });
+};
+function updateList(type){
+  const listEl=document.getElementById(type+'List'); listEl.innerHTML='';
+  files[type].forEach(f=>{
+    const item=document.createElement('div'); item.className='file-item'; item.textContent=f.name;
+    item.onclick=()=>{
+      if(type==='books'){ const frame=document.getElementById('pdfFrame'); frame.src=URL.createObjectURL(f); frame.classList.remove('hidden'); }
+      if(type==='videos'){ const player=document.getElementById('videoPlayer'); player.src=URL.createObjectURL(f); player.classList.remove('hidden'); player.play(); }
+      if(type==='pictures'){ const img=document.getElementById('pictureImg'); img.src=URL.createObjectURL(f); img.classList.remove('hidden'); }
+    };
+    listEl.appendChild(item);
+  });
+}
+
+// --- Canvas Games ---
+const canvas=document.getElementById('gameCanvas'); 
+const ctx=canvas.getContext('2d'); 
+let snakeInterval=null; 
+let pacGame=null;
+
+function clearIntervals(){
+  if(snakeInterval){ clearInterval(snakeInterval); snakeInterval=null; }
+  if(pacGame){ pacGame.stop(); pacGame=null; }
+  ctx.clearRect(0,0,canvas.width,canvas.height); 
+}
+
+// --- Snake Game ---
+function startSnake(){
+  clearIntervals(); screens.games.classList.remove('hidden');
+  let grid=20; let snake=[{x:160,y:160}]; let apple={x:0,y:0}; let dx=grid; let dy=0; placeApple();
+  function placeApple(){ apple.x=Math.floor(Math.random()*canvas.width/grid)*grid; apple.y=Math.floor(Math.random()*canvas.height/grid)*grid; }
+  document.onkeydown=e=>{
+    if(e.key==='ArrowLeft' && dx===0){dx=-grid;dy=0;}
+    if(e.key==='ArrowRight' && dx===0){dx=grid;dy=0;}
+    if(e.key==='ArrowUp' && dy===0){dx=0;dy=-grid;}
+    if(e.key==='ArrowDown' && dy===0){dx=0;dy=grid;}
+  }
+  snakeInterval=setInterval(()=>{
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#0f0':'#080'; ctx.fillRect(s.x,s.y,grid-1,grid-1);});
+    ctx.fillStyle='red'; ctx.fillRect(apple.x,apple.y,grid-1,grid-1);
+    let head={x:snake[0].x+dx, y:snake[0].y+dy};
+    if(head.x<0)head.x=canvas.width-grid;if(head.x>=canvas.width)head.x=0;if(head.y<0)head.y=canvas.height;if(head.y>=canvas.height)head.y=0;
+    if(snake.some(s=>s.x===head.x && s.y===head.y)){ clearIntervals(); alert('Snake Game Over'); return; }
+    snake.unshift(head);
+    if(head.x===apple.x && head.y===apple.y){ placeApple(); } else { snake.pop(); }
+  },100);
+}
+
+// --- Full Pac-Man Game ---
+class PacManGame {
+  constructor(canvas, ctx){
+    this.canvas=canvas; this.ctx=ctx; this.width=canvas.width; this.height=canvas.height;
+    this.tileSize=24;
+    this.rows=20; this.cols=33;
+    this.pac={x:14, y:17, dx:0, dy:0, nextDx:0, nextDy:0};
+    this.ghosts=[
+      {x:14, y:9, color:'red', dx:1, dy:0},
+      {x:13, y:9, color:'pink', dx:-1, dy:0},
+      {x:14, y:10, color:'cyan', dx:0, dy:1},
+      {x:13, y:10, color:'orange', dx:0, dy:-1},
+    ];
+    this.score=0;
+    this.dots=[];
+    this.interval=null;
+    this.createMaze();
+    this.setupControls();
+  }
+  createMaze(){
+    const layout=[
+      "111111111111111111111111111111111",
+      "12222222211111111111112222222221",
+      "1211112121111111111112121111121",
+      "1211112121111111111112121111121",
+      "1222222222222222222222222222221",
+      "1211112121111111111112121111121",
+      "1222222122222222222222122222221",
+      "1111111111111111111111111111111",
+      "1222222221111111111111222222221",
+      "1211112121111111111112121111121",
+      "1211112121111111111112121111121",
+      "1222222222222222222222222222221",
+      "1111111111111111111111111111111",
+      "1222222222222222222222222222221",
+      "1211112121111111111112121111121",
+      "1211112121111111111112121111121",
+      "1222222222222222222222222222221",
+      "1111111111111111111111111111111",
+      "1222222222222222222222222222221",
+      "1111111111111111111111111111111",
+    ];
+    this.maze=[];
+    for(let r=0;r<this.rows;r++){
+      this.maze[r]=[];
+      for(let c=0;c<this.cols;c++){
+        const char=layout[r][c];
+        if(char==='1'){ this.maze[r][c]=1; }
+        else{ this.maze[r][c]=2; this.dots.push({x:c,y:r}); }
+      }
+    }
+  }
+  setupControls(){
+    document.onkeydown=e=>{
+      if(e.key==='ArrowLeft'){ this.pac.nextDx=-1; this.pac.nextDy=0; }
+      if(e.key==='ArrowRight'){ this.pac.nextDx=1; this.pac.nextDy=0; }
+      if(e.key==='ArrowUp'){ this.pac.nextDx=0; this.pac.nextDy=-1; }
+      if(e.key==='ArrowDown'){ this.pac.nextDx=0; this.pac.nextDy=1; }
+    }
+  }
+  stop(){ clearInterval(this.interval); }
+  draw(){
+    const ctx=this.ctx; const ts=this.tileSize;
+    ctx.fillStyle='#000'; ctx.fillRect(0,0,this.width,this.height);
+    for(let r=0;r<this.rows;r++){
+      for(let c=0;c<this.cols;c++){
+        if(this.maze[r][c]===1){ ctx.fillStyle='blue'; ctx.fillRect(c*ts,r*ts,ts,ts); }
+      }
+    }
+    ctx.fillStyle='white';
+    this.dots.forEach(dot=>{ ctx.beginPath(); ctx.arc(dot.x*ts+ts/2,dot.y*ts+ts/2,ts/8,0,2*Math.PI); ctx.fill(); });
+    ctx.fillStyle='yellow'; ctx.beginPath(); ctx.arc(this.pac.x*ts+ts/2,this.pac.y*ts+ts/2,ts/2,0.25*Math.PI,1.75*Math.PI); ctx.lineTo(this.pac.x*ts+ts/2,this.pac.y*ts+ts/2); ctx.fill();
+    this.ghosts.forEach(g=>{ ctx.fillStyle=g.color; ctx.beginPath(); ctx.arc(g.x*ts+ts/2,g.y*ts+ts/2,ts/2,0,2*Math.PI); ctx.fill(); });
+    ctx.fillStyle='white'; ctx.font='16px Arial'; ctx.fillText('Score: '+this.score,10,this.height-10);
+  }
+  update(){
+    let nx=this.pac.x+this.pac.nextDx; let ny=this.pac.y+this.pac.nextDy;
+    if(this.maze[ny] && this.maze[ny][nx]!==1){ this.pac.dx=this.pac.nextDx; this.pac.dy=this.pac.nextDy; }
+    this.pac.x+=this.pac.dx; this.pac.y+=this.pac.dy;
+    this.dots=this.dots.filter(d=>{ if(d.x===this.pac.x && d.y===this.pac.y){ this.score+=10; return false; } return true; });
+    this.ghosts.forEach(g=>{
+      let gx=g.x+g.dx; let gy=g.y+g.dy;
+      if(this.maze[gy] && this.maze[gy][gx]!==1){ g.x=gx; g.y=gy; }
+      else{ let options=[{dx:1},{dx:-1},{dy:1},{dy:-1}]; let choice=options[Math.floor(Math.random()*options.length)]; g.dx=choice.dx||0; g.dy=choice.dy||0; }
+    });
+    if(this.ghosts.some(g=>g.x===this.pac.x && g.y===this.pac.y)){ clearInterval(this.interval); alert('Pac-Man Game Over'); hideAllScreens(); screens.home.classList.remove('hidden'); }
+    if(this.dots.length===0){ clearInterval(this.interval); alert('You Win!'); hideAllScreens(); screens.home.classList.remove('hidden'); }
+  }
+  start(){ this.interval=setInterval(()=>{ this.update(); this.draw(); },150); }
+}
+
+// --- Button Events ---
+document.getElementById('quickPlaySnake').onclick=startSnake;
+document.getElementById('startSnake').onclick=startSnake;
+document.getElementById('quickPlayPac').onclick=()=>{ clearIntervals(); pacGame=new PacManGame(canvas,ctx); pacGame.start(); screens.games.classList.remove('hidden'); };
+document.getElementById('startPac').onclick=()=>{ clearIntervals(); pacGame=new PacManGame(canvas,ctx); pacGame.start(); screens.games.classList.remove('hidden'); };
+document.getElementById('stopGame').onclick=()=>{ clearIntervals(); hideAllScreens(); screens.home.classList.remove('hidden'); };
+</script>
+</body>
+</html>
