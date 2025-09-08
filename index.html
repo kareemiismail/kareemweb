@@ -3,268 +3,147 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-  
+
+<title>KareemWeb - 90's Edition</title>
 <link id="favicon" rel="icon" href="frame_apngframe01.png">
 
-<script>
-const frames = [
-  'frame_apngframe01.png',
-  'frame_apngframe02.png',
-  'frame_apngframe03.png',
-  'frame_apngframe04.png',
-  'frame_apngframe05.png',
-  'frame_apngframe06.png',
-  'frame_apngframe07.png',
-  'frame_apngframe08.png',
-  'frame_apngframe09.png',
-  'frame_apngframe10.png',
-  'frame_apngframe11.png',
-  'frame_apngframe12.png',
-  'frame_apngframe13.png',
-  'frame_apngframe14.png',
-  'frame_apngframe15.png',
-  'frame_apngframe16.png',
-  'frame_apngframe17.png',
-  'frame_apngframe18.png',
-  'frame_apngframe19.png',
-  'frame_apngframe20.png',
-  'frame_apngframe21.png'
-];
-
-let i = 0;
-setInterval(() => {
-  document.getElementById('favicon').href = frames[i % frames.length];
-  i++;
-}, 15);
-</script>
-
-<title>KareemWeb</title>
 <style>
-  @keyframes rainbowBG {
-    0%{background-position:0% 50%;}
-    50%{background-position:100% 50%;}
-    100%{background-position:0% 50%;}
-  }
-  @keyframes reverseRainbow {
-    0%{background-position:100% 50%;}
-    50%{background-position:0% 50%;}
-    100%{background-position:100% 50%;}
-  }
   body {
-    font-family: Arial, sans-serif;
-    margin: 40px 20px;
-    color: #111;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: linear-gradient(270deg,
-      red, orange, yellow, green, blue, indigo, violet);
-    background-size: 1400% 1400%;
-    animation: rainbowBG 20s ease infinite;
-    min-height: 100vh;
-  }
-  .torture-text {
-    margin-bottom: 40px;
-    font-size: 1.2rem;
-    color: #fff;
-    text-shadow: 1px 1px 3px #0008;
-  }
-  .gallery {
-    display: grid;
-    grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
-    gap: 20px;
-    width: 100%;
-    max-width: 600px;
-  }
-  .game-button {
-    background: linear-gradient(270deg,
-      violet, indigo, blue, green, yellow, orange, red);
-    background-size: 1400% 1400%;
-    animation: reverseRainbow 20s ease infinite;
-    color: white;
-    border: none;
-    padding: 16px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border-radius: 10px;
-    cursor: pointer;
+    font-family: "Comic Sans MS", "Courier New", Verdana, sans-serif;
+    background: url('https://www.cameronsworld.net/img/content/7/bg.gif') repeat;
+    color: #00ff00;
     text-align: center;
-    text-decoration: none;
-    user-select: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  h1 {
+    font-size: 48px;
+    color: rgb(30, 0, 255);
+    text-shadow: 2px 2px 5px red;
+    animation: blink 1s infinite alternate;
+  }
+
+  h2 {
+    color: rgb(0, 0, 0);
+    font-family: "Comic Sans MS", sans-serif;
+  }
+
+  .gallery {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     justify-content: center;
-    height: 60px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-    transition: box-shadow 0.3s ease;
+    gap: 12px;
+    margin: 20px;
   }
+
+  .game-button {
+    background: linear-gradient(to bottom, #ff00ff, #0000ff);
+    color: #fff;
+    padding: 12px;
+    border: 3px outset #fff;
+    text-decoration: none;
+    font-family: "Comic Sans MS";
+    font-size: 18px;
+    width: 200px;
+    text-align: center;
+    display: inline-block;
+  }
+
   .game-button:hover {
-    box-shadow: 0 0 18px 4px rgba(255,255,255,0.7);
+    background: linear-gradient(to bottom, #ffff00, #ff0000);
+    color: black;
+    border: 3px inset #000;
   }
+
+  .marquee-box {
+    background: black;
+    color: lime;
+    padding: 8px;
+    border: 2px dashed magenta;
+    margin: 20px auto;
+    width: 80%;
+  }
+
   #musicToggle {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: rgba(255 255 255 / 0.7);
-    border: none;
-    padding: 10px 14px;
-    font-size: 18px;
-    border-radius: 50%;
+    border: 3px groove pink;
+    background: yellow;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    user-select: none;
-    transition: background 0.3s ease;
+    font-size: 20px;
+    padding: 6px;
   }
-  #musicToggle:hover {
-    background: rgba(255 255 255 / 0.9);
+
+  #copyright {
+    background: navy;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+    border-top: 5px double lime;
   }
-   .canada-sides {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* clicks pass through */
-    z-index: 9999;
-  }
-  .canada-side {
-    position: absolute;
-    top: 0;
-    width: 270px; /* keep full strip width */
-    height: 100%;
-    background-image: url('Canada.gif');
-    background-repeat: repeat-y;
-    background-position: center;
-    background-size: 30% auto; /* scale GIF to 30% of original size */
-  }
-  .canada-side.left {
-    left: 0;
-  }
-  .canada-side.right {
-    right: 0;
-    transform: scaleX(-1);       /* flip horizontally */
-    transform-origin: center;    /* pivot for flip */
+
+  @keyframes blink {
+    from { opacity: 1; }
+    to { opacity: 0.4; }
   }
 </style>
 </head>
 <body>
-<div class="canada-sides">
-  <div class="canada-side left"></div>
-  <div class="canada-side right"></div>
-</div>
-  <h1>Welcome to KareemWeb!</h1>
-  <a href= "homepagev2.html">new homepage</a>
-<h2>canadian tired</h2>
-<div class="torture-text">My Games</div>
- <a href="about me.html" class="game-button" target="_blank" rel="noopener">About Me</a>
+
+<h1>Welcome to KareemWeb!</h1>
+<marquee scrollamount="8" bgcolor="blue" behavior="alternate"><b>✨ The Coolest Site of 2025 ✨</b></marquee>
+
+<h2>lol</h2>
+
 <div class="gallery">
-  <a href="MusicPlayer.html" class="game-button" target="_blank" rel="noopener">Kareem's Music Player</a>
-  <a href="vidtube.html" class="game-button" target="_blank" rel="noopener">Vidtube</a>
-  <a href="Bullet Dodger 1.html" class="game-button" target="_blank" rel="noopener">Bullet Dodger 1</a>
-  <a href="2dPlat.html" class="game-button" target="_blank" rel="noopener">2dPlat</a>
-  <a href="algonquin_apples.html" class="game-button" target="_blank" rel="noopener">Algonquin Apples</a>
-  <a href="minecraft.html" class="game-button" target="_blank" rel="noopener">Minecraft</a>
-  <a href="netkareem.html" class="game-button" target="_blank" rel="noopener">NetKareem</a>
-  <a href="solar.html" class="game-button" target="_blank" rel="noopener">Solar System Sandbox</a>
-  <a href="the thing.html" class="game-button" target="_blank" rel="noopener">Sandbox</a>
-  <a href="Tsunami Survival!.html" class="game-button" target="_blank" rel="noopener">Tsunami Survival!</a>
-  <a href="citysim.html" class="game-button" target="_blank" rel="noopener">Kareem's City Simulator</a>
-  <a href="banana.html" class="game-button" target="_blank" rel="noopener">Banana World</a>
-  <a href="Posters.html" class="game-button" target="_blank" rel="noopener">Posters Broke lol</a>
-  <a href="downloadtablet.html" class="game-button" target="_blank" rel="noopener">Download Code for your own Video Tablet!</a>
-  <a href="tablet_interface.html" class="game-button" target="_blank" rel="noopener">Check out the Tablet! (NEW!)</a>
+  <a href="about me.html" class="game-button" target="_blank">About Me</a>
+  <a href="MusicPlayer.html" class="game-button" target="_blank">Kareem's Music Player</a>
+  <a href="vidtube.html" class="game-button" target="_blank">Vidtube</a>
+  <a href="Bullet Dodger 1.html" class="game-button" target="_blank">Bullet Dodger 1</a>
+  <a href="2dPlat.html" class="game-button" target="_blank">2dPlat</a>
+  <a href="algonquin_apples.html" class="game-button" target="_blank">Algonquin Apples</a>
+  <a href="minecraft.html" class="game-button" target="_blank">Minecraft</a>
+  <a href="netkareem.html" class="game-button" target="_blank">NetKareem</a>
+  <a href="solar.html" class="game-button" target="_blank">Solar System Sandbox</a>
+  <a href="the thing.html" class="game-button" target="_blank">Sandbox</a>
+  <a href="Tsunami Survival!.html" class="game-button" target="_blank">Tsunami Survival!</a>
+  <a href="citysim.html" class="game-button" target="_blank">Kareem's City Simulator</a>
+  <a href="banana.html" class="game-button" target="_blank">Banana World</a>
+  <a href="Posters.html" class="game-button" target="_blank">Posters Broke lol</a>
+  <a href="downloadtablet.html" class="game-button" target="_blank">Download Tablet Code</a>
+  <a href="tablet_interface.html" class="game-button" target="_blank">Check Out The Tablet!</a>
   <a href="https://kareemiismail.itch.io/the-ice-cream-quiz" class="game-button">Ice Cream!</a>
-  <a href="SM64-PC_PORT.exe" class="game-button" target="_blank" rel="noopener">Super Mario 64! (Old and new, i guess?)</a>
+  <a href="SM64-PC_PORT.exe" class="game-button" target="_blank">Super Mario 64!</a>
 </div>
-  
-  <p>credits to impossible quiz for music</p>
-<div id="copyright" align="center">
-    &copy; 2025 - 2025 www.kareemweb.com - All Rights Reserved.
+
+<div class="marquee-box">
+  <marquee direction="right" scrollamount="100">help meeeeeeeeeeeeee</marquee>
 </div>
-<script>
-(() => {
-    const copyrightElement = document.getElementById("copyright");
-    copyrightElement.innerHTML = "&copy; 2025 - "+new Date().getFullYear()+" www.kareemweb.com - All Rights Reserved.";
-})();
-</script>
-  
+
+<div id="copyright">
+  &copy; 2025 - <span id="year"></span> www.kareemweb.com - All Rights Reserved.
+</div>
+
 <audio id="bgMusic" src="impossiblemusic.mp3.mp3" loop autoplay></audio>
-<button id="musicToggle" aria-label="Toggle music">🔊</button>
+<button id="musicToggle">🔊</button>
 
 <script>
-  const music = document.getElementById('bgMusic');
-  const toggleBtn = document.getElementById('musicToggle');
+const music = document.getElementById('bgMusic');
+const toggleBtn = document.getElementById('musicToggle');
+toggleBtn.addEventListener('click', () => {
+  if (music.paused) {
+    music.play();
+    toggleBtn.textContent = '🔊';
+  } else {
+    music.pause();
+    toggleBtn.textContent = '🔈';
+  }
+});
 
-  toggleBtn.addEventListener('click', () => {
-    if (music.paused) {
-      music.play();
-      toggleBtn.textContent = '🔊';
-    } else {
-      music.pause();
-      toggleBtn.textContent = '🔈';
-    }
-  });
-
-  // Handle autoplay blocking by browsers:
-  music.volume = 0.3; // start softer
-  music.play().catch(() => {
-    toggleBtn.textContent = '▶️'; // show play icon if autoplay blocked
-  });
+// dynamic copyright
+document.getElementById("year").textContent = new Date().getFullYear();
 </script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
