@@ -168,7 +168,7 @@
   }
 
   resetBtn.addEventListener('click', () => {
-    const input = prompt('What seed do you want? (enter a number)');
+    const input = prompt('What seed do you want?');
     if (input !== null) {
       const newSeed = parseInt(input) || Date.now();
       initWorld(newSeed);
@@ -295,3 +295,4 @@
 </script>
 </body>
 </html>
+
