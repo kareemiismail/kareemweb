@@ -22,6 +22,24 @@
     text-shadow: 1px 1px 3px #000;
     z-index: 10;
   }
+  #resetButton {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: bold;
+    background: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    z-index: 10;
+  }
+  #resetButton:hover {
+    background: #e64a19;
+  }
   canvas {
     display: block;
     background: transparent;
@@ -31,12 +49,14 @@
 <body>
 
 <div id="score">Score: 0</div>
+<button id="resetButton">Reset</button>
 <canvas id="gameCanvas"></canvas>
 
 <script>
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   const scoreEl = document.getElementById('score');
+  const resetBtn = document.getElementById('resetButton');
 
   function resize() {
     canvas.width = window.innerWidth;
@@ -44,6 +64,20 @@
   }
   window.addEventListener('resize', resize);
   resize();
+
+  // --- Seeded RNG (deterministic random) ---
+  let seed = Date.now();
+  function setSeed(s) {
+    seed = s;
+  }
+  function rand() {
+    // Mulberry32 PRNG
+    seed |= 0;
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = (t + Math.imul(t ^ t >>> 7, 61 | t)) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
 
   // Player setup
   const player = {
@@ -59,16 +93,13 @@
     onGround: false,
     score: 0,
     respawn() {
-      // Basic respawn position (top-left). You can change to spawn on a specific platform.
       this.x = 500;
       this.y = 0;
       this.velocityY = 0;
     },
     die() {
-      // Called when player dies (enemy hit or falling off)
       this.respawn();
       scoreEl.textContent = 'Score: ' + this.score;
-      // You can add more death effects here (flash, sound, lives, etc.)
     }
   };
 
@@ -80,24 +111,22 @@
   let coins = [];
   let enemies = [];
 
-  // Generate random platforms
   function generatePlatforms() {
     platforms = [];
     const platformCount = 10;
     for (let i = 0; i < platformCount; i++) {
-      let width = 100 + Math.random() * 100;
+      let width = 100 + rand() * 100;
       let height = 20;
-      let x = Math.random() * (canvas.width - width);
-      let y = Math.random() * (canvas.height - height);
+      let x = rand() * (canvas.width - width);
+      let y = rand() * (canvas.height - height);
       platforms.push({x, y, width, height});
     }
   }
 
-  // Generate coins on some platforms
   function generateCoins() {
     coins = [];
     for (const plat of platforms) {
-      if (Math.random() < 0.7) { // 70% chance to have a coin
+      if (rand() < 0.7) {
         let coinX = plat.x + plat.width / 2 - 10;
         let coinY = plat.y - 20;
         coins.push({x: coinX, y: coinY, radius: 10, collected: false});
@@ -105,11 +134,10 @@
     }
   }
 
-  // Generate enemies on some platforms
   function generateEnemies() {
     enemies = [];
     for (const plat of platforms) {
-      if (Math.random() < 0.5) { // 50% chance to have an enemy
+      if (rand() < 0.5) {
         let enemyWidth = 40;
         let enemyHeight = 40;
         let enemyX = plat.x + 10;
@@ -119,7 +147,7 @@
           y: enemyY,
           width: enemyWidth,
           height: enemyHeight,
-          speed: 2 * (Math.random() > 0.5 ? 1 : -1), // Random direction
+          speed: 2 * (rand() > 0.5 ? 1 : -1),
           platformXStart: plat.x,
           platformXEnd: plat.x + plat.width - enemyWidth,
         });
@@ -127,11 +155,27 @@
     }
   }
 
-  generatePlatforms();
-  generateCoins();
-  generateEnemies();
+  function initWorld(newSeed) {
+    if (newSeed !== undefined) {
+      setSeed(newSeed);
+    }
+    generatePlatforms();
+    generateCoins();
+    generateEnemies();
+    player.respawn();
+    player.score = 0;
+    scoreEl.textContent = 'Score: ' + player.score;
+  }
 
-  // Collision detection helper
+  resetBtn.addEventListener('click', () => {
+    const input = prompt('What seed do you want? (enter a number)');
+    if (input !== null) {
+      const newSeed = parseInt(input) || Date.now();
+      initWorld(newSeed);
+    }
+  });
+
+  // Collision detection helpers
   function isColliding(rect1, rect2) {
     return !(rect1.x > rect2.x + rect2.width ||
              rect1.x + rect1.width < rect2.x ||
@@ -139,7 +183,6 @@
              rect1.y + rect1.height < rect2.y);
   }
 
-  // Check collision between circle and rect (for coins)
   function circleRectCollision(circle, rect) {
     const distX = Math.abs(circle.x - rect.x - rect.width / 2);
     const distY = Math.abs(circle.y - rect.y - rect.height / 2);
@@ -158,7 +201,7 @@
   function gameLoop() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Player movement left/right
+    // Player movement
     if (keys['ArrowLeft'] || keys['KeyA']) {
       player.x -= player.speedX;
     }
@@ -166,15 +209,15 @@
       player.x += player.speedX;
     }
 
-    // Apply gravity
+    // Gravity
     player.velocityY += player.gravity;
     player.y += player.velocityY;
 
-    // Prevent going off left/right edges
+    // Boundaries
     if (player.x < 0) player.x = 0;
     if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
 
-    // Check collision with platforms
+    // Platform collision
     player.onGround = false;
     for (const plat of platforms) {
       if (player.velocityY >= 0 &&
@@ -194,7 +237,7 @@
       player.onGround = false;
     }
 
-    // Check collision with coins
+    // Coins
     for (const coin of coins) {
       if (!coin.collected && circleRectCollision(coin, player)) {
         coin.collected = true;
@@ -203,28 +246,25 @@
       }
     }
 
-    // Move and draw enemies
-    ctx.fillStyle = '#d32f2f'; // red enemy color
+    // Enemies
+    ctx.fillStyle = '#d32f2f';
     for (const enemy of enemies) {
       enemy.x += enemy.speed;
       if (enemy.x < enemy.platformXStart || enemy.x > enemy.platformXEnd) {
-        enemy.speed *= -1; // Reverse direction
+        enemy.speed *= -1;
       }
       ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
-
-      // Check collision with player
       if (isColliding(player, enemy)) {
-        // Player dies on enemy collision
         player.die();
       }
     }
 
-    // Draw coins
+    // Coins
     for (const coin of coins) {
       if (!coin.collected) {
         ctx.beginPath();
         ctx.arc(coin.x, coin.y, coin.radius, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700'; // gold coin color
+        ctx.fillStyle = '#ffd700';
         ctx.fill();
         ctx.strokeStyle = '#b8860b';
         ctx.lineWidth = 2;
@@ -232,19 +272,17 @@
       }
     }
 
-    // Draw player
+    // Player
     ctx.fillStyle = player.color;
     ctx.fillRect(player.x, player.y, player.width, player.height);
 
-    // Draw platforms
+    // Platforms
     ctx.fillStyle = '#0f9d58';
     for (const plat of platforms) {
       ctx.fillRect(plat.x, plat.y, plat.width, plat.height);
     }
 
-    // --- NEW: kill if player falls off the bottom of the world ---
-    // If player's top is below the canvas bottom (fully fallen) -> die().
-    // You can make this more lenient by increasing the threshold (e.g. canvas.height + 100)
+    // Death if fall
     if (player.y > canvas.height) {
       player.die();
     }
@@ -252,9 +290,8 @@
     requestAnimationFrame(gameLoop);
   }
 
+  initWorld(Date.now());
   gameLoop();
 </script>
 </body>
 </html>
-
-
