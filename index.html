@@ -10,11 +10,20 @@
 <style>
   body {
     font-family: "Comic Sans MS", "Courier New", Verdana, sans-serif;
-    background: url('https://www.cameronsworld.net/img/content/7/bg.gif') repeat;
+    background: black;
     color: #00ff00;
     text-align: center;
     margin: 0;
     padding: 0;
+    animation: bgCycle 10s infinite linear;
+  }
+
+  @keyframes bgCycle {
+    0%   { background: black; }
+    25%  { background: blue; }
+    50%  { background: green; }
+    75%  { background: yellow; }
+    100% { background: red; }
   }
 
   h1 {
@@ -117,7 +126,7 @@
   <a href="https://kareemiismail.itch.io/the-ice-cream-quiz" class="game-button">Ice Cream!</a>
   <a href="SM64-PC_PORT.exe" class="game-button" target="_blank">Super Mario 64!</a>
   <a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft (NEW! This game is made by mojang and uh... an eagle?)</a>
-  <a href= "watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry (NEW!)</a>
+  <a href="watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry (NEW!)</a>
 </div>
 
 <div class="marquee-box">
@@ -149,6 +158,3 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
-
-
-
