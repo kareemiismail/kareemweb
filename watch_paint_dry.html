@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Watch Paint Dry</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #paintArea {
+      width: 400px;
+      height: 300px;
+      background: gray;
+      border: 4px solid black;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      transition: background 5s linear;
+    }
+    button {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: 1px solid #333;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+    #colorPicker {
+      margin: 10px;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+    <button onclick="window.location.href='index.html'">KareemWeb</button>
+  <h1>Watch Paint Dry</h1>
+  <div id="paintArea"></div>
+
+  <div>
+    <button onclick="paint('red')">Red</button>
+    <button onclick="paint('blue')">Blue</button>
+    <button onclick="paint('green')">Green</button>
+    <button onclick="paint('yellow')">Yellow</button>
+    <button onclick="paint('purple')">Purple</button>
+    <button onclick="paint('black')">Black</button>
+  </div>
+
+  <div>
+    <label for="colorPicker">🎨 Pick your own color:</label>
+    <input type="color" id="colorPicker" value="#ff0000">
+    <button onclick="paint(document.getElementById('colorPicker').value)">Paint!</button>
+  </div>
+
+  <div id="status">Pick a color to start painting!</div>
+
+  <script>
+    let drying = false;
+    let timer;
+
+    function paint(color) {
+      if (drying) {
+        clearInterval(timer);
+      }
+      const area = document.getElementById("paintArea");
+      const status = document.getElementById("status");
+
+      area.style.background = color;
+      status.textContent = `You painted it ${color}. Now wait for it to dry...`;
+
+      drying = true;
+      let seconds = 0;
+
+      timer = setInterval(() => {
+        seconds++;
+        // 10% chance per second to dry
+        if (Math.random() < 0.1) {
+          clearInterval(timer);
+          status.textContent = `✅ The paint (${color}) dried after ${seconds}s! Lucky!`;
+          drying = false;
+        } 
+        // force dry after 60 seconds
+        else if (seconds >= 60) {
+          clearInterval(timer);
+          status.textContent = `✅ The paint (${color}) finally dried after ${seconds}s. (Took long enough!)`;
+          drying = false;
+        } 
+        else {
+          status.textContent = `Drying... ${seconds}s (still wet)`;
+        }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
