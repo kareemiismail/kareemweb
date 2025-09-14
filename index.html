@@ -128,6 +128,79 @@
   <a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft (NEW! This game is made by mojang and uh... an eagle?)</a>
   <a href="watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry (NEW!)</a>
 </div>
+  <!-- Weather Widget -->
+<div id="weather-box">
+  <h3>Weather</h3>
+  <input type="text" id="cityInput" placeholder="Enter city…" />
+  <button id="getWeather">Get Weather</button>
+  <div id="weatherResult"></div>
+</div>
+
+<style>
+  #weather-box {
+    width: 200px;
+    height: 200px;
+    background: #111;
+    color: #0f0;
+    border: 2px solid #f0f;
+    margin: 20px auto;
+    padding: 10px;
+    box-sizing: border-box;
+    font-size: 14px;
+  }
+  #weather-box h3 {
+    margin-top: 0;
+    color: #0ff;
+    font-size: 16px;
+  }
+  #weather-box input {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+  #weather-box button {
+    width: 100%;
+    background: #0ff;
+    color: #000;
+    border: none;
+    cursor: pointer;
+  }
+  #weatherResult {
+    margin-top: 8px;
+  }
+</style>
+
+<script>
+// A simple geocoding to get lat/lon from a city name
+async function geocodeCity(city) {
+  const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+  const data = await resp.json();
+  if (data.results && data.results.length > 0) {
+    return { lat: data.results[0].latitude, lon: data.results[0].longitude };
+  } else {
+    throw new Error("City not found");
+  }
+}
+
+async function getWeather(city) {
+  try {
+    const coords = await geocodeCity(city);
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    const weather = data.current_weather;
+    document.getElementById("weatherResult").innerHTML =
+      `<b>${city}</b><br>Temp: ${weather.temperature}°C<br>Wind: ${weather.windspeed} km/h<br>${weather.weathercode ? 'Code ' + weather.weathercode : ''}`;
+  } catch (err) {
+    document.getElementById("weatherResult").textContent = "Error: " + err.message;
+  }
+}
+
+document.getElementById("getWeather").addEventListener("click", () => {
+  const city = document.getElementById("cityInput").value.trim();
+  if (city) getWeather(city);
+});
+</script>
+
 
 <div class="marquee-box">
   <marquee direction="right" scrollamount="100">help meeeeeeeeeeeeee</marquee>
@@ -158,3 +231,4 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
+
