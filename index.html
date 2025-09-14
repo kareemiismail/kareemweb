@@ -128,18 +128,18 @@
   <a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft (NEW! This game is made by mojang and uh... an eagle?)</a>
   <a href="watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry (NEW!)</a>
 </div>
-  <!-- Weather Widget -->
-<div id="weather-box">
+  
+ <div id="weather-box">
   <h3>Weather</h3>
   <input type="text" id="cityInput" placeholder="Enter city…" />
-  <button id="getWeather">Get Weather</button>
+  <button id="getWeather">Search</button>
+  <div id="choices"></div>
   <div id="weatherResult"></div>
 </div>
 
 <style>
   #weather-box {
-    width: 200px;
-    height: 200px;
+    width: 220px;
     background: #111;
     color: #0f0;
     border: 2px solid #f0f;
@@ -153,51 +153,74 @@
     color: #0ff;
     font-size: 16px;
   }
-  #weather-box input {
+  #choices button {
+    display: block;
     width: 100%;
-    margin-bottom: 5px;
-  }
-  #weather-box button {
-    width: 100%;
+    margin: 3px 0;
     background: #0ff;
     color: #000;
     border: none;
     cursor: pointer;
-  }
-  #weatherResult {
-    margin-top: 8px;
+    font-size: 12px;
   }
 </style>
 
 <script>
-// A simple geocoding to get lat/lon from a city name
-async function geocodeCity(city) {
-  const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
+const codes = {
+  0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+  45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle",
+  61: "Light rain", 71: "Light snow", 95: "Thunderstorm"
+};
+
+async function searchCities(city) {
+  const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
   const data = await resp.json();
-  if (data.results && data.results.length > 0) {
-    return { lat: data.results[0].latitude, lon: data.results[0].longitude };
-  } else {
-    throw new Error("City not found");
-  }
+  return data.results || [];
 }
 
-async function getWeather(city) {
-  try {
-    const coords = await geocodeCity(city);
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-    const weather = data.current_weather;
-    document.getElementById("weatherResult").innerHTML =
-      `<b>${city}</b><br>Temp: ${weather.temperature}°C<br>Wind: ${weather.windspeed} km/h<br>${weather.weathercode ? 'Code ' + weather.weathercode : ''}`;
-  } catch (err) {
-    document.getElementById("weatherResult").textContent = "Error: " + err.message;
-  }
+async function fetchWeather(lat, lon, name, country, admin) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+  const resp = await fetch(url);
+  const data = await resp.json();
+  const weather = data.current_weather;
+  document.getElementById("weatherResult").innerHTML =
+    `<b>${name}${admin ? ', '+admin : ''}, ${country}</b><br>
+     Temp: ${weather.temperature}°C<br>
+     Wind: ${weather.windspeed} km/h<br>
+     ${codes[weather.weathercode] ?? 'Code ' + weather.weathercode}`;
 }
 
-document.getElementById("getWeather").addEventListener("click", () => {
+document.getElementById("getWeather").addEventListener("click", async () => {
+  document.getElementById("weatherResult").innerHTML = "";
   const city = document.getElementById("cityInput").value.trim();
-  if (city) getWeather(city);
+  if (!city) return;
+
+  const results = await searchCities(city);
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
+
+  if (results.length === 0) {
+    choicesDiv.textContent = "No matches found.";
+    return;
+  }
+
+  // If only one, fetch immediately
+  if (results.length === 1) {
+    const r = results[0];
+    fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
+    return;
+  }
+
+  // Show choices to user
+  results.forEach(r => {
+    const btn = document.createElement("button");
+    btn.textContent = `${r.name}, ${r.admin1 || ''} ${r.country}`;
+    btn.addEventListener("click", () => {
+      choicesDiv.innerHTML = "";
+      fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
+    });
+    choicesDiv.appendChild(btn);
+  });
 });
 </script>
 
@@ -231,4 +254,5 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
+
 
