@@ -128,18 +128,19 @@
   <a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft (NEW! This game is made by mojang and uh... an eagle?)</a>
   <a href="watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry (NEW!)</a>
 </div>
-  
- <div id="weather-box">
+
+  <div id="weather-box">
   <h3>Weather</h3>
   <input type="text" id="cityInput" placeholder="Enter city…" />
   <button id="getWeather">Search</button>
+  <button id="getLocation">📍Use My Location</button>
   <div id="choices"></div>
   <div id="weatherResult"></div>
 </div>
 
 <style>
   #weather-box {
-    width: 220px;
+    width: 240px;
     background: #111;
     color: #0f0;
     border: 2px solid #f0f;
@@ -184,7 +185,7 @@ async function fetchWeather(lat, lon, name, country, admin) {
   const data = await resp.json();
   const weather = data.current_weather;
   document.getElementById("weatherResult").innerHTML =
-    `<b>${name}${admin ? ', '+admin : ''}, ${country}</b><br>
+    `<b>${name || 'Your Location'}${admin ? ', '+admin : ''}${country ? ', '+country : ''}</b><br>
      Temp: ${weather.temperature}°C<br>
      Wind: ${weather.windspeed} km/h<br>
      ${codes[weather.weathercode] ?? 'Code ' + weather.weathercode}`;
@@ -222,6 +223,22 @@ document.getElementById("getWeather").addEventListener("click", async () => {
     choicesDiv.appendChild(btn);
   });
 });
+
+// use my location
+document.getElementById("getLocation").addEventListener("click", () => {
+  document.getElementById("choices").innerHTML = "";
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      fetchWeather(lat, lon); // name/country will be blank
+    }, err => {
+      document.getElementById("weatherResult").textContent = "Location error: " + err.message;
+    });
+  } else {
+    document.getElementById("weatherResult").textContent = "Geolocation not supported.";
+  }
+});
 </script>
 
 
@@ -254,5 +271,6 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
+
 
 
