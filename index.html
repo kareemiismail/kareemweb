@@ -251,7 +251,7 @@ document.getElementById("getLocation").addEventListener("click", () => {
 </div>
 
 <audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop autoplay></audio>
-<button id="musicToggle">🔊</button>
+<button id="musicToggle">Off</button>
 
 <script>
 const music = document.getElementById('bgMusic');
@@ -259,10 +259,10 @@ const toggleBtn = document.getElementById('musicToggle');
 toggleBtn.addEventListener('click', () => {
   if (music.paused) {
     music.play();
-    toggleBtn.textContent = '🔊';
+    toggleBtn.textContent = 'On';
   } else {
     music.pause();
-    toggleBtn.textContent = '🔈';
+    toggleBtn.textContent = 'Off';
   }
 });
 
@@ -271,6 +271,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
+
 
 
 
