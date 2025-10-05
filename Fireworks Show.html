@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fireworks Simulator (Fixed)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{--panel:rgba(0,0,0,0.6)}
+    body{margin:0;height:100vh;background:#000;color:#fff;font-family:Inter,system-ui,Arial}
+    #app{display:flex;gap:12px;height:100vh}
+    #controls{width:320px;padding:12px;background:var(--panel);box-sizing:border-box;overflow:auto}
+    label{display:block;margin:8px 0 6px;color:#ddd;font-size:13px}
+    select,input,button{width:100%;padding:8px;border-radius:6px;border:0;background:#111;color:#fff}
+    #canvasWrap{flex:1;background:#000;display:flex}
+    canvas{width:100%;height:100%;display:block}
+    .row{display:flex;gap:8px}
+    .small{width:80px}
+    .muted{color:#bbb;font-size:13px}
+    .custom-list{margin-top:8px}
+    .custom-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid rgba(255,255,255,0.03)}
+    .btn-inline{display:inline-block;padding:6px 8px;border-radius:6px;background:#222;color:#fff;border:0}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="controls">
+      <h3 style="margin:0 0 8px 0">Fireworks Simulator</h3>
+
+      <label>Choose presets (hold Ctrl/Cmd to multi-select)</label>
+      <select id="presetSelect" multiple size="6"></select>
+
+      <label>Create custom firework</label>
+      <input id="customName" placeholder="Name (e.g. Pink Sparkle)" />
+      <div class="row"><input id="customColor" type="color" value="#ff2d95" /><input id="customSize" type="number" value="2" min="0.5" step="0.1" class="small" /></div>
+      <label class="muted">Particles</label>
+      <input id="customParticles" type="number" value="90" min="5" />
+      <div class="row" style="margin-top:8px"><button id="addCustom" class="btn-inline">Add & Select</button><button id="saveCustoms" class="btn-inline">Save</button></div>
+
+      <label class="muted">Saved customs</label>
+      <div id="customList" class="custom-list muted"></div>
+      <div style="height:6px"></div>
+
+      <label>Schedule 30s show</label>
+      <div class="row"><input id="startIn" type="number" value="3" min="0" class="small" /><button id="scheduleBtn">Schedule</button></div>
+
+      <div style="height:6px"></div>
+      <button id="stopBtn">Stop Show</button>
+      <div style="height:12px"></div>
+      <div class="muted">Tip: click canvas to launch the currently selected fireworks. Custom fireworks are saved to localStorage.</div>
+    </div>
+
+    <div id="canvasWrap"><canvas id="c"></canvas></div>
+  </div>
+
+<script>
+// Canvas setup
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+function resize(){
+  canvas.width = canvas.clientWidth;
+  canvas.height = canvas.clientHeight;
+}
+window.addEventListener('resize', resize);
+// ensure canvas fills parent
+setTimeout(resize,0);
+
+// Particle class
+class Particle{
+  constructor(x,y,color,size,angle,speed){
+    this.x=x; this.y=y; this.color=color; this.size=size; this.vx=Math.cos(angle)*speed; this.vy=Math.sin(angle)*speed; this.life=80+Math.random()*40;
+  }
+  step(){ this.vy += 0.04; this.x += this.vx; this.y += this.vy; this.life--; }
+  alive(){ return this.life>0 }
+  draw(ctx){ ctx.beginPath(); ctx.fillStyle = this.color; ctx.globalAlpha = Math.max(0, Math.min(1, this.life/120)); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill(); ctx.globalAlpha = 1; }
+}
+
+let particles = [];
+let animId = null;
+function loop(){
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  particles = particles.filter(p=>p.alive());
+  for(const p of particles){ p.step(); p.draw(ctx); }
+  animId = requestAnimationFrame(loop);
+}
+loop();
+
+// Presets and customs
+const builtinPresets = [
+  {key:'rainbow', name:'Rainbow'},
+  {key:'random', name:'Random Colors'},
+  {key:'sparkle', name:'Sparkle'},
+  {key:'usa', name:'USA (Red/White/Blue)'},
+  {key:'gold', name:'Golden Burst'}
+];
+let customFireworks = [];
+
+// UI elements
+const presetSelect = document.getElementById('presetSelect');
+const addCustomBtn = document.getElementById('addCustom');
+const saveCustomsBtn = document.getElementById('saveCustoms');
+const customListDiv = document.getElementById('customList');
+const scheduleBtn = document.getElementById('scheduleBtn');
+const startInInput = document.getElementById('startIn');
+const stopBtn = document.getElementById('stopBtn');
+
+// helpers: persistent storage
+function saveCustomsToStorage(){ localStorage.setItem('fw_customs_v1', JSON.stringify(customFireworks)); }
+function loadCustomsFromStorage(){ const raw = localStorage.getItem('fw_customs_v1'); if(!raw) return []; try{ return JSON.parse(raw); }catch(e){ return []; } }
+
+// refresh preset select (builtins + customs)
+function refreshPresetSelect(){
+  presetSelect.innerHTML = '';
+  // builtins first
+  for(const p of builtinPresets){ const opt=document.createElement('option'); opt.value = 'preset:'+p.key; opt.textContent = p.name; presetSelect.appendChild(opt); }
+  // customs next
+  for(const c of customFireworks){ const opt=document.createElement('option'); opt.value = 'custom:'+c.id; opt.textContent = '★ ' + c.name; presetSelect.appendChild(opt); }
+}
+
+function renderCustomList(){
+  customListDiv.innerHTML = '';
+  if(customFireworks.length===0){ customListDiv.textContent = 'No custom fireworks yet.'; return; }
+  for(const c of customFireworks){
+    const row = document.createElement('div'); row.className='custom-item';
+    const left = document.createElement('div'); left.innerHTML = `<strong>${escapeHtml(c.name)}</strong><div class='muted' style='font-size:12px'>${c.color} • ${c.particles} particles • size ${c.size}</div>`;
+    const right = document.createElement('div');
+    const del = document.createElement('button'); del.textContent='Delete'; del.className='btn-inline'; del.onclick=()=>{ deleteCustom(c.id); };
+    const sel = document.createElement('button'); sel.textContent='Select'; sel.className='btn-inline'; sel.onclick=()=>{ selectCustomInList(c.id); };
+    right.appendChild(sel); right.appendChild(del);
+    row.appendChild(left); row.appendChild(right);
+    customListDiv.appendChild(row);
+  }
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch])); }
+
+function selectCustomInList(id){ // select option in presetSelect
+  for(const opt of presetSelect.options){ if(opt.value === 'custom:'+id){ opt.selected = true; return; } }
+}
+
+function deleteCustom(id){ customFireworks = customFireworks.filter(c=>c.id!==id); saveCustomsToStorage(); refreshPresetSelect(); renderCustomList(); }
+
+// Add a custom
+addCustomBtn.addEventListener('click', ()=>{
+  const name = (document.getElementById('customName').value || '').trim() || ('Custom ' + (customFireworks.length+1));
+  const color = document.getElementById('customColor').value || '#ff00ff';
+  const size = parseFloat(document.getElementById('customSize').value) || 2;
+  const particlesCount = parseInt(document.getElementById('customParticles').value) || 80;
+  const id = Date.now().toString();
+  const custom = { id, name, color, size, particles: particlesCount, custom: true };
+  customFireworks.push(custom);
+  saveCustomsToStorage();
+  refreshPresetSelect();
+  renderCustomList();
+  // auto-select newly added custom
+  selectCustomInList(id);
+});
+
+// Save / Load buttons
+saveCustomsBtn.addEventListener('click', ()=>{
+  saveCustomsToStorage();
+  alert('Custom fireworks saved to localStorage.');
+});
+
+// load customs on start
+customFireworks = loadCustomsFromStorage();
+// if none exist, seed one example for ease-of-testing
+if(customFireworks.length===0){ customFireworks.push({id:'seed1', name:'Pink Sparkle', color:'#ff2d95', size:2, particles:90, custom:true}); }
+refreshPresetSelect(); renderCustomList();
+
+// Launch logic
+function launchFirework(type, x = Math.random()*canvas.width, y = Math.random()*canvas.height*0.45){
+  // type can be:
+  // - a string: 'preset:rainbow' or 'custom:123' or older plain 'rainbow'
+  // - an object: {custom:true,...}
+  // defensive check to avoid reading properties of undefined
+  if(typeof type === 'string'){
+    if(type.startsWith('preset:')){
+      type = type.split(':')[1];
+    } else if(type.startsWith('custom:')){
+      const id = type.split(':')[1];
+      const found = customFireworks.find(c=>c.id===id);
+      if(found) type = found; else return; // unknown custom
+    }
+  }
+
+  if(type && type.custom){
+    // custom firework object
+    for(let i=0;i<type.particles;i++){
+      const ang = Math.random()*Math.PI*2;
+      const speed = (Math.random()*3)+1;
+      particles.push(new Particle(x,y,type.color,type.size,ang,speed));
+    }
+    return;
+  }
+
+  // built-in presets (type is a key string now)
+  if(type === 'rainbow'){
+    for(let i=0;i<150;i++){ const ang=Math.random()*Math.PI*2; const col=`hsl(${Math.random()*360},100%,50%)`; particles.push(new Particle(x,y,col,2,ang,Math.random()*5+2)); }
+  } else if(type === 'random'){
+    for(let i=0;i<100;i++){ const ang=Math.random()*Math.PI*2; const col=`hsl(${Math.random()*360},100%,50%)`; particles.push(new Particle(x,y,col,2,ang,Math.random()*6)); }
+  } else if(type === 'sparkle'){
+    for(let i=0;i<200;i++){ const ang=Math.random()*Math.PI*2; particles.push(new Particle(x,y,'white',1,ang,Math.random()*4+1)); }
+  } else if(type === 'usa'){
+    const cols=['red','white','blue']; for(let i=0;i<150;i++){ const ang=Math.random()*Math.PI*2; const col=cols[Math.floor(Math.random()*3)]; particles.push(new Particle(x,y,col,2,ang,Math.random()*5+2)); }
+  } else if(type === 'gold'){
+    for(let i=0;i<120;i++){ const ang=Math.random()*Math.PI*2; particles.push(new Particle(x,y,'gold',2,ang,Math.random()*4+1)); }
+  }
+}
+
+// click to launch selected presets/customs
+canvas.addEventListener('click', e=>{
+  const rect = canvas.getBoundingClientRect();
+  const cx = e.clientX - rect.left; const cy = e.clientY - rect.top;
+  const selected = Array.from(presetSelect.selectedOptions).map(o=>o.value);
+  // launch each selected type at the click position
+  for(const val of selected){ launchFirework(val, cx, cy); }
+});
+
+// Schedule / show logic
+let showInterval = null;
+let showTimeout = null;
+
+scheduleBtn.addEventListener('click', ()=>{
+  const delay = (parseInt(startInInput.value)||0)*1000;
+  if(showInterval) { clearInterval(showInterval); showInterval=null; }
+  if(showTimeout) { clearTimeout(showTimeout); showTimeout=null; }
+
+  showTimeout = setTimeout(()=>{
+    const endTime = Date.now() + 30000; // 30s
+    const selectedValues = Array.from(presetSelect.selectedOptions).map(o=>o.value);
+    if(selectedValues.length===0 && customFireworks.length===0){ alert('Select at least one preset or add a custom firework.'); return; }
+
+    showInterval = setInterval(()=>{
+      // pick a random choice from either selectedValues or custom list
+      let choice = null;
+      // 50% chance choose one of selectedValues (if present), otherwise choose a random custom
+      const hasSelected = selectedValues.length>0;
+      const hasCustom = customFireworks.length>0;
+      if(hasSelected && Math.random() < 0.7){ // bias toward selected presets
+        choice = selectedValues[Math.floor(Math.random()*selectedValues.length)];
+      } else if(hasCustom){
+        const c = customFireworks[Math.floor(Math.random()*customFireworks.length)]; choice = 'custom:'+c.id;
+      } else if(hasSelected){
+        choice = selectedValues[Math.floor(Math.random()*selectedValues.length)];
+      }
+      if(choice) launchFirework(choice);
+      if(Date.now() > endTime){ clearInterval(showInterval); showInterval=null; }
+    }, 300 + Math.random()*600);
+  }, delay);
+});
+
+stopBtn.addEventListener('click', ()=>{ if(showInterval) clearInterval(showInterval); if(showTimeout) clearTimeout(showTimeout); showInterval = null; showTimeout = null; alert('Show stopped.'); });
+
+// expose small debug helper
+window._fw = {launchFirework, particles, customFireworks, refreshPresetSelect};
+</script>
+</body>
+</html>
