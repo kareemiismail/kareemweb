@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WebOS v2 – Light Edition</title>
+<title>ClunkOS – Light Edition</title>
 <style>
 :root {
   --theme-color:#0078d7;
-  --wallpaper:url('https://i.imgur.com/QBLbFzU.jpg');
+  --wallpaper:url('https://raw.githubusercontent.com/kareemiismail/kareemweb/main/ClunkOs.png');
 }
 body {
   margin:0;
@@ -82,12 +82,13 @@ button {cursor:pointer;}
 
 <!-- Boot -->
 <div id="bootScreen" class="screen">
-  <div>WebOS</div>
+  <img src="https://raw.githubusercontent.com/kareemiismail/kareemweb/main/ClunkOs.png" style="width:150px;height:150px;margin-bottom:20px;">
+  <div>ClunkOS</div>
 </div>
 
 <!-- Login -->
 <div id="loginScreen" class="screen" style="display:none;">
-  <h1>Welcome to WebOS</h1>
+  <h1>Welcome to ClunkOS</h1>
   <select id="userSelect" style="padding:10px;font-size:16px;"></select><br>
   <input type="password" id="loginPass" placeholder="Password" style="padding:10px;font-size:16px;"><br>
   <button onclick="login()">Login</button>
@@ -118,10 +119,14 @@ button {cursor:pointer;}
 <!-- Desktop -->
 <div id="desktop">
   <div class="taskbar">
-    <button onclick="toggleStart()">Start</button>
+    <button onclick="toggleStart()">
+      <img src="https://raw.githubusercontent.com/kareemiismail/kareemweb/main/ClunkOs.png" style="height:20px;vertical-align:middle;margin-right:5px;">
+      ClunkOS
+    </button>
     <div id="taskButtons"></div>
   </div>
   <div id="startMenu">
+    <button onclick="openApp('internet')">Internet Explorer</button>
     <button onclick="openApp('files')">File Explorer</button>
     <button onclick="openApp('notepad')">Notepad</button>
     <button onclick="openApp('calc')">Calculator</button>
@@ -129,6 +134,23 @@ button {cursor:pointer;}
     <button onclick="lock()">Lock</button>
     <button onclick="logout()">Logout</button>
   </div>
+
+  <!-- Internet Explorer -->
+<div id="internet" class="window" style="top:150px;left:400px;width:500px;height:400px;">
+  <div class="window-header">
+    <span>Internet Explorer</span>
+    <div>
+      <button onclick="minimize('internet')">—</button>
+      <button onclick="maximize('internet')">☐</button>
+      <button onclick="closeApp('internet')">×</button>
+    </div>
+  </div>
+  <div class="window-content">
+    <input type="text" id="urlBar" placeholder="Enter URL" style="width:80%">
+    <button onclick="navigate()">Go</button>
+    <iframe id="browserFrame" src="" style="width:100%;height:90%;margin-top:5px;"></iframe>
+  </div>
+</div>
 
   <!-- Notepad -->
   <div id="notepad" class="window" style="top:80px;left:100px;width:400px;height:300px;">
@@ -201,7 +223,6 @@ button {cursor:pointer;}
     </div>
   </div>
 </div>
-
 <script>
 let users = JSON.parse(localStorage.getItem('webosUsers')||'{}');
 if(!users['Guest']){
@@ -392,6 +413,31 @@ function calcPress(v){
   if(v==='='){try{d.value=eval(d.value);}catch{d.value='Error';}}
   else d.value+=v;
 }
+
+function navigate() {
+  let input = document.getElementById('urlBar').value.trim();
+  if (!input) return;
+
+  let url = '';
+
+  // If input looks like a domain (contains a dot), prepend https://
+  if (input.includes('.')) {
+    if (!/^https?:\/\//i.test(input)) {
+      url = 'https://' + input;
+    } else {
+      url = input;
+    }
+  } else {
+    // Otherwise treat as search
+    url = 'https://www.google.com/search?q=' + encodeURIComponent(input);
+  }
+
+  window.open(url, '_blank');
+}
+
+
+
 </script>
+
 </body>
 </html>
