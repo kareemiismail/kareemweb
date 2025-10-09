@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebOS v2 – Light Edition</title>
+<style>
+:root {
+  --theme-color:#0078d7;
+  --wallpaper:url('https://i.imgur.com/QBLbFzU.jpg');
+}
+body {
+  margin:0;
+  font-family:Segoe UI, sans-serif;
+  background:var(--theme-color);
+  overflow:hidden;
+}
+
+/* -------- Boot / Login / Lock -------- */
+.screen {
+  position:fixed;
+  top:0;left:0;
+  width:100vw;height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+  z-index:9999;
+}
+#bootScreen {background:#0078d7;color:white;font-size:40px;}
+#loginScreen {background:#f0f0f0;color:#333;}
+#lockScreen {
+  background-size:cover;
+  background-position:center;
+  color:white;text-shadow:0 0 5px black;
+}
+
+/* -------- Desktop / Windows -------- */
+#desktop {
+  position:fixed;top:0;left:0;
+  width:100%;height:100%;
+  background:var(--wallpaper) no-repeat center/cover;
+  display:none;
+}
+.window {
+  position:absolute;
+  background:white;
+  border-radius:8px;
+  box-shadow:0 0 15px rgba(0,0,0,0.3);
+  overflow:hidden;
+  display:none;
+  resize:both;
+  min-width:200px;min-height:150px;
+}
+.window-header {
+  background:var(--theme-color);
+  color:white;padding:5px;cursor:move;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.window-content {padding:10px;overflow:auto;height:calc(100% - 35px);}
+button {cursor:pointer;}
+.taskbar {
+  position:absolute;bottom:0;left:0;
+  width:100%;height:40px;
+  background:rgba(240,240,240,0.9);
+  display:flex;align-items:center;justify-content:left;
+  border-top:1px solid #ccc;
+}
+.taskbar button {margin-left:5px;border:none;background:none;padding:5px 10px;}
+#startMenu {
+  position:absolute;bottom:45px;left:5px;
+  background:white;border:1px solid #ccc;border-radius:6px;
+  display:none;flex-direction:column;
+}
+#startMenu button {text-align:left;width:150px;padding:5px;border:none;background:white;}
+#startMenu button:hover {background:#eee;}
+.file-item {padding:3px;border-bottom:1px solid #ddd;cursor:pointer;}
+.file-item:hover {background:#f0f0f0;}
+</style>
+</head>
+<body>
+
+<!-- Boot -->
+<div id="bootScreen" class="screen">
+  <div>WebOS</div>
+</div>
+
+<!-- Login -->
+<div id="loginScreen" class="screen" style="display:none;">
+  <h1>Welcome to WebOS</h1>
+  <select id="userSelect" style="padding:10px;font-size:16px;"></select><br>
+  <input type="password" id="loginPass" placeholder="Password" style="padding:10px;font-size:16px;"><br>
+  <button onclick="login()">Login</button>
+  <button onclick="showCreate()">Create Account</button>
+</div>
+
+<!-- Create Account -->
+<div id="createScreen" class="screen" style="display:none;background:#fff;color:#333;">
+  <h2>Create Account</h2>
+  <input id="newUser" placeholder="Username" style="padding:10px;margin:5px;"><br>
+  <input id="newPass" type="password" placeholder="Password" style="padding:10px;margin:5px;"><br>
+  <label>Wallpaper Color:</label>
+  <input type="color" id="wallColor"><br>
+  <label>Wallpaper Image URL:</label>
+  <input type="text" id="wallURL" placeholder="optional" style="width:200px;"><br>
+  <label>Theme Color:</label>
+  <input type="color" id="themeColor" value="#0078d7"><br><br>
+  <button onclick="createAccount()">Create</button>
+  <button onclick="cancelCreate()">Cancel</button>
+</div>
+
+<!-- Lock Screen -->
+<div id="lockScreen" class="screen" style="display:none;">
+  <h1 id="lockUser"></h1>
+  <button onclick="unlock()">Unlock</button>
+</div>
+
+<!-- Desktop -->
+<div id="desktop">
+  <div class="taskbar">
+    <button onclick="toggleStart()">Start</button>
+    <div id="taskButtons"></div>
+  </div>
+  <div id="startMenu">
+    <button onclick="openApp('files')">File Explorer</button>
+    <button onclick="openApp('notepad')">Notepad</button>
+    <button onclick="openApp('calc')">Calculator</button>
+    <button onclick="openApp('settings')">Settings</button>
+    <button onclick="lock()">Lock</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <!-- Notepad -->
+  <div id="notepad" class="window" style="top:80px;left:100px;width:400px;height:300px;">
+    <div class="window-header">
+      <span>Notepad</span>
+      <div>
+        <button onclick="minimize('notepad')">—</button>
+        <button onclick="maximize('notepad')">☐</button>
+        <button onclick="closeApp('notepad')">×</button>
+      </div>
+    </div>
+    <div class="window-content">
+      <textarea id="noteArea" style="width:100%;height:100%;"></textarea>
+    </div>
+  </div>
+
+  <!-- Calculator -->
+  <div id="calc" class="window" style="top:120px;left:150px;width:250px;height:320px;">
+    <div class="window-header">
+      <span>Calculator</span>
+      <div>
+        <button onclick="minimize('calc')">—</button>
+        <button onclick="maximize('calc')">☐</button>
+        <button onclick="closeApp('calc')">×</button>
+      </div>
+    </div>
+    <div class="window-content">
+      <input id="calcDisplay" style="width:100%;font-size:18px;margin-bottom:5px;"><br>
+      <div id="buttons"></div>
+    </div>
+  </div>
+
+  <!-- File Explorer -->
+  <div id="files" class="window" style="top:100px;left:250px;width:400px;height:300px;">
+    <div class="window-header">
+      <span>File Explorer</span>
+      <div>
+        <button onclick="minimize('files')">—</button>
+        <button onclick="maximize('files')">☐</button>
+        <button onclick="closeApp('files')">×</button>
+      </div>
+    </div>
+    <div class="window-content">
+      <input id="newFileName" placeholder="New file name">
+      <select id="fileType"><option value="txt">Text</option><option value="img">Image</option></select>
+      <button onclick="createFile()">Create</button>
+      <div id="fileList"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="window" style="top:150px;left:200px;width:350px;height:300px;">
+    <div class="window-header">
+      <span>Settings</span>
+      <div>
+        <button onclick="minimize('settings')">—</button>
+        <button onclick="maximize('settings')">☐</button>
+        <button onclick="closeApp('settings')">×</button>
+      </div>
+    </div>
+    <div class="window-content">
+      <h3>Wallpaper</h3>
+      <input type="color" id="wallpaperColorInput">
+      <button onclick="setWallpaperColor()">Set Color</button><br>
+      <input type="text" id="wallpaperUrlInput" placeholder="Image URL" style="width:100%">
+      <button onclick="setWallpaperURL()">Set Image</button>
+      <h3>Theme</h3>
+      <input type="color" id="themePicker">
+      <button onclick="setThemeColor()">Apply Theme</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let users = JSON.parse(localStorage.getItem('webosUsers')||'{}');
+if(!users['Guest']){
+  users['Guest']={pass:'guest',theme:'#0078d7',wallpaper:'url(https://i.imgur.com/QBLbFzU.jpg)',files:[]};
+  localStorage.setItem('webosUsers',JSON.stringify(users));
+}
+let currentUser=null;
+
+/* Boot animation */
+setTimeout(()=>{
+  document.getElementById('bootScreen').style.display='none';
+  showLogin();
+},1500);
+
+/* Login / Create / Logout */
+function showLogin(){
+  updateUserList();
+  document.getElementById('loginScreen').style.display='flex';
+}
+function updateUserList(){
+  const sel=document.getElementById('userSelect');
+  sel.innerHTML='';
+  for(let u in users){
+    const opt=document.createElement('option');
+    opt.textContent=u;
+    sel.appendChild(opt);
+  }
+}
+function login(){
+  const user=document.getElementById('userSelect').value;
+  const pass=document.getElementById('loginPass').value;
+  if(users[user] && users[user].pass===pass){
+    currentUser=user;
+    startDesktop();
+  } else alert('Wrong password!');
+}
+function showCreate(){
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('createScreen').style.display='flex';
+}
+function cancelCreate(){
+  document.getElementById('createScreen').style.display='none';
+  showLogin();
+}
+function createAccount(){
+  const u=document.getElementById('newUser').value.trim();
+  const p=document.getElementById('newPass').value.trim();
+  if(!u||!p)return alert('Enter username and password');
+  if(users[u])return alert('User exists!');
+  const color=document.getElementById('wallColor').value;
+  const url=document.getElementById('wallURL').value.trim();
+  const theme=document.getElementById('themeColor').value;
+  const wallpaper=url?('url('+url+')'):color;
+  users[u]={pass:p,theme:theme,wallpaper:wallpaper,files:[]};
+  localStorage.setItem('webosUsers',JSON.stringify(users));
+  currentUser=u;
+  document.getElementById('createScreen').style.display='none';
+  startDesktop();
+}
+function logout(){
+  document.getElementById('desktop').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  currentUser=null;
+}
+
+/* Lock / Unlock */
+function lock(){
+  const lock=document.getElementById('lockScreen');
+  lock.style.display='flex';
+  lock.style.backgroundImage=users[currentUser].wallpaper.includes('url')?users[currentUser].wallpaper:'none';
+  lock.style.backgroundColor=users[currentUser].wallpaper.includes('url')?'':users[currentUser].wallpaper;
+  document.getElementById('lockUser').textContent=currentUser;
+}
+function unlock(){
+  document.getElementById('lockScreen').style.display='none';
+}
+
+/* Desktop init */
+function startDesktop(){
+  const userData=users[currentUser];
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('desktop').style.display='block';
+  document.documentElement.style.setProperty('--theme-color',userData.theme);
+  document.documentElement.style.setProperty('--wallpaper',userData.wallpaper);
+  refreshFiles();
+}
+
+/* Windows */
+function openApp(id){
+  document.getElementById(id).style.display='block';
+  addTaskButton(id);
+}
+function closeApp(id){
+  document.getElementById(id).style.display='none';
+  removeTaskButton(id);
+}
+function minimize(id){document.getElementById(id).style.display='none';}
+function maximize(id){
+  const el=document.getElementById(id);
+  if(el.dataset.maximized==='true'){el.style.width='400px';el.style.height='300px';el.dataset.maximized='false';}
+  else{el.style.width='100%';el.style.height='calc(100% - 40px)';el.style.top='0';el.style.left='0';el.dataset.maximized='true';}
+}
+function toggleStart(){
+  const sm=document.getElementById('startMenu');
+  sm.style.display=sm.style.display==='flex'?'none':'flex';
+}
+function addTaskButton(id){
+  const tb=document.getElementById('taskButtons');
+  if(!document.getElementById('btn_'+id)){
+    const b=document.createElement('button');
+    b.id='btn_'+id;b.textContent=id;
+    b.onclick=()=>{const w=document.getElementById(id);w.style.display=w.style.display==='none'?'block':'none';};
+    tb.appendChild(b);
+  }
+}
+function removeTaskButton(id){
+  const b=document.getElementById('btn_'+id);
+  if(b)b.remove();
+}
+
+/* Settings */
+function setWallpaperColor(){
+  const c=document.getElementById('wallpaperColorInput').value;
+  document.documentElement.style.setProperty('--wallpaper',c);
+  users[currentUser].wallpaper=c;
+  saveUsers();
+}
+function setWallpaperURL(){
+  const url=document.getElementById('wallpaperUrlInput').value.trim();
+  if(!url)return;
+  const wp='url('+url+')';
+  document.documentElement.style.setProperty('--wallpaper',wp);
+  users[currentUser].wallpaper=wp;
+  saveUsers();
+}
+function setThemeColor(){
+  const c=document.getElementById('themePicker').value;
+  document.documentElement.style.setProperty('--theme-color',c);
+  users[currentUser].theme=c;
+  saveUsers();
+}
+function saveUsers(){localStorage.setItem('webosUsers',JSON.stringify(users));}
+
+/* Files */
+function refreshFiles(){
+  const fdiv=document.getElementById('fileList');
+  fdiv.innerHTML='';
+  users[currentUser].files.forEach((f,i)=>{
+    const d=document.createElement('div');
+    d.className='file-item';
+    d.textContent=f.name+' ['+f.type+']';
+    d.onclick=()=>openFile(i);
+    fdiv.appendChild(d);
+  });
+}
+function createFile(){
+  const n=document.getElementById('newFileName').value.trim();
+  const t=document.getElementById('fileType').value;
+  if(!n)return alert('Enter file name');
+  users[currentUser].files.push({name:n,type:t,content:''});
+  document.getElementById('newFileName').value='';
+  saveUsers();refreshFiles();
+}
+function openFile(i){
+  const f=users[currentUser].files[i];
+  openApp('notepad');
+  document.getElementById('noteArea').value=f.content||'';
+  document.getElementById('notepad').dataset.file=i;
+}
+setInterval(()=>{
+  const np=document.getElementById('notepad');
+  if(np.dataset.file!==undefined){
+    const idx=np.dataset.file;
+    users[currentUser].files[idx].content=document.getElementById('noteArea').value;
+    saveUsers();
+  }
+},2000);
+
+/* Calculator setup */
+const calcBtns=['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+'];
+const btnDiv=document.getElementById('buttons');
+calcBtns.forEach(b=>{
+  const btn=document.createElement('button');btn.textContent=b;
+  btn.style.width='25%';btn.onclick=()=>calcPress(b);btnDiv.appendChild(btn);
+});
+function calcPress(v){
+  const d=document.getElementById('calcDisplay');
+  if(v==='='){try{d.value=eval(d.value);}catch{d.value='Error';}}
+  else d.value+=v;
+}
+</script>
+</body>
+</html>
