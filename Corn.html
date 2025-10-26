@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="2020corn.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CORN CORN CORN!</title>
+  <style>
+    body {
+      font-family: Comic Sans MS, sans-serif;
+      background: linear-gradient(to bottom, #fff27a, #ffd84c);
+      text-align: center;
+      color: #5a3c00;
+      margin: 0;
+    }
+
+    header {
+      background-color: #ffea00;
+      padding: 30px;
+      font-size: 40px;
+      font-weight: bold;
+      text-shadow: 2px 2px 5px #fff;
+    }
+
+    section {
+      margin: 20px auto;
+      width: 90%;
+      max-width: 800px;
+      background-color: #fff6cc;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 10px #e6b800;
+    }
+
+    iframe {
+      width: 100%;
+      height: 315px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      width: 70%;
+      font-size: 18px;
+      border: 3px solid #ffcc00;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    button {
+      background-color: #ffcc00;
+      border: none;
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    button:hover {
+      background-color: #ffdb4d;
+    }
+
+    #results {
+      margin-top: 20px;
+    }
+
+    .video {
+      margin: 15px 0;
+      padding: 10px;
+      background-color: #fffbe6;
+      border-radius: 15px;
+      box-shadow: 0 0 5px #e6b800;
+    }
+
+    footer {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: #ffea00;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    corn
+  </header>
+
+  <section>
+    <h2>Famous Corn</h2>
+    <iframe src="https://www.youtube.com/embed/j8qp3ITVqY0" allowfullscreen>info.</iframe>
+    <iframe src="https://www.youtube.com/embed/IEZUh-sKdbk" allowfullscreen>song.</iframe>
+    <iframe src="https://www.youtube.com/embed/BJ-ZZtwRR5g" allowfullscreen>one hour of corn.</iframe>
+    <iframe src="https://www.youtube.com/embed/aVoXVmg589M" allowfullscreen>corn timelapse.</iframe>
+  </section>
+
+  <section>
+    <h2>corn search</h2>
+    <input type="text" id="search" placeholder="Type to search for corn...">
+    <button onclick="searchCorn()">corn</button>
+    <div id="results"></div>
+  </section>
+
+  <footer>
+    Corn. Oh, and made by WhyFI.
+  </footer>
+
+  <script>
+    const apiKey = "AIzaSyCoL7AdHBZtx8MEMDDS6jc5QMOecQ6p8Ho";
+
+    async function searchCorn() {
+      const query = document.getElementById("search").value;
+      if (!query) return;
+
+      const fullQuery = query + " corn";
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(fullQuery)}&key=${apiKey}`;
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      const results = document.getElementById("results");
+      results.innerHTML = "";
+
+      data.items.forEach(item => {
+        const title = item.snippet.title;
+        if (!title.toLowerCase().includes("corn")) return; // only corn videos!
+        
+        const videoId = item.id.videoId;
+        const div = document.createElement("div");
+        div.className = "video";
+        div.innerHTML = `
+          <h3>${title}</h3>
+          <iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe>
+        `;
+        results.appendChild(div);
+      });
+
+      if (!results.innerHTML) {
+        results.innerHTML = "<p>No CORN videos found 😢🌽</p>";
+      }
+    }
+  </script>
+</body>
+</html>
