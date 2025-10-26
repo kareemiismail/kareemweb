@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>404 — Page not found</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#7dd3fc;--muted:#94a3b8}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,var(--bg),#071027);color:#e6eef8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{max-width:880px;width:100%;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);border-radius:12px;padding:36px;box-shadow:0 10px 30px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03);display:grid;grid-template-columns:1fr 260px;gap:24px;align-items:center}
+    h1{font-size:48px;margin:0 0 8px}
+    p{margin:0 0 18px;color:var(--muted)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    a.btn{background:linear-gradient(90deg,var(--accent),#60a5fa);color:#021124;padding:10px 14px;border-radius:8px;text-decoration:none;font-weight:600}
+    a.ghost{border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:8px;color:var(--muted);text-decoration:none}
+    .helper{font-size:13px;color:var(--muted);margin-top:12px}
+    .illustration{display:flex;align-items:center;justify-content:center}
+    .box{width:220px;height:220px;border-radius:10px;background:linear-gradient(180deg,#07122a,#001427);display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.02)}
+    .bignum{font-size:72px;font-weight:700;letter-spacing:-4px;color:var(--accent)}
+    @media(max-width:800px){.card{grid-template-columns:1fr; text-align:center}.illustration{order:-1;margin-bottom:6px}}
+  </style>
+</head>
+<body>
+  <main class="card" role="main" aria-labelledby="title">
+    <section>
+      <h1 id="title">404 — Page not found</h1>
+      <p>Dumbass.</p>
+
+      <div class="actions" role="navigation" aria-label="404 actions">
+        <a class="btn" href="https://kareemweb.com">Take me home</a>
+      </div>
+
+      <div class="helper">
+        Tip: Take a shower, u smell stinky.
+      </div>
+    </section>
+
+    <aside class="illustration" aria-hidden="true">
+      <div class="box">
+        <div class="bignum">404</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px">lost in space</div>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>
