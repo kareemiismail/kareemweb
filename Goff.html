@@ -26,8 +26,13 @@
 </div>
 
 <div id="ui"><div id="score">Score: 0</div></div>
-<div id="gameOver">GAME OVER - refresh to continue.</div>
+<div id="gameOver">game over u suck</div>
+<button id="restartButton" style="
+    position:absolute; top:60%; left:50%; transform:translate(-50%, -50%);
+    padding: 12px 24px; font-size:24px; display:none; cursor:pointer; z-index:10;
+">Restart Game</button>
 
+  
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <script>
 
@@ -184,7 +189,11 @@ function updatePowerUps(){
 
 // === Animate ===
 function animate(){
-    if(isGameOver){ gameOverDisplay.style.display="block"; return; }
+if(isGameOver){ 
+    gameOverDisplay.style.display="block"; 
+    restartButton.style.display="block";
+    return; 
+}
     requestAnimationFrame(animate);
 
     frameCount++;
@@ -204,7 +213,30 @@ window.addEventListener('resize', ()=>{
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
+function restartGame(){
+    // Remove all bullets
+    bullets.forEach(b => scene.remove(b));
+    bullets = [];
+    // Remove all power-ups
+    powerUps.forEach(p => scene.remove(p));
+    powerUps = [];
+    // Reset player
+    player.position.set(0,0,0);
+    playerVelocityY = 0;
+    onGround = true;
+    // Reset score
+    score = 0;
+    frameCount = 0;
+    isGameOver = false;
+    // Hide UI
+    gameOverDisplay.style.display = "none";
+    restartButton.style.display = "none";
+    // Restart animation
+    animate();
+}
 
+  const restartButton = document.getElementById('restartButton');
+restartButton.onclick = () => restartGame();
 </script>
 </body>
 </html>
