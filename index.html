@@ -324,7 +324,8 @@ toggleBtn.addEventListener('click', () => {
 // dynamic copyright
 document.getElementById("year").textContent = new Date().getFullYear();
 </script>
-  <div id="comments-section">
+ 
+<div id="comments-section">
   <h3>Leave a Comment</h3>
   <form id="commentForm">
     <input type="text" id="name" placeholder="Your name" required>
@@ -336,19 +337,20 @@ document.getElementById("year").textContent = new Date().getFullYear();
   <div id="commentsList"></div>
 </div>
 
-  <!-- Firebase SDK (for static sites) -->
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-  // Paste your Firebase project config here
+  // Your Firebase config
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
+    authDomain: "awesome-18f46.firebaseapp.com",
+    projectId: "awesome-18f46",
+    storageBucket: "awesome-18f46.firebasestorage.app",
+    messagingSenderId: "607281576772",
+    appId: "1:607281576772:web:8bc23796e820188da8b511",
+    measurementId: "G-0SB4WCCTKP"
   };
 
   // Initialize Firebase
@@ -396,7 +398,6 @@ document.getElementById("year").textContent = new Date().getFullYear();
     commentForm.reset();
   });
 </script>
-
   
   <form
   action="https://formspree.io/f/mpwgbaey"
@@ -415,6 +416,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </form>
 </body>
 </html>
+
 
 
 
