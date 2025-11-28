@@ -321,11 +321,7 @@ toggleBtn.addEventListener('click', () => {
   }
 });
 
-// dynamic copyright
-document.getElementById("year").textContent = new Date().getFullYear();
-</script>
- 
-<div id="comments-section">
+  <div id="comments-section">
   <h3>Leave a Comment</h3>
   <form id="commentForm">
     <input type="text" id="name" placeholder="Your name" required>
@@ -414,8 +410,12 @@ document.getElementById("year").textContent = new Date().getFullYear();
   <!-- your other form fields go here -->
   <button type="submit">Send</button>
 </form>
+// dynamic copyright
+document.getElementById("year").textContent = new Date().getFullYear();
+</script>
 </body>
 </html>
+
 
 
 
