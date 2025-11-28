@@ -8,7 +8,52 @@
 <link id="favicon" rel="icon" href="frame_apngframe01.png">
 
 <style>
-  body {
+  #comments-section {
+  max-width: 600px;
+  margin: 40px auto;
+  font-family: Arial, sans-serif;
+}
+
+#commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#commentForm input, #commentForm textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+#commentForm button {
+  padding: 10px;
+  border: none;
+  background: #4a4aff;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.comment-box {
+  background: #f7f7f7;
+  padding: 12px;
+  margin: 12px 0;
+  border-radius: 10px;
+}
+
+.comment-name {
+  font-weight: bold;
+}
+
+.comment-time {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+    body {
     font-family: "Comic Sans MS", "Courier New", Verdana, sans-serif;
     background: black;
     color: #00ff00;
@@ -279,16 +324,90 @@ toggleBtn.addEventListener('click', () => {
 // dynamic copyright
 document.getElementById("year").textContent = new Date().getFullYear();
 </script>
+  <div id="comments-section">
+  <h3>Leave a Comment</h3>
+  <form id="commentForm">
+    <input type="text" id="name" placeholder="Your name" required>
+    <textarea id="comment" placeholder="Your comment..." required></textarea>
+    <button type="submit">Post Comment</button>
+  </form>
+
+  <h3>Comments</h3>
+  <div id="commentsList"></div>
+</div>
+
+  <!-- Firebase SDK (for static sites) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+  // Paste your Firebase project config here
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const commentsList = document.getElementById("commentsList");
+  const commentForm = document.getElementById("commentForm");
+
+  // Load comments in real-time
+  function loadComments() {
+    db.collection("comments")
+      .orderBy("time", "desc")
+      .onSnapshot(snapshot => {
+        commentsList.innerHTML = "";
+        snapshot.forEach(doc => {
+          const comment = doc.data();
+          commentsList.innerHTML += `
+            <div class="comment-box">
+              <div class="comment-name">${comment.name}</div>
+              <div class="comment-time">${new Date(comment.time).toLocaleString()}</div>
+              <p>${comment.text}</p>
+            </div>
+          `;
+        });
+      });
+  }
+
+  loadComments();
+
+  // Post new comment
+  commentForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("name").value.trim();
+    const text = document.getElementById("comment").value.trim();
+    if (!name || !text) return;
+
+    db.collection("comments").add({
+      name,
+      text,
+      time: Date.now()
+    });
+
+    commentForm.reset();
+  });
+</script>
+
+  
   <form
   action="https://formspree.io/f/mpwgbaey"
   method="POST"
 >
   <label>
-    Your email:
+    e-mail:
     <input type="email" name="email">
   </label>
   <label>
-    Your message:
+    message:
     <textarea name="message"></textarea>
   </label>
   <!-- your other form fields go here -->
@@ -296,6 +415,7 @@ document.getElementById("year").textContent = new Date().getFullYear();
 </form>
 </body>
 </html>
+
 
 
 
