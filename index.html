@@ -276,6 +276,16 @@
   };
 </script>
 
+<!-- WIDGET BUTTON -->
+<button id="widgetBtn">🛠 Widgets</button>
+
+<!-- PANEL (hidden until clicked) -->
+<div id="widgetPanel">
+
+<h2>📌 Widgets</h2>
+<p><b>Time:</b> <span id="clock"></span></p>
+<hr>
+
 <!-- WEATHER -->
 <div id="weather-box">
 <h3>Weather</h3>
@@ -286,31 +296,114 @@
 <div id="weatherResult"></div>
 </div>
 
+<hr>
+
+<!-- COMMENTS -->
+<div id="comments-section">
+<h3>💬 Comments</h3>
+<form id="commentForm">
+<input type="text" id="name" placeholder="Your name" required>
+<textarea id="comment" placeholder="Your comment..." required></textarea>
+<button type="submit">Post Comment</button>
+</form>
+
+<h4>Recent Comments</h4>
+<div id="commentsList"></div>
+</div>
+
+<hr>
+
+<!-- CONTACT FORM -->
+<form action="https://formspree.io/f/mpwgbaey" method="POST" style="max-width:400px;margin:10px auto;">
+<label>Email:<br><input type="email" name="email"></label><br><br>
+<label>Message:<br><textarea name="message"></textarea></label><br><br>
+<button type="submit">Send</button>
+</form>
+
+</div> <!-- END PANEL -->
+
+
+<!-- ========= STYLES ========= -->
+<style>
+  #widgetBtn {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: #00aaff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 1000;
+  }
+
+  #widgetPanel {
+    position: fixed;
+    top: 60px;
+    right: 10px;
+    width: 300px;
+    background: rgba(255,255,255,0.95);
+    padding: 15px;
+    border-radius: 10px;
+    border: 2px solid black;
+    display: none;
+    z-index: 999;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  hr {
+    border: 1px solid #999;
+    margin: 15px 0;
+  }
+</style>
+
+
+<!-- ========= SCRIPT (clock + open widget + weather + comments) ========= -->
 <script>
-const codes = {0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",51:"Light drizzle",61:"Light rain",71:"Light snow",95:"Thunderstorm"};
+/* --- OPEN / CLOSE Widgets --- */
+const widgetBtn = document.getElementById("widgetBtn");
+const widgetPanel = document.getElementById("widgetPanel");
+widgetBtn.onclick = () => {
+  widgetPanel.style.display = widgetPanel.style.display === "none" ? "block" : "none";
+};
+
+/* --- CLOCK --- */
+function updateClock(){
+  document.getElementById("clock").innerText =
+    new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* --- WEATHER SYSTEM (your original code) --- */
+const codes={0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",51:"Light drizzle",61:"Light rain",71:"Light snow",95:"Thunderstorm"};
 
 async function searchCities(city){
   const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
-  const data = await resp.json();
+  const data=await resp.json();
   return data.results||[];
 }
 
-async function fetchWeather(lat, lon, name, country, admin){
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-  const resp = await fetch(url);
-  const data = await resp.json();
-  const weather = data.current_weather;
-  document.getElementById("weatherResult").innerHTML =
+async function fetchWeather(lat,lon,name,country,admin){
+  const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+  const resp=await fetch(url);
+  const data=await resp.json();
+  const weather=data.current_weather;
+  document.getElementById("weatherResult").innerHTML=
     `<b>${name||'Your Location'}${admin?', '+admin:''}${country?', '+country:''}</b><br>
-    Temp: ${weather.temperature}°C<br>
-    Wind: ${weather.windspeed} km/h<br>
-    ${codes[weather.weathercode]??'Code '+weather.weathercode}`;
+     Temp: ${weather.temperature}°C<br>
+     Wind: ${weather.windspeed} km/h<br>
+     ${codes[weather.weathercode]??'Code '+weather.weathercode}`;
 }
 
-document.getElementById("getWeather").addEventListener("click", async()=>{
+document.getElementById("getWeather").addEventListener("click",async()=>{
   document.getElementById("weatherResult").innerHTML="";
   const city=document.getElementById("cityInput").value.trim();
-  if(!city) return;
+  if(!city)return;
   const results=await searchCities(city);
   const choicesDiv=document.getElementById("choices");
   choicesDiv.innerHTML="";
@@ -324,31 +417,19 @@ document.getElementById("getWeather").addEventListener("click", async()=>{
   });
 });
 
-document.getElementById("getLocation").addEventListener("click",()=>{
+document.getElementById("getLocation").addEventListener("dblclick",()=>{
   document.getElementById("choices").innerHTML="";
   if(navigator.geolocation){
     navigator.geolocation.getCurrentPosition(pos=>{
       fetchWeather(pos.coords.latitude,pos.coords.longitude);
-    }, err=>{
+    },err=>{
       document.getElementById("weatherResult").textContent="Location error: "+err.message;
     });
-  } else {document.getElementById("weatherResult").textContent="Geolocation not supported.";}
+  } else document.getElementById("weatherResult").textContent="Geolocation not supported.";
 });
 </script>
 
-<!-- COMMENTS -->
-<div id="comments-section">
-<h3>Leave a Comment</h3>
-<form id="commentForm">
-<input type="text" id="name" placeholder="Your name" required>
-<textarea id="comment" placeholder="Your comment..." required></textarea>
-<button type="submit">Post Comment</button>
-</form>
-
-<h3>Comments</h3>
-<div id="commentsList"></div>
-</div>
-
+<!-- 🔥 FIREBASE COMMENTS -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
@@ -364,35 +445,28 @@ function loadComments(){
   db.collection("comments").orderBy("time","desc").onSnapshot(snapshot=>{
     commentsList.innerHTML="";
     snapshot.forEach(doc=>{
-      const comment=doc.data();
+      const c=doc.data();
       commentsList.innerHTML+=`
       <div class="comment-box">
-        <div class="comment-name">${comment.name}</div>
-        <div class="comment-time">${new Date(comment.time).toLocaleString()}</div>
-        <p>${comment.text}</p>
+        <div><b>${c.name}</b> — ${new Date(c.time).toLocaleString()}</div>
+        <p>${c.text}</p>
       </div>`;
     });
   });
 }
 loadComments();
 
-commentForm.addEventListener("submit",(e)=>{
+commentForm.addEventListener("submit",e=>{
   e.preventDefault();
   const name=document.getElementById("name").value.trim();
   const text=document.getElementById("comment").value.trim();
-  if(!name||!text) return;
+  if(!name||!text)return;
   db.collection("comments").add({name,text,time:Date.now()});
   commentForm.reset();
 });
 </script>
 
-<!-- CONTACT FORM -->
-<form action="https://formspree.io/f/mpwgbaey" method="POST" style="max-width:400px;margin:20px auto;color:#0ff;">
-<label>e-mail:<input type="email" name="email"></label><br>
-<label>message:<textarea name="message"></textarea></label><br>
-<button type="submit">Send</button>
-</form>
-
+  
 <!-- COPYRIGHT -->
 <div id="copyright">
   © 2025 - kareemweb.com ッ
@@ -400,6 +474,7 @@ commentForm.addEventListener("submit",(e)=>{
 
 </body>
 </html>
+
 
 
 
