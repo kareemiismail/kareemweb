@@ -21,40 +21,39 @@
     overflow-x: hidden;
 }
 
-
-  /* ===== HEADER IMAGE & TITLE ===== */
-  .header-image {
+/* ===== HEADER IMAGE & TITLE ===== */
+.header-image {
     max-width: 350px;
     margin: 20px auto;
     border: 4px solid #0ff;
     border-radius: 15px;
     box-shadow: 0 0 20px #0ff, 0 0 40px #ff00ff;
     display: block;
-  }
+}
 
-  h2 {
+h2 {
     color: #ff00ff;
     text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
     font-size: 38px;
     margin-bottom: 30px;
     animation: neonPulse 1.5s infinite alternate;
-  }
+}
 
-  @keyframes neonPulse {
+@keyframes neonPulse {
     0%, 100% { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
     50% { text-shadow: 0 0 20px #0ff, 0 0 30px #0ff; }
-  }
+}
 
-  /* ===== BUTTONS / GALLERY ===== */
-  .gallery {
+/* ===== BUTTONS / GALLERY ===== */
+.gallery {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 12px;
     margin: 20px;
-  }
+}
 
-  .game-button {
+.game-button {
     background: linear-gradient(135deg, #ff00ff, #00ffff);
     color: #fff;
     padding: 14px 20px;
@@ -66,18 +65,18 @@
     text-decoration: none;
     transition: 0.3s all;
     box-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
-  }
+}
 
-  .game-button:hover {
+.game-button:hover {
     background: linear-gradient(135deg, #ffff00, #ff0000);
     color: black;
     border: 2px solid #ff0;
     box-shadow: 0 0 20px #ffff00, 0 0 40px #ff0000;
     transform: scale(1.05);
-  }
+}
 
-  /* ===== CHAOS & MUSIC BUTTONS ===== */
-  #musicToggle, #chaosButton {
+/* ===== CHAOS & MUSIC BUTTONS ===== */
+#musicToggle, #chaosButton {
     font-size: 18px;
     border-radius: 12px;
     padding: 12px 18px;
@@ -87,22 +86,38 @@
     cursor: pointer;
     font-weight: bold;
     z-index: 9999;
-  }
+}
 
-  #musicToggle {
+#musicToggle {
     bottom: 20px;
     background: linear-gradient(45deg, #00ff00, #00ffff);
     color: black;
-  }
+}
 
-  #chaosButton {
+#chaosButton {
     bottom: 70px;
     background: linear-gradient(45deg, #ff0000, #ff00ff);
     color: white;
-  }
+}
 
-  /* ===== WEATHER & COMMENTS CARDS ===== */
-  #weather-box, #comments-section {
+/* ===== WIDGET BUTTON ===== */
+#widgetBtn {
+    position: fixed;
+    bottom: 120px; /* above music/chaos buttons */
+    right: 20px;
+    background: #00aaff;
+    border: none;
+    padding: 10px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 10000; /* on top */
+}
+
+/* ===== WEATHER & COMMENTS CARDS ===== */
+#weather-box, #comments-section {
     background: #111;
     border: 2px solid #0ff;
     border-radius: 15px;
@@ -112,15 +127,15 @@
     box-shadow: 0 0 20px #0ff, 0 0 40px #ff00ff;
     color: #0ff;
     font-size: 14px;
-  }
+}
 
-  #weather-box h3, #comments-section h3 {
+#weather-box h3, #comments-section h3 {
     text-shadow: 0 0 8px #0ff;
     margin-bottom: 15px;
-  }
+}
 
-  #weather-box input, #weather-box button,
-  #commentForm input, #commentForm textarea, #commentForm button {
+#weather-box input, #weather-box button,
+#commentForm input, #commentForm textarea, #commentForm button {
     background: #222;
     color: #0ff;
     border: 2px solid #0ff;
@@ -130,23 +145,23 @@
     margin-bottom: 10px;
     box-shadow: 0 0 5px #0ff;
     outline: none;
-  }
+}
 
-  #commentForm button, #weather-box button {
+#commentForm button, #weather-box button {
     background: linear-gradient(135deg, #ff00ff, #00ffff);
     color: #fff;
     font-weight: bold;
     cursor: pointer;
     transition: 0.3s all;
-  }
+}
 
-  #commentForm button:hover, #weather-box button:hover {
+#commentForm button:hover, #weather-box button:hover {
     transform: scale(1.05);
     box-shadow: 0 0 15px #ff00ff, 0 0 25px #00ffff;
-  }
+}
 
-  /* ===== COMMENTS ===== */
-  .comment-box {
+/* ===== COMMENTS ===== */
+.comment-box {
     background: #111;
     padding: 12px;
     margin: 12px 0;
@@ -154,26 +169,26 @@
     border: 1px solid #0ff;
     box-shadow: 0 0 10px #0ff;
     text-align: left;
-  }
+}
 
-  .comment-name {
+.comment-name {
     font-weight: bold;
-  }
+}
 
-  .comment-time {
+.comment-time {
     font-size: 12px;
     opacity: 0.6;
-  }
+}
 
-  /* ===== COPYRIGHT ===== */
-  #copyright {
+/* ===== COPYRIGHT ===== */
+#copyright {
     background: #111;
     color: #0ff;
     padding: 12px;
     font-size: 14px;
     border-top: 3px solid #ff00ff;
     box-shadow: 0 0 10px #0ff inset;
-  }
+}
 </style>
 </head>
 <body>
@@ -184,6 +199,7 @@
 
 <!-- GALLERY BUTTONS -->
 <div class="gallery">
+  <!-- All 33+ game buttons go here -->
   <a href="about me.html" class="game-button" target="_blank">About Me</a>
   <a href="MusicPlayer.html" class="game-button" target="_blank">Kareem's Music Player</a>
   <a href="vidtube.html" class="game-button" target="_blank">Vidtube</a>
@@ -225,63 +241,10 @@
 
 <button id="musicToggle">MUSIC: OFF</button>
 <button id="chaosButton">CHAOS MODE (warning)</button>
-
-<script>
-  document.getElementById("musicToggle").onclick = () => {
-    let music = document.getElementById("bgMusic");
-    music.paused ? music.play() : music.pause();
-    document.getElementById("musicToggle").innerText = music.paused ? "MUSIC: OFF" : "MUSIC: ON";
-  };
-
-  let chaos = false, interval, textInterval, chaosMusic = document.getElementById("chaosMusic");
-
-  const chaosText = document.createElement("div");
-  chaosText.innerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-  chaosText.style.position = "fixed";
-  chaosText.style.fontSize = "40px";
-  chaosText.style.fontWeight = "bold";
-  chaosText.style.color = "lime";
-  chaosText.style.pointerEvents = "none";
-  chaosText.style.zIndex = "999999";
-  chaosText.style.display = "none";
-  document.body.appendChild(chaosText);
-
-  function moveText() {
-    chaosText.style.left = Math.random() * (window.innerWidth - 200) + "px";
-    chaosText.style.top = Math.random() * (window.innerHeight - 200) + "px";
-  }
-
-  document.getElementById("chaosButton").onclick = () => {
-    chaos = !chaos;
-    if (chaos) {
-      chaosText.style.display = "block";
-      moveText();
-      textInterval = setInterval(moveText, 200);
-      chaosMusic.play();
-      interval = setInterval(() => {
-        document.body.style.transform = `rotate(${Math.random()*10-5}deg)`;
-        document.body.style.filter = `hue-rotate(${Math.random()*360}deg) contrast(200%)`;
-      }, 100);
-      document.getElementById("chaosButton").innerText = "STOP CHAOS";
-    } else {
-      clearInterval(interval);
-      clearInterval(textInterval);
-      chaosText.style.display = "none";
-      chaosMusic.pause();
-      chaosMusic.currentTime = 0;
-      document.body.style.transform = "";
-      document.body.style.filter = "";
-      document.getElementById("chaosButton").innerText = "CHAOS MODE";
-    }
-  };
-</script>
-
-<!-- WIDGET BUTTON -->
 <button id="widgetBtn">🛠 Widgets</button>
 
-<!-- PANEL (hidden until clicked) -->
+<!-- WIDGET PANEL -->
 <div id="widgetPanel">
-
 <h2>📌 Widgets</h2>
 <p><b>Time:</b> <span id="clock"></span></p>
 <hr>
@@ -322,167 +285,123 @@
 
 </div> <!-- END PANEL -->
 
+<!-- COPYRIGHT -->
+<div id="copyright">
+  © 2025 - kareemweb.com ッ
+</div>
 
-<!-- ========= STYLES ========= -->
-<style>
-  #widgetBtn {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background: #00aaff;
-    border: none;
-    padding: 10px 15px;
-    cursor: pointer;
-    border-radius: 8px;
-    color: white;
-    font-size: 16px;
-    font-weight: bold;
-    z-index: 1000;
-  }
-
-  #widgetPanel {
-    position: fixed;
-    top: 60px;
-    right: 10px;
-    width: 300px;
-    background: rgba(255,255,255,0.95);
-    padding: 15px;
-    border-radius: 10px;
-    border: 2px solid black;
-    display: none;
-    z-index: 999;
-    max-height: 80vh;
-    overflow-y: auto;
-  }
-
-  hr {
-    border: 1px solid #999;
-    margin: 15px 0;
-  }
-</style>
-
-
-<!-- ========= SCRIPT (clock + open widget + weather + comments) ========= -->
+<!-- SCRIPT for Music/Chaos/Widgets -->
 <script>
-/* --- OPEN / CLOSE Widgets --- */
-const widgetBtn = document.getElementById("widgetBtn");
-const widgetPanel = document.getElementById("widgetPanel");
-widgetBtn.onclick = () => {
-  widgetPanel.style.display = widgetPanel.style.display === "none" ? "block" : "none";
-};
+  const musicToggle = document.getElementById("musicToggle");
+  const chaosButton = document.getElementById("chaosButton");
+  const widgetBtn = document.getElementById("widgetBtn");
+  const widgetPanel = document.getElementById("widgetPanel");
+  const bgMusic = document.getElementById("bgMusic");
+  const chaosMusic = document.getElementById("chaosMusic");
 
-/* --- CLOCK --- */
-function updateClock(){
-  document.getElementById("clock").innerText =
-    new Date().toLocaleTimeString();
-}
-setInterval(updateClock, 1000);
+  musicToggle.onclick = () => {
+    bgMusic.paused ? bgMusic.play() : bgMusic.pause();
+    musicToggle.innerText = bgMusic.paused ? "MUSIC: OFF" : "MUSIC: ON";
+  };
+
+  let chaos=false, interval,textInterval;
+  const chaosText=document.createElement("div");
+  chaosText.innerText="AAAAAAAAAAAAAAAAAAAAA";
+  chaosText.style.position="fixed";
+  chaosText.style.fontSize="40px";
+  chaosText.style.fontWeight="bold";
+  chaosText.style.color="lime";
+  chaosText.style.pointerEvents="none";
+  chaosText.style.zIndex="999999";
+  chaosText.style.display="none";
+  document.body.appendChild(chaosText);
+
+  function moveText(){chaosText.style.left=Math.random()*(window.innerWidth-200)+"px";chaosText.style.top=Math.random()*(window.innerHeight-200)+"px";}
+
+  chaosButton.onclick=()=>{
+    chaos=!chaos;
+    if(chaos){
+      chaosText.style.display="block";
+      moveText();
+      textInterval=setInterval(moveText,200);
+      chaosMusic.play();
+      interval=setInterval(()=>{
+        document.body.style.transform=`rotate(${Math.random()*10-5}deg)`;
+        document.body.style.filter=`hue-rotate(${Math.random()*360}deg) contrast(200%)`;
+      },100);
+      chaosButton.innerText="STOP CHAOS";
+    }else{
+      clearInterval(interval); clearInterval(textInterval);
+      chaosText.style.display="none";
+      chaosMusic.pause(); chaosMusic.currentTime=0;
+      document.body.style.transform="";
+      document.body.style.filter="";
+      chaosButton.innerText="CHAOS MODE (warning)";
+    }
+  };
+
+  widgetBtn.onclick=()=>{widgetPanel.style.display=widgetPanel.style.display==="none"?"block":"none";};
+</script>
+
+<!-- Clock + Weather -->
+<script>
+function updateClock(){document.getElementById("clock").innerText=new Date().toLocaleTimeString();}
+setInterval(updateClock,1000);
 updateClock();
 
-/* --- WEATHER SYSTEM (your original code) --- */
+// Weather
 const codes={0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",51:"Light drizzle",61:"Light rain",71:"Light snow",95:"Thunderstorm"};
 
-async function searchCities(city){
-  const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
-  const data=await resp.json();
-  return data.results||[];
-}
+async function searchCities(city){const resp=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);const data=await resp.json();return data.results||[];}
 
 async function fetchWeather(lat,lon,name,country,admin){
   const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-  const resp=await fetch(url);
-  const data=await resp.json();
-  const weather=data.current_weather;
-  document.getElementById("weatherResult").innerHTML=
-    `<b>${name||'Your Location'}${admin?', '+admin:''}${country?', '+country:''}</b><br>
-     Temp: ${weather.temperature}°C<br>
-     Wind: ${weather.windspeed} km/h<br>
-     ${codes[weather.weathercode]??'Code '+weather.weathercode}`;
+  const resp=await fetch(url);const data=await resp.json();const weather=data.current_weather;
+  document.getElementById("weatherResult").innerHTML=`<b>${name||'Your Location'}${admin?', '+admin:''}${country?', '+country:''}</b><br>
+  Temp: ${weather.temperature}°C<br>Wind: ${weather.windspeed} km/h<br>${codes[weather.weathercode]??'Code '+weather.weathercode}`;
 }
 
 document.getElementById("getWeather").addEventListener("click",async()=>{
-  document.getElementById("weatherResult").innerHTML="";
   const city=document.getElementById("cityInput").value.trim();
   if(!city)return;
   const results=await searchCities(city);
-  const choicesDiv=document.getElementById("choices");
-  choicesDiv.innerHTML="";
+  const choicesDiv=document.getElementById("choices"); choicesDiv.innerHTML="";
   if(results.length===0){choicesDiv.textContent="No matches found.";return;}
   if(results.length===1){const r=results[0];fetchWeather(r.latitude,r.longitude,r.name,r.country,r.admin1);return;}
-  results.forEach(r=>{
-    const btn=document.createElement("button");
-    btn.textContent=`${r.name}, ${r.admin1||''} ${r.country}`;
-    btn.addEventListener("click",()=>{choicesDiv.innerHTML="";fetchWeather(r.latitude,r.longitude,r.name,r.country,r.admin1);});
-    choicesDiv.appendChild(btn);
-  });
+  results.forEach(r=>{const btn=document.createElement("button"); btn.textContent=`${r.name}, ${r.admin1||''} ${r.country}`;
+  btn.addEventListener("click",()=>{choicesDiv.innerHTML="";fetchWeather(r.latitude,r.longitude,r.name,r.country,r.admin1);});choicesDiv.appendChild(btn);});
 });
 
 document.getElementById("getLocation").addEventListener("dblclick",()=>{
-  document.getElementById("choices").innerHTML="";
-  if(navigator.geolocation){
-    navigator.geolocation.getCurrentPosition(pos=>{
-      fetchWeather(pos.coords.latitude,pos.coords.longitude);
-    },err=>{
-      document.getElementById("weatherResult").textContent="Location error: "+err.message;
-    });
-  } else document.getElementById("weatherResult").textContent="Geolocation not supported.";
+  const choicesDiv=document.getElementById("choices"); choicesDiv.innerHTML="";
+  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{fetchWeather(pos.coords.latitude,pos.coords.longitude);},err=>{document.getElementById("weatherResult").textContent="Location error: "+err.message;});} else document.getElementById("weatherResult").textContent="Geolocation not supported.";
 });
 </script>
 
-<!-- 🔥 FIREBASE COMMENTS -->
+<!-- Firebase Comments -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
 <script>
-const firebaseConfig={apiKey:"AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",authDomain:"awesome-18f46.firebaseapp.com",projectId:"awesome-18f46",storageBucket:"awesome-18f46.firebasestorage.app",messagingSenderId:"607281576772",appId:"1:607281576772:web:8bc23796e820188da8b511",measurementId:"G-0SB4WCCTKP"};
+const firebaseConfig={apiKey:"AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",authDomain:"awesome-18f46.firebaseapp.com",projectId:"awesome-18f46"};
 
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
 const commentsList=document.getElementById("commentsList");
 const commentForm=document.getElementById("commentForm");
 
-function loadComments(){
-  db.collection("comments").orderBy("time","desc").onSnapshot(snapshot=>{
-    commentsList.innerHTML="";
-    snapshot.forEach(doc=>{
-      const c=doc.data();
-      commentsList.innerHTML+=`
-      <div class="comment-box">
-        <div><b>${c.name}</b> — ${new Date(c.time).toLocaleString()}</div>
-        <p>${c.text}</p>
-      </div>`;
-    });
-  });
-}
-loadComments();
+db.collection("comments").orderBy("time","desc").onSnapshot(snapshot=>{
+  commentsList.innerHTML="";
+  snapshot.forEach(doc=>{const c=doc.data();commentsList.innerHTML+=`<div class="comment-box"><span class="comment-name">${c.name}</span> <span class="comment-time">(${new Date(c.time).toLocaleString()})</span><br>${c.comment}</div>`;});
+});
 
 commentForm.addEventListener("submit",e=>{
   e.preventDefault();
   const name=document.getElementById("name").value.trim();
-  const text=document.getElementById("comment").value.trim();
-  if(!name||!text)return;
-  db.collection("comments").add({name,text,time:Date.now()});
+  const comment=document.getElementById("comment").value.trim();
+  if(!name||!comment)return;
+  db.collection("comments").add({name,comment,time:Date.now()});
   commentForm.reset();
 });
 </script>
-
-  
-<!-- COPYRIGHT -->
-<div id="copyright">
-  © 2025 - kareemweb.com ッ
-</div>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
