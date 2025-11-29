@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Minesweeper — XP Bliss Theme</title>
+<style>
+  :root{--tile-size:34px}
+  *{box-sizing:border-box;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial}
+  html,body{height:100%}
+  body{margin:0;display:flex;align-items:flex-start;justify-content:center;padding:28px;background:linear-gradient(#87cefb,#bfe9ff);}
+  /* XP Bliss hill SVG as a positioned decorative background */
+  body::before{content:'';position:fixed;left:0;right:0;bottom:0;height:46%;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 600'><rect width='1600' height='600' fill='%2384d14f'/><path d='M0 420 C200 340 400 360 600 420 C800 480 1000 360 1200 420 C1400 480 1600 380 1600 380 L1600 600 L0 600 Z' fill='%2336a832' /></svg>");background-position:center bottom;background-repeat:no-repeat;background-size:cover;z-index:0;opacity:1}
+  .app{position:relative;z-index:1;width:fit-content;max-width:95%;background:rgba(255,255,255,0.6);backdrop-filter:blur(2px);border-radius:18px;padding:26px;box-shadow:0 0 0 12px rgba(255,255,255,0.6),0 0 0 22px rgba(0,0,0,0.3),0 10px 40px rgba(0,0,0,0.4)}
+  header{display:flex;gap:12px;align-items:center;margin-bottom:12px}
+  h1{margin:0;font-size:20px;color:#042027}
+  .controls{display:flex;gap:8px;align-items:center;margin-left:auto}
+  select,input[type=number]{background:transparent;border:1px solid rgba(0,0,0,0.12);padding:6px 8px;border-radius:6px;color:#042027}
+  button{background:#0b5d8f;border:none;color:white;padding:8px 10px;border-radius:8px;cursor:pointer;font-weight:600}
+  .panel{display:flex;gap:18px}
+  .left{width:auto;min-width:auto;}
+  .right{width:32%;min-width:220px}
+  .board-wrap{background:rgba(255,255,255,0.85);padding:12px;border-radius:10px}
+  .board{display:grid;gap:6px;background:transparent;padding:8px;border-radius:8px}
+  .tile{width:var(--tile-size);height:var(--tile-size);border-radius:6px;background:linear-gradient(180deg,#e9f6ff,#d7eefc);display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;user-select:none;box-shadow:0 2px 0 rgba(0,0,0,0.06) inset;color:#042027}
+  .tile.cover{background:linear-gradient(180deg,#d6e8ff,#bcdfff);}
+  .tile.revealed{background:linear-gradient(180deg,#ffffff,#e8f6ff);cursor:default}
+  .tile.flag{background:linear-gradient(180deg,#f9e6e6,#ffdede);}
+  .tile.mine{background:linear-gradient(180deg,#ff8a8a,#ff5c5c);color:white}
+  .stats{display:flex;flex-direction:column;gap:10px}
+  .stat{background:transparent;padding:10px;border-radius:8px}
+  .small{font-size:13px;color:#064056}
+  footer{margin-top:12px;text-align:center;color:#064056;font-size:13px}
+  .hint{background:transparent;border:1px dashed rgba(0,0,0,0.06);padding:10px;border-radius:8px}
+  @media(max-width:840px){.panel{flex-direction:column}.left,.right{width:100%}}
+</style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <h1>Minesweeper — XP Bliss</h1>
+      <div class="controls">
+        <label class="small">Difficulty
+          <select id="difficulty"><option value="easy">Easy (9×9,10)</option><option value="medium" selected>Medium (16×16,40)</option><option value="hard">Hard (18×12,40)</option><option value="custom">Custom</option></select>
+        </label>
+        <label class="small" id="customFields" style="display:none">W<input id="width" type="number" min="5" value="10" style="width:64px;margin-left:6px"> H<input id="height" type="number" min="5" value="10" style="width:64px;margin-left:6px"> Mines<input id="mines" type="number" min="1" value="10" style="width:72px;margin-left:6px"></label>
+        <button id="restart">New Game</button>
+      </div>
+    </header>
+
+    <div class="panel">
+      <div class="left">
+        <div class="board-wrap">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:8px">
+            <div class="stat"><div style="font-size:18px" id="mineCount">Mines: 0</div><div class="small">Unflagged / Total</div></div>
+            <div class="stat"><div style="font-size:18px" id="timer">00:00</div><div class="small">Time</div></div>
+            <div style="margin-left:auto;display:flex;gap:8px">
+              <button id="undo">Undo</button>
+            </div>
+          </div>
+          <div id="board" class="board" aria-label="Minesweeper board"></div>
+        </div>
+      </div>
+
+      <aside class="right">
+        <div class="stats">
+          <div class="stat">
+            <div class="small">Right-click to flag</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer>press <kbd>R</kbd> to restart. right-click to flag.</footer>
+  </div>
+
+<script>
+// --- Classic Minesweeper (AI removed) ---
+const boardEl = document.getElementById('board');
+const mineCountEl = document.getElementById('mineCount');
+const timerEl = document.getElementById('timer');
+const difficultyEl = document.getElementById('difficulty');
+const customFields = document.getElementById('customFields');
+const widthInput = document.getElementById('width');
+const heightInput = document.getElementById('height');
+const minesInput = document.getElementById('mines');
+const restartBtn = document.getElementById('restart');
+const undoBtn = document.getElementById('undo');
+
+let W=16,H=16,M=40;
+let grid=[],revealedCount=0,flags=0,started=false,timer=0,timerInterval=null;
+let undoStack=[];
+
+function setDifficulty(){
+  const v=difficultyEl.value;
+  if(v==='easy'){W=9;H=9;M=10;customFields.style.display='none'}
+  else if(v==='medium'){W=16;H=16;M=40;customFields.style.display='none'}
+  else if(v==='hard'){W=24;H=16;M=99;customFields.style.display='none'}
+  else{customFields.style.display='inline-block';W=parseInt(widthInput.value)||10;H=parseInt(heightInput.value)||10;M=parseInt(minesInput.value)||10}
+}
+
+difficultyEl.addEventListener('change',()=>{setDifficulty();build()});
+restartBtn.addEventListener('click',()=>{setDifficulty();build()});
+widthInput.addEventListener('input',()=>{if(difficultyEl.value==='custom'){W=parseInt(widthInput.value)||10;H=parseInt(heightInput.value)||10;M=parseInt(minesInput.value)||10}})
+
+function build(){stopTimer();started=false;revealedCount=0;flags=0;undoStack=[];boardEl.innerHTML='';boardEl.style.gridTemplateColumns=`repeat(${W}, auto)`;grid=[];
+ for(let y=0;y<H;y++){grid[y]=[];for(let x=0;x<W;x++){grid[y][x]={mine:false,adj:0,rev:false,flag:false,el:null}}}
+ // create tiles
+ for(let y=0;y<H;y++){for(let x=0;x<W;x++){const t=document.createElement('div');t.className='tile cover';t.dataset.x=x;t.dataset.y=y; t.oncontextmenu = e=>{e.preventDefault(); toggleFlag(x,y)};
+ t.addEventListener('mousedown',e=>{if(e.button===0)mouseDown(x,y,e);});
+ t.addEventListener('mouseup',e=>{if(e.button===0)mouseUp(x,y,e)});
+ t.addEventListener('dblclick',e=>{chord(x,y)});
+ grid[y][x].el=t;boardEl.appendChild(t)}}
+ mineCountEl.textContent = `Mines: ${M - flags}/${M}`;
+ updateTimerDisplay();
+}
+
+function placeMines(sx,sy){ // avoid first click
+ let placed=0; while(placed<M){const x=Math.floor(Math.random()*W);const y=Math.floor(Math.random()*H); if(grid[y][x].mine)continue; if(x===sx && y===sy)continue; grid[y][x].mine=true; placed++;}}
+
+function calcAdj(){for(let y=0;y<H;y++){for(let x=0;x<W;x++){let c=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(dx===0&&dy===0)continue;const nx=x+dx,ny=y+dy;if(nx>=0 && nx<W && ny>=0 && ny<H){if(grid[ny][nx].mine)c++}}grid[y][x].adj=c}}}
+
+function startTimer(){timer=0;timerInterval=setInterval(()=>{timer++;updateTimerDisplay()},1000)}
+function stopTimer(){clearInterval(timerInterval);timerInterval=null}
+function updateTimerDisplay(){const mm=Math.floor(timer/60).toString().padStart(2,'0');const ss=(timer%60).toString().padStart(2,'0');timerEl.textContent=`${mm}:${ss}`}
+
+function reveal(x,y){const cell=grid[y][x]; if(cell.rev||cell.flag) return; // can't reveal flagged
+ if(!started){placeMines(x,y);calcAdj();started=true;startTimer();}
+ pushUndo(); cell.rev=true; revealedCount++; cell.el.classList.add('revealed'); cell.el.classList.remove('cover'); cell.el.textContent = cell.mine ? '💣' : (cell.adj>0 ? cell.adj : ''); if(cell.mine){cell.el.classList.add('mine'); gameOver(false); return}
+ if(cell.adj===0){for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<W&&ny>=0&&ny<H) reveal(nx,ny)}}
+ checkWin();}
+
+function toggleFlag(x,y){const cell=grid[y][x]; if(cell.rev) return; pushUndo(); cell.flag=!cell.flag; if(cell.flag){cell.el.classList.add('flag');cell.el.textContent='🚩';flags++} else {cell.el.classList.remove('flag');cell.el.textContent='';flags--} mineCountEl.textContent = `Mines: ${M - flags}/${M}`}
+
+function chord(x,y){const cell=grid[y][x]; if(!cell.rev) return; let neighbors=[]; let flagged=0; for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const nx=x+dx,ny=y+dy;if(nx>=0&&nx<W&&ny>=0&&ny<H){neighbors.push([nx,ny]); if(grid[ny][nx].flag) flagged++}} if(flagged===cell.adj){neighbors.forEach(([nx,ny])=>{if(!grid[ny][nx].flag) reveal(nx,ny)})}}
+
+function pushUndo(){const snapshot=grid.map(row=>row.map(c=>({rev:c.rev,flag:c.flag})));undoStack.push(snapshot); if(undoStack.length>30)undoStack.shift()}
+undoBtn.onclick=()=>{if(undoStack.length===0) return; const s=undoStack.pop(); for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=s[y][x]; grid[y][x].rev=v.rev; grid[y][x].flag=v.flag; const el=grid[y][x].el; el.classList.toggle('revealed',v.rev); el.classList.toggle('cover',!v.rev); el.classList.toggle('flag',v.flag); if(v.rev){ if(grid[y][x].mine) el.classList.add('mine'); el.textContent = grid[y][x].mine ? '💣' : (grid[y][x].adj>0 ? grid[y][x].adj : '') } else el.textContent = v.flag ? '🚩' : '' }}
+
+// Keyboard shortcuts
+window.addEventListener('keydown',e=>{if(e.key==='r' || e.key==='R'){build()}})
+
+function gameOver(win){stopTimer(); started=false; if(!win){ // reveal all mines
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(grid[y][x].mine){grid[y][x].el.classList.add('revealed','mine'); grid[y][x].el.textContent='💣'}} alert('Game over!') } else { alert('You win!') }}
+
+function checkWin(){let safeCells = W*H - M; if(revealedCount>=safeCells){gameOver(true)}}
+
+// UI mouse interactions: mousedown/up to allow chord detection
+let mdx=null,mdy=null;
+function mouseDown(x,y,e){mdx=x;mdy=y}
+function mouseUp(x,y,e){if(e.shiftKey){toggleFlag(x,y)} else { // left click
+ if(grid[y][x].rev) chord(x,y); else reveal(x,y)} }
+
+// initialize
+build();
+
+// expose grid for tinkering
+window.__ms = {grid,build,reveal,toggleFlag};
+
+</script>
+</body>
+</html>
