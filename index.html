@@ -7,31 +7,43 @@
 <link id="favicon" rel="icon" href="frame_apngframe01.png">
 
 <style>
-  body {
+  /* ===== BODY & GENERAL ===== */
+ body {
     font-family: "Comic Sans MS", cursive, sans-serif;
-    background: black;
+    background: url('cloud.jpg') no-repeat center center fixed;
+    background-size: cover;
     color: #00ff00;
     text-align: center;
     margin: 0;
     padding: 0;
-    animation: bgCycle 10s infinite linear;
+    overflow-x: hidden;
+}
+
+
+  /* ===== HEADER IMAGE & TITLE ===== */
+  .header-image {
+    max-width: 350px;
+    margin: 20px auto;
+    border: 4px solid #0ff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #ff00ff;
+    display: block;
   }
 
-  @keyframes bgCycle {
-    0%   { background: black; }
-    25%  { background: blue; }
-    50%  { background: green; }
-    75%  { background: yellow; }
-    100% { background: red; }
+  h2 {
+    color: #ff00ff;
+    text-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
+    font-size: 38px;
+    margin-bottom: 30px;
+    animation: neonPulse 1.5s infinite alternate;
   }
 
-  h1 {
-    font-size: 48px;
-    color: rgb(30, 0, 255);
-    text-shadow: 2px 2px 5px red;
-    animation: blink 1s infinite alternate;
+  @keyframes neonPulse {
+    0%, 100% { text-shadow: 0 0 5px #0ff, 0 0 10px #0ff; }
+    50% { text-shadow: 0 0 20px #0ff, 0 0 30px #0ff; }
   }
 
+  /* ===== BUTTONS / GALLERY ===== */
   .gallery {
     display: flex;
     flex-wrap: wrap;
@@ -41,66 +53,134 @@
   }
 
   .game-button {
-    background: linear-gradient(to bottom, #ff00ff, #0000ff);
+    background: linear-gradient(135deg, #ff00ff, #00ffff);
     color: #fff;
-    padding: 12px;
-    border: 3px outset #fff;
-    text-decoration: none;
+    padding: 14px 20px;
+    margin: 10px;
+    border: 2px solid #0ff;
+    border-radius: 12px;
     font-size: 18px;
-    width: 200px;
-    text-align: center;
-    display: inline-block;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.3s all;
+    box-shadow: 0 0 10px #ff00ff, 0 0 20px #00ffff;
   }
 
   .game-button:hover {
-    background: linear-gradient(to bottom, #ffff00, #ff0000);
+    background: linear-gradient(135deg, #ffff00, #ff0000);
     color: black;
-    border: 3px inset #000;
+    border: 2px solid #ff0;
+    box-shadow: 0 0 20px #ffff00, 0 0 40px #ff0000;
+    transform: scale(1.05);
   }
 
+  /* ===== CHAOS & MUSIC BUTTONS ===== */
   #musicToggle, #chaosButton {
+    font-size: 18px;
+    border-radius: 12px;
+    padding: 12px 18px;
+    box-shadow: 0 0 15px #ff0, 0 0 30px #f0f;
     position: fixed;
     right: 20px;
-    padding: 10px;
-    font-size: 20px;
     cursor: pointer;
-    border: 5px ridge yellow;
     font-weight: bold;
     z-index: 9999;
   }
 
-  #musicToggle { bottom: 20px; background: yellow; }
-  #chaosButton { bottom: 70px; background: red; color: white;}
-
-  #comments-section {
-    max-width: 600px;
-    margin: 40px auto;
+  #musicToggle {
+    bottom: 20px;
+    background: linear-gradient(45deg, #00ff00, #00ffff);
+    color: black;
   }
 
+  #chaosButton {
+    bottom: 70px;
+    background: linear-gradient(45deg, #ff0000, #ff00ff);
+    color: white;
+  }
+
+  /* ===== WEATHER & COMMENTS CARDS ===== */
+  #weather-box, #comments-section {
+    background: #111;
+    border: 2px solid #0ff;
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 400px;
+    margin: 30px auto;
+    box-shadow: 0 0 20px #0ff, 0 0 40px #ff00ff;
+    color: #0ff;
+    font-size: 14px;
+  }
+
+  #weather-box h3, #comments-section h3 {
+    text-shadow: 0 0 8px #0ff;
+    margin-bottom: 15px;
+  }
+
+  #weather-box input, #weather-box button,
+  #commentForm input, #commentForm textarea, #commentForm button {
+    background: #222;
+    color: #0ff;
+    border: 2px solid #0ff;
+    border-radius: 10px;
+    padding: 8px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 5px #0ff;
+    outline: none;
+  }
+
+  #commentForm button, #weather-box button {
+    background: linear-gradient(135deg, #ff00ff, #00ffff);
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s all;
+  }
+
+  #commentForm button:hover, #weather-box button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #ff00ff, 0 0 25px #00ffff;
+  }
+
+  /* ===== COMMENTS ===== */
   .comment-box {
-    background: black;
+    background: #111;
     padding: 12px;
     margin: 12px 0;
-    border-radius: 10px;
-    border: 2px solid lime;
+    border-radius: 12px;
+    border: 1px solid #0ff;
+    box-shadow: 0 0 10px #0ff;
+    text-align: left;
   }
 
+  .comment-name {
+    font-weight: bold;
+  }
+
+  .comment-time {
+    font-size: 12px;
+    opacity: 0.6;
+  }
+
+  /* ===== COPYRIGHT ===== */
   #copyright {
-    background: navy;
-    color: white;
-    padding: 10px;
+    background: #111;
+    color: #0ff;
+    padding: 12px;
     font-size: 14px;
-    border-top: 5px double lime;
+    border-top: 3px solid #ff00ff;
+    box-shadow: 0 0 10px #0ff inset;
   }
-
-  @keyframes blink { from { opacity: 1; } to { opacity: 0.4; } }
 </style>
 </head>
 <body>
 
-<img src="Kareemweb.png" class="header-image" style="max-width:300px; display:block; margin:20px auto;">
+<!-- HEADER -->
+<img src="Kareemweb.png" class="header-image">
 <h2>Welcome to KareemWeb ッ</h2>
 
+<!-- GALLERY BUTTONS -->
 <div class="gallery">
   <a href="about me.html" class="game-button" target="_blank">About Me</a>
   <a href="MusicPlayer.html" class="game-button" target="_blank">Kareem's Music Player</a>
@@ -136,68 +216,64 @@
   <a href="https://www.youtube.com/@karemeon" class="game-button" target="_blank">YouTube</a>
 </div>
 
+<!-- AUDIO -->
 <audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop autoplay></audio>
 <audio id="chaosMusic" src="Spazzmatica Polka.mp3"></audio>
 
 <button id="musicToggle">MUSIC: OFF</button>
-<button id="chaosButton">CHAOS MODE (epilepsy, seizure, and everything else warning)</button>
+<button id="chaosButton">CHAOS MODE (warning)</button>
 
 <script>
-document.getElementById("musicToggle").onclick = () => {
-  let music = document.getElementById("bgMusic");
-  music.paused ? music.play() : music.pause();
-  document.getElementById("musicToggle").innerText = music.paused ? "MUSIC: OFF" : "MUSIC: ON";
-};
+  document.getElementById("musicToggle").onclick = () => {
+    let music = document.getElementById("bgMusic");
+    music.paused ? music.play() : music.pause();
+    document.getElementById("musicToggle").innerText = music.paused ? "MUSIC: OFF" : "MUSIC: ON";
+  };
 
-let chaos = false, interval, textInterval, chaosMusic = document.getElementById("chaosMusic");
+  let chaos = false, interval, textInterval, chaosMusic = document.getElementById("chaosMusic");
 
-// CREATE CHAOS TEXT
-const chaosText = document.createElement("div");
-chaosText.innerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-chaosText.style.position = "fixed";
-chaosText.style.fontSize = "40px";
-chaosText.style.fontWeight = "bold";
-chaosText.style.color = "lime";
-chaosText.style.pointerEvents = "none";
-chaosText.style.zIndex = "999999";
-chaosText.style.display = "none";
-document.body.appendChild(chaosText);
+  const chaosText = document.createElement("div");
+  chaosText.innerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+  chaosText.style.position = "fixed";
+  chaosText.style.fontSize = "40px";
+  chaosText.style.fontWeight = "bold";
+  chaosText.style.color = "lime";
+  chaosText.style.pointerEvents = "none";
+  chaosText.style.zIndex = "999999";
+  chaosText.style.display = "none";
+  document.body.appendChild(chaosText);
 
-function moveText() {
-  chaosText.style.left = Math.random() * (window.innerWidth - 200) + "px";
-  chaosText.style.top = Math.random() * (window.innerHeight - 200) + "px";
-}
-
-document.getElementById("chaosButton").onclick = () => {
-  chaos = !chaos;
-  
-  if (chaos) {
-    chaosText.style.display = "block";
-    moveText();
-    textInterval = setInterval(moveText, 200);
-
-    chaosMusic.play();
-    interval = setInterval(() => {
-      document.body.style.transform = `rotate(${Math.random()*10-5}deg)`;
-      document.body.style.filter = `hue-rotate(${Math.random()*360}deg) contrast(200%)`;
-    }, 100);
-
-    document.getElementById("chaosButton").innerText = "STOP CHAOS";
-  } else {
-    clearInterval(interval);
-    clearInterval(textInterval);
-    chaosText.style.display = "none";
-
-    chaosMusic.pause();
-    chaosMusic.currentTime = 0;
-    document.body.style.transform = "";
-    document.body.style.filter = "";
-
-    document.getElementById("chaosButton").innerText = "CHAOS MODE";
+  function moveText() {
+    chaosText.style.left = Math.random() * (window.innerWidth - 200) + "px";
+    chaosText.style.top = Math.random() * (window.innerHeight - 200) + "px";
   }
-};
+
+  document.getElementById("chaosButton").onclick = () => {
+    chaos = !chaos;
+    if (chaos) {
+      chaosText.style.display = "block";
+      moveText();
+      textInterval = setInterval(moveText, 200);
+      chaosMusic.play();
+      interval = setInterval(() => {
+        document.body.style.transform = `rotate(${Math.random()*10-5}deg)`;
+        document.body.style.filter = `hue-rotate(${Math.random()*360}deg) contrast(200%)`;
+      }, 100);
+      document.getElementById("chaosButton").innerText = "STOP CHAOS";
+    } else {
+      clearInterval(interval);
+      clearInterval(textInterval);
+      chaosText.style.display = "none";
+      chaosMusic.pause();
+      chaosMusic.currentTime = 0;
+      document.body.style.transform = "";
+      document.body.style.filter = "";
+      document.getElementById("chaosButton").innerText = "CHAOS MODE";
+    }
+  };
 </script>
 
+<!-- WEATHER -->
 <div id="weather-box">
 <h3>Weather</h3>
 <input type="text" id="cityInput" placeholder="Enter city…" />
@@ -207,157 +283,57 @@ document.getElementById("chaosButton").onclick = () => {
 <div id="weatherResult"></div>
 </div>
 
-<style>
-#weather-box {
-width: 240px;
-background: #111;
-color: #0f0;
-border: 2px solid #f0f;
-margin: 20px auto;
-padding: 10px;
-box-sizing: border-box;
-font-size: 14px;
-}
-#weather-box h3 {
-margin-top: 0;
-color: #0ff;
-font-size: 16px;
-}
-#choices button {
-display: block;
-width: 100%;
-margin: 3px 0;
-background: #0ff;
-color: #000;
-border: none;
-cursor: pointer;
-font-size: 12px;
-}
-</style>
-
 <script>
-const codes = {
-0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle",
-61: "Light rain", 71: "Light snow", 95: "Thunderstorm"
-};
+const codes = {0:"Clear sky",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",45:"Fog",48:"Depositing rime fog",51:"Light drizzle",61:"Light rain",71:"Light snow",95:"Thunderstorm"};
 
-async function searchCities(city) {
-const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
-const data = await resp.json();
-return data.results || [];
+async function searchCities(city){
+  const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
+  const data = await resp.json();
+  return data.results||[];
 }
 
-async function fetchWeather(lat, lon, name, country, admin) {
-const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-const resp = await fetch(url);
-const data = await resp.json();
-const weather = data.current_weather;
-document.getElementById("weatherResult").innerHTML =
-`<b>${name || 'Your Location'}${admin ? ', '+admin : ''}${country ? ', '+country : ''}</b><br>
-Temp: ${weather.temperature}°C<br>
-Wind: ${weather.windspeed} km/h<br>
-${codes[weather.weathercode] ?? 'Code ' + weather.weathercode}`;
+async function fetchWeather(lat, lon, name, country, admin){
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+  const resp = await fetch(url);
+  const data = await resp.json();
+  const weather = data.current_weather;
+  document.getElementById("weatherResult").innerHTML =
+    `<b>${name||'Your Location'}${admin?', '+admin:''}${country?', '+country:''}</b><br>
+    Temp: ${weather.temperature}°C<br>
+    Wind: ${weather.windspeed} km/h<br>
+    ${codes[weather.weathercode]??'Code '+weather.weathercode}`;
 }
 
-document.getElementById("getWeather").addEventListener("click", async () => {
-document.getElementById("weatherResult").innerHTML = "";
-const city = document.getElementById("cityInput").value.trim();
-if (!city) return;
-
-const results = await searchCities(city);
-const choicesDiv = document.getElementById("choices");
-choicesDiv.innerHTML = "";
-
-if (results.length === 0) {
-choicesDiv.textContent = "No matches found.";
-return;
-}
-
-// If only one, fetch immediately
-if (results.length === 1) {
-const r = results[0];
-fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
-return;
-}
-
-// Show choices to user
-results.forEach(r => {
-const btn = document.createElement("button");
-btn.textContent = `${r.name}, ${r.admin1 || ''} ${r.country}`;
-btn.addEventListener("click", () => {
-choicesDiv.innerHTML = "";
-fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
-});
-choicesDiv.appendChild(btn);
-});
+document.getElementById("getWeather").addEventListener("click", async()=>{
+  document.getElementById("weatherResult").innerHTML="";
+  const city=document.getElementById("cityInput").value.trim();
+  if(!city) return;
+  const results=await searchCities(city);
+  const choicesDiv=document.getElementById("choices");
+  choicesDiv.innerHTML="";
+  if(results.length===0){choicesDiv.textContent="No matches found.";return;}
+  if(results.length===1){const r=results[0];fetchWeather(r.latitude,r.longitude,r.name,r.country,r.admin1);return;}
+  results.forEach(r=>{
+    const btn=document.createElement("button");
+    btn.textContent=`${r.name}, ${r.admin1||''} ${r.country}`;
+    btn.addEventListener("click",()=>{choicesDiv.innerHTML="";fetchWeather(r.latitude,r.longitude,r.name,r.country,r.admin1);});
+    choicesDiv.appendChild(btn);
+  });
 });
 
-// use my location
-document.getElementById("getLocation").addEventListener("click", () => {
-document.getElementById("choices").innerHTML = "";
-if (navigator.geolocation) {
-navigator.geolocation.getCurrentPosition(pos => {
-const lat = pos.coords.latitude;
-const lon = pos.coords.longitude;
-fetchWeather(lat, lon); // name/country will be blank
-}, err => {
-document.getElementById("weatherResult").textContent = "Location error: " + err.message;
-});
-} else {
-document.getElementById("weatherResult").textContent = "Geolocation not supported.";
-}
+document.getElementById("getLocation").addEventListener("click",()=>{
+  document.getElementById("choices").innerHTML="";
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      fetchWeather(pos.coords.latitude,pos.coords.longitude);
+    }, err=>{
+      document.getElementById("weatherResult").textContent="Location error: "+err.message;
+    });
+  } else {document.getElementById("weatherResult").textContent="Geolocation not supported.";}
 });
 </script>
 
-  
-<style>
-#comments-section {
-max-width: 600px;
-margin: 40px auto;
-font-family: Arial, sans-serif;
-}
-
-#commentForm {
-display: flex;
-flex-direction: column;
-gap: 10px;
-}
-
-#commentForm input, #commentForm textarea {
-padding: 10px;
-border: 1px solid #ccc;
-border-radius: 8px;
-font-size: 14px;
-}
-
-#commentForm button {
-padding: 10px;
-border: none;
-background: #4a4aff;
-color: black;
-border-radius: 8px;
-cursor: pointer;
-font-size: 14px;
-}
-
-.comment-box {
-background: black;
-padding: 12px;
-margin: 12px 0;
-border-radius: 10px;
-}
-
-.comment-name {
-font-weight: bold;
-}
-
-.comment-time {
-font-size: 12px;
-opacity: 0.6;
-}
-</style>
-</script>
+<!-- COMMENTS -->
 <div id="comments-section">
 <h3>Leave a Comment</h3>
 <form id="commentForm">
@@ -370,91 +346,58 @@ opacity: 0.6;
 <div id="commentsList"></div>
 </div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-// Your Firebase config
-const firebaseConfig = {
-apiKey: "AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
-authDomain: "awesome-18f46.firebaseapp.com",
-projectId: "awesome-18f46",
-storageBucket: "awesome-18f46.firebasestorage.app",
-messagingSenderId: "607281576772",
-appId: "1:607281576772:web:8bc23796e820188da8b511",
-measurementId: "G-0SB4WCCTKP"
-};
+const firebaseConfig={apiKey:"AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",authDomain:"awesome-18f46.firebaseapp.com",projectId:"awesome-18f46",storageBucket:"awesome-18f46.firebasestorage.app",messagingSenderId:"607281576772",appId:"1:607281576772:web:8bc23796e820188da8b511",measurementId:"G-0SB4WCCTKP"};
 
-// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+const db=firebase.firestore();
+const commentsList=document.getElementById("commentsList");
+const commentForm=document.getElementById("commentForm");
 
-const commentsList = document.getElementById("commentsList");
-const commentForm = document.getElementById("commentForm");
-
-// Load comments in real-time
-function loadComments() {
-db.collection("comments")
-.orderBy("time", "desc")
-.onSnapshot(snapshot => {
-commentsList.innerHTML = "";
-snapshot.forEach(doc => {
-const comment = doc.data();
-commentsList.innerHTML += `
-<div class="comment-box">
-<div class="comment-name">${comment.name}</div>
-<div class="comment-time">${new Date(comment.time).toLocaleString()}</div>
-<p>${comment.text}</p>
-</div>
-`;
-});
-});
+function loadComments(){
+  db.collection("comments").orderBy("time","desc").onSnapshot(snapshot=>{
+    commentsList.innerHTML="";
+    snapshot.forEach(doc=>{
+      const comment=doc.data();
+      commentsList.innerHTML+=`
+      <div class="comment-box">
+        <div class="comment-name">${comment.name}</div>
+        <div class="comment-time">${new Date(comment.time).toLocaleString()}</div>
+        <p>${comment.text}</p>
+      </div>`;
+    });
+  });
 }
-
 loadComments();
 
-// Post new comment
-commentForm.addEventListener("submit", (e) => {
-e.preventDefault();
-
-const name = document.getElementById("name").value.trim();
-const text = document.getElementById("comment").value.trim();
-if (!name || !text) return;
-
-db.collection("comments").add({
-name,
-text,
-time: Date.now()
-});
-
-commentForm.reset();
+commentForm.addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const name=document.getElementById("name").value.trim();
+  const text=document.getElementById("comment").value.trim();
+  if(!name||!text) return;
+  db.collection("comments").add({name,text,time:Date.now()});
+  commentForm.reset();
 });
 </script>
 
-<form
-action="https://formspree.io/f/mpwgbaey"
-method="POST">
-<label>
-e-mail:
-<input type="email" name="email">
-</label>
-<label>
-message:
-<textarea name="message"></textarea>
-</label>
-<!-- your other form fields go here -->
+<!-- CONTACT FORM -->
+<form action="https://formspree.io/f/mpwgbaey" method="POST" style="max-width:400px;margin:20px auto;color:#0ff;">
+<label>e-mail:<input type="email" name="email"></label><br>
+<label>message:<textarea name="message"></textarea></label><br>
 <button type="submit">Send</button>
 </form>
 
-
-
-
+<!-- COPYRIGHT -->
 <div id="copyright">
   © 2025 - kareemweb.com ッ
 </div>
+
 </body>
 </html>
+
 
 
 
