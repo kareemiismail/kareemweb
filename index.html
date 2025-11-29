@@ -3,58 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-
 <title>KareemWeb</title>
 <link id="favicon" rel="icon" href="frame_apngframe01.png">
 
 <style>
-  #comments-section {
-  max-width: 600px;
-  margin: 40px auto;
-  font-family: Arial, sans-serif;
-}
-
-#commentForm {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-#commentForm input, #commentForm textarea {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 14px;
-}
-
-#commentForm button {
-  padding: 10px;
-  border: none;
-  background: #4a4aff;
-  color: black;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.comment-box {
-  background: black;
-  padding: 12px;
-  margin: 12px 0;
-  border-radius: 10px;
-}
-
-.comment-name {
-  font-weight: bold;
-}
-
-.comment-time {
-  font-size: 12px;
-  opacity: 0.6;
-}
-
-    body {
-    font-family: "Comic Sans MS", "Courier New", Verdana, sans-serif;
+  body {
+    font-family: "Comic Sans MS", cursive, sans-serif;
     background: black;
     color: #00ff00;
     text-align: center;
@@ -78,11 +32,6 @@
     animation: blink 1s infinite alternate;
   }
 
-  h2 {
-    color: rgb(0, 0, 0);
-    font-family: "Comic Sans MS", sans-serif;
-  }
-
   .gallery {
     display: flex;
     flex-wrap: wrap;
@@ -97,7 +46,6 @@
     padding: 12px;
     border: 3px outset #fff;
     text-decoration: none;
-    font-family: "Comic Sans MS";
     font-size: 18px;
     width: 200px;
     text-align: center;
@@ -110,24 +58,31 @@
     border: 3px inset #000;
   }
 
-  .marquee-box {
-    background: black;
-    color: lime;
-    padding: 8px;
-    border: 2px dashed magenta;
-    margin: 20px auto;
-    width: 80%;
+  #musicToggle, #chaosButton {
+    position: fixed;
+    right: 20px;
+    padding: 10px;
+    font-size: 20px;
+    cursor: pointer;
+    border: 5px ridge yellow;
+    font-weight: bold;
+    z-index: 9999;
   }
 
-  #musicToggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    border: 3px groove pink;
-    background: yellow;
-    cursor: pointer;
-    font-size: 20px;
-    padding: 6px;
+  #musicToggle { bottom: 20px; background: yellow; }
+  #chaosButton { bottom: 70px; background: red; color: white;}
+
+  #comments-section {
+    max-width: 600px;
+    margin: 40px auto;
+  }
+
+  .comment-box {
+    background: black;
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 10px;
+    border: 2px solid lime;
   }
 
   #copyright {
@@ -138,23 +93,13 @@
     border-top: 5px double lime;
   }
 
-  @keyframes blink {
-    from { opacity: 1; }
-    to { opacity: 0.4; }
-  }
+  @keyframes blink { from { opacity: 1; } to { opacity: 0.4; } }
 </style>
 </head>
 <body>
-  <img src="Kareemweb.png" alt="KareemWeb Logo" class="header-image">
-  <style>
-    .header-image {
-      display: block;          /* makes the <img> behave like a block */
-      margin: 20px auto;       /* auto left/right margins center it */
-      max-width: 300px;        /* optional: limit its width */
-    }
-  </style>
 
-<h2>This is my Website!</h2>
+<img src="Kareemweb.png" class="header-image" style="max-width:300px; display:block; margin:20px auto;">
+<h2>Welcome to KareemWeb ッ</h2>
 
 <div class="gallery">
   <a href="about me.html" class="game-button" target="_blank">About Me</a>
@@ -175,159 +120,253 @@
   <a href="tablet_interface.html" class="game-button" target="_blank">Check Out The Tablet!</a>
   <a href="https://kareemiismail.itch.io/the-ice-cream-quiz" class="game-button">Ice Cream!</a>
   <a href="SM64-PC_PORT.exe" class="game-button" target="_blank">Super Mario 64!</a>
-  <a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft (This game is made by mojang and uh... an eagle?)</a>
+  <a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft</a>
   <a href="watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry</a>
-  <a href="hi.html" class="game-button" target="_blank">RPG or something</a>
-  <a href="https://github.com/kareemiismail/CoolStuff" class="game-button" target="_blank">My python .exe!</a>
-  <a href="https://github.com/kareemiismail/Comic-Sansifier-For-Chrome/" class="game-button" target="_blank">The Comic Sansifier for Chrome!</a>
+  <a href="hi.html" class="game-button" target="_blank">RPG</a>
+  <a href="https://github.com/kareemiismail/CoolStuff" class="game-button" target="_blank">Python exe</a>
+  <a href="https://github.com/kareemiismail/Comic-Sansifier-For-Chrome/" class="game-button" target="_blank">Comic Sansifier</a>
   <a href="Jump Over Cars.html" class="game-button" target="_blank">Jump Over Cars</a>
   <a href="text to speech.html" class="game-button" target="_blank">Text to Speech</a>
-  <a href="Fireworks Show.html" class="game-button" target="_blank">Fireworks Show</a>
+  <a href="Fireworks Show.html" class="game-button" target="_blank">Fireworks</a>
   <a href="multi_chat_server_gui.7z" class="game-button" target="_blank">Chat App</a>
   <a href="OS.html" class="game-button" target="_blank">ClunckOS</a>
   <a href="Corn.html" class="game-button" target="_blank">Corn.</a>
-  <a href="Goff.html" class="game-button" target="_blank">Bullet Dodger Remastered!(NEW NEW NEW!!!!!)</a>
-  <a href="https://www.youtube.com/@karemeon" class="game-button" target="_blank">Subscribe to me</a>
+  <a href="Goff.html" class="game-button" target="_blank">Bullet Dodger Remastered</a>
+  <a href="https://www.youtube.com/@karemeon" class="game-button" target="_blank">YouTube</a>
 </div>
 
-  <div id="weather-box">
-  <h3>Weather</h3>
-  <input type="text" id="cityInput" placeholder="Enter city…" />
-  <button id="getWeather">Search</button>
-  <button id="getLocation">Location (double-click)</button>
-  <div id="choices"></div>
-  <div id="weatherResult"></div>
+<audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop autoplay></audio>
+<audio id="chaosMusic" src="Spazzmatica Polka.mp3"></audio>
+
+<button id="musicToggle">MUSIC: OFF</button>
+<button id="chaosButton">CHAOS MODE (epilepsy, seizure, and everything else warning)</button>
+
+<script>
+document.getElementById("musicToggle").onclick = () => {
+  let music = document.getElementById("bgMusic");
+  music.paused ? music.play() : music.pause();
+  document.getElementById("musicToggle").innerText = music.paused ? "MUSIC: OFF" : "MUSIC: ON";
+};
+
+let chaos = false, interval, textInterval, chaosMusic = document.getElementById("chaosMusic");
+
+// CREATE CHAOS TEXT
+const chaosText = document.createElement("div");
+chaosText.innerText = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+chaosText.style.position = "fixed";
+chaosText.style.fontSize = "40px";
+chaosText.style.fontWeight = "bold";
+chaosText.style.color = "lime";
+chaosText.style.pointerEvents = "none";
+chaosText.style.zIndex = "999999";
+chaosText.style.display = "none";
+document.body.appendChild(chaosText);
+
+function moveText() {
+  chaosText.style.left = Math.random() * (window.innerWidth - 200) + "px";
+  chaosText.style.top = Math.random() * (window.innerHeight - 200) + "px";
+}
+
+document.getElementById("chaosButton").onclick = () => {
+  chaos = !chaos;
+  
+  if (chaos) {
+    chaosText.style.display = "block";
+    moveText();
+    textInterval = setInterval(moveText, 200);
+
+    chaosMusic.play();
+    interval = setInterval(() => {
+      document.body.style.transform = `rotate(${Math.random()*10-5}deg)`;
+      document.body.style.filter = `hue-rotate(${Math.random()*360}deg) contrast(200%)`;
+    }, 100);
+
+    document.getElementById("chaosButton").innerText = "STOP CHAOS";
+  } else {
+    clearInterval(interval);
+    clearInterval(textInterval);
+    chaosText.style.display = "none";
+
+    chaosMusic.pause();
+    chaosMusic.currentTime = 0;
+    document.body.style.transform = "";
+    document.body.style.filter = "";
+
+    document.getElementById("chaosButton").innerText = "CHAOS MODE";
+  }
+};
+</script>
+
+<div id="weather-box">
+<h3>Weather</h3>
+<input type="text" id="cityInput" placeholder="Enter city…" />
+<button id="getWeather">Search</button>
+<button id="getLocation">Location (double-click)</button>
+<div id="choices"></div>
+<div id="weatherResult"></div>
 </div>
 
 <style>
-  #weather-box {
-    width: 240px;
-    background: #111;
-    color: #0f0;
-    border: 2px solid #f0f;
-    margin: 20px auto;
-    padding: 10px;
-    box-sizing: border-box;
-    font-size: 14px;
-  }
-  #weather-box h3 {
-    margin-top: 0;
-    color: #0ff;
-    font-size: 16px;
-  }
-  #choices button {
-    display: block;
-    width: 100%;
-    margin: 3px 0;
-    background: #0ff;
-    color: #000;
-    border: none;
-    cursor: pointer;
-    font-size: 12px;
-  }
+#weather-box {
+width: 240px;
+background: #111;
+color: #0f0;
+border: 2px solid #f0f;
+margin: 20px auto;
+padding: 10px;
+box-sizing: border-box;
+font-size: 14px;
+}
+#weather-box h3 {
+margin-top: 0;
+color: #0ff;
+font-size: 16px;
+}
+#choices button {
+display: block;
+width: 100%;
+margin: 3px 0;
+background: #0ff;
+color: #000;
+border: none;
+cursor: pointer;
+font-size: 12px;
+}
 </style>
 
 <script>
 const codes = {
-  0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
-  45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle",
-  61: "Light rain", 71: "Light snow", 95: "Thunderstorm"
+0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle",
+61: "Light rain", 71: "Light snow", 95: "Thunderstorm"
 };
 
 async function searchCities(city) {
-  const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
-  const data = await resp.json();
-  return data.results || [];
+const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`);
+const data = await resp.json();
+return data.results || [];
 }
 
 async function fetchWeather(lat, lon, name, country, admin) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-  const resp = await fetch(url);
-  const data = await resp.json();
-  const weather = data.current_weather;
-  document.getElementById("weatherResult").innerHTML =
-    `<b>${name || 'Your Location'}${admin ? ', '+admin : ''}${country ? ', '+country : ''}</b><br>
-     Temp: ${weather.temperature}°C<br>
-     Wind: ${weather.windspeed} km/h<br>
-     ${codes[weather.weathercode] ?? 'Code ' + weather.weathercode}`;
+const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+const resp = await fetch(url);
+const data = await resp.json();
+const weather = data.current_weather;
+document.getElementById("weatherResult").innerHTML =
+`<b>${name || 'Your Location'}${admin ? ', '+admin : ''}${country ? ', '+country : ''}</b><br>
+Temp: ${weather.temperature}°C<br>
+Wind: ${weather.windspeed} km/h<br>
+${codes[weather.weathercode] ?? 'Code ' + weather.weathercode}`;
 }
 
 document.getElementById("getWeather").addEventListener("click", async () => {
-  document.getElementById("weatherResult").innerHTML = "";
-  const city = document.getElementById("cityInput").value.trim();
-  if (!city) return;
+document.getElementById("weatherResult").innerHTML = "";
+const city = document.getElementById("cityInput").value.trim();
+if (!city) return;
 
-  const results = await searchCities(city);
-  const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = "";
+const results = await searchCities(city);
+const choicesDiv = document.getElementById("choices");
+choicesDiv.innerHTML = "";
 
-  if (results.length === 0) {
-    choicesDiv.textContent = "No matches found.";
-    return;
-  }
+if (results.length === 0) {
+choicesDiv.textContent = "No matches found.";
+return;
+}
 
-  // If only one, fetch immediately
-  if (results.length === 1) {
-    const r = results[0];
-    fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
-    return;
-  }
+// If only one, fetch immediately
+if (results.length === 1) {
+const r = results[0];
+fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
+return;
+}
 
-  // Show choices to user
-  results.forEach(r => {
-    const btn = document.createElement("button");
-    btn.textContent = `${r.name}, ${r.admin1 || ''} ${r.country}`;
-    btn.addEventListener("click", () => {
-      choicesDiv.innerHTML = "";
-      fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
-    });
-    choicesDiv.appendChild(btn);
-  });
+// Show choices to user
+results.forEach(r => {
+const btn = document.createElement("button");
+btn.textContent = `${r.name}, ${r.admin1 || ''} ${r.country}`;
+btn.addEventListener("click", () => {
+choicesDiv.innerHTML = "";
+fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
+});
+choicesDiv.appendChild(btn);
+});
 });
 
 // use my location
 document.getElementById("getLocation").addEventListener("click", () => {
-  document.getElementById("choices").innerHTML = "";
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(pos => {
-      const lat = pos.coords.latitude;
-      const lon = pos.coords.longitude;
-      fetchWeather(lat, lon); // name/country will be blank
-    }, err => {
-      document.getElementById("weatherResult").textContent = "Location error: " + err.message;
-    });
-  } else {
-    document.getElementById("weatherResult").textContent = "Geolocation not supported.";
-  }
+document.getElementById("choices").innerHTML = "";
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(pos => {
+const lat = pos.coords.latitude;
+const lon = pos.coords.longitude;
+fetchWeather(lat, lon); // name/country will be blank
+}, err => {
+document.getElementById("weatherResult").textContent = "Location error: " + err.message;
+});
+} else {
+document.getElementById("weatherResult").textContent = "Geolocation not supported.";
+}
 });
 </script>
 
-<audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop autoplay></audio>
-<button id="musicToggle">Off</button>
+  
+<style>
+#comments-section {
+max-width: 600px;
+margin: 40px auto;
+font-family: Arial, sans-serif;
+}
 
-<script>
-const music = document.getElementById('bgMusic');
-const toggleBtn = document.getElementById('musicToggle');
-toggleBtn.addEventListener('click', () => {
-  if (music.paused) {
-    music.play();
-    toggleBtn.textContent = 'On';
-  } else {
-    music.pause();
-    toggleBtn.textContent = 'Off';
-  }
-});
+#commentForm {
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+
+#commentForm input, #commentForm textarea {
+padding: 10px;
+border: 1px solid #ccc;
+border-radius: 8px;
+font-size: 14px;
+}
+
+#commentForm button {
+padding: 10px;
+border: none;
+background: #4a4aff;
+color: black;
+border-radius: 8px;
+cursor: pointer;
+font-size: 14px;
+}
+
+.comment-box {
+background: black;
+padding: 12px;
+margin: 12px 0;
+border-radius: 10px;
+}
+
+.comment-name {
+font-weight: bold;
+}
+
+.comment-time {
+font-size: 12px;
+opacity: 0.6;
+}
+</style>
 </script>
-  <div id="comments-section">
-  <h3>Leave a Comment</h3>
-  <form id="commentForm">
-    <input type="text" id="name" placeholder="Your name" required>
-    <textarea id="comment" placeholder="Your comment..." required></textarea>
-    <button type="submit">Post Comment</button>
-  </form>
+<div id="comments-section">
+<h3>Leave a Comment</h3>
+<form id="commentForm">
+<input type="text" id="name" placeholder="Your name" required>
+<textarea id="comment" placeholder="Your comment..." required></textarea>
+<button type="submit">Post Comment</button>
+</form>
 
-  <h3>Comments</h3>
-  <div id="commentsList"></div>
+<h3>Comments</h3>
+<div id="commentsList"></div>
 </div>
 
 <!-- Firebase SDK -->
@@ -335,107 +374,86 @@ toggleBtn.addEventListener('click', () => {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-  // Your Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
-    authDomain: "awesome-18f46.firebaseapp.com",
-    projectId: "awesome-18f46",
-    storageBucket: "awesome-18f46.firebasestorage.app",
-    messagingSenderId: "607281576772",
-    appId: "1:607281576772:web:8bc23796e820188da8b511",
-    measurementId: "G-0SB4WCCTKP"
-  };
+// Your Firebase config
+const firebaseConfig = {
+apiKey: "AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
+authDomain: "awesome-18f46.firebaseapp.com",
+projectId: "awesome-18f46",
+storageBucket: "awesome-18f46.firebasestorage.app",
+messagingSenderId: "607281576772",
+appId: "1:607281576772:web:8bc23796e820188da8b511",
+measurementId: "G-0SB4WCCTKP"
+};
 
-  // Initialize Firebase
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  const commentsList = document.getElementById("commentsList");
-  const commentForm = document.getElementById("commentForm");
+const commentsList = document.getElementById("commentsList");
+const commentForm = document.getElementById("commentForm");
 
-  // Load comments in real-time
-  function loadComments() {
-    db.collection("comments")
-      .orderBy("time", "desc")
-      .onSnapshot(snapshot => {
-        commentsList.innerHTML = "";
-        snapshot.forEach(doc => {
-          const comment = doc.data();
-          commentsList.innerHTML += `
-            <div class="comment-box">
-              <div class="comment-name">${comment.name}</div>
-              <div class="comment-time">${new Date(comment.time).toLocaleString()}</div>
-              <p>${comment.text}</p>
-            </div>
-          `;
-        });
-      });
-  }
+// Load comments in real-time
+function loadComments() {
+db.collection("comments")
+.orderBy("time", "desc")
+.onSnapshot(snapshot => {
+commentsList.innerHTML = "";
+snapshot.forEach(doc => {
+const comment = doc.data();
+commentsList.innerHTML += `
+<div class="comment-box">
+<div class="comment-name">${comment.name}</div>
+<div class="comment-time">${new Date(comment.time).toLocaleString()}</div>
+<p>${comment.text}</p>
+</div>
+`;
+});
+});
+}
 
-  loadComments();
+loadComments();
 
-  // Post new comment
-  commentForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+// Post new comment
+commentForm.addEventListener("submit", (e) => {
+e.preventDefault();
 
-    const name = document.getElementById("name").value.trim();
-    const text = document.getElementById("comment").value.trim();
-    if (!name || !text) return;
+const name = document.getElementById("name").value.trim();
+const text = document.getElementById("comment").value.trim();
+if (!name || !text) return;
 
-    db.collection("comments").add({
-      name,
-      text,
-      time: Date.now()
-    });
+db.collection("comments").add({
+name,
+text,
+time: Date.now()
+});
 
-    commentForm.reset();
-  });
+commentForm.reset();
+});
 </script>
-  
-  <form
-  action="https://formspree.io/f/mpwgbaey"
-  method="POST">
-  <label>
-    e-mail:
-    <input type="email" name="email">
-  </label>
-  <label>
-    message:
-    <textarea name="message"></textarea>
-  </label>
-  <!-- your other form fields go here -->
-  <button type="submit">Send</button>
+
+<form
+action="https://formspree.io/f/mpwgbaey"
+method="POST">
+<label>
+e-mail:
+<input type="email" name="email">
+</label>
+<label>
+message:
+<textarea name="message"></textarea>
+</label>
+<!-- your other form fields go here -->
+<button type="submit">Send</button>
 </form>
-  <div id="copyright">
-  &copy; 2025 - <span id="year"></span> www.kareemweb.com - All Rights Reserved.
+
+
+
+
+<div id="copyright">
+  © 2025 - kareemweb.com ッ
 </div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
