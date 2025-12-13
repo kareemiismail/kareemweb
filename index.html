@@ -1,469 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KareemWeb</title>
-<link id="favicon" rel="icon" href="frame_apngframe01.png">
 
-<!-- Futuristic Font -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
-<!-- ★ KEEP YOUR CUSTOM CURSOR ★ -->
-<style type="text/css">
-body {
-  cursor: url('data:image/x-icon;base64,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AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+/wAAAP8AAAA+AAAAGwAAAAgAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v8AAAD/AAAAPgAAABsAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7/AAAA/wAAAD4AAAAbAAAACAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+/wAAAP8AAAA+AAAAGwAAAAgAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//v7+//7+/v/+/v7//v7+//7+/v/+/v7//v7+//7+/v8AAAD/AAAAPgAAABsAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/+/v7//v7+//7+/v/+/v7//v7+//7+/v/+/v7/AAAA/wAAAD4AAAAbAAAACAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//7+/v/+/v7//v7+//7+/v/+/v7//v7+/wAAAP8AAAA+AAAAGwAAAAgAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//v7+//7+/v/+/v7//v7+//7+/v8AAAD/AAAAPgAAABsAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/+/v7//v7+//7+/v/+/v7/AAAA/wAAAD4AAAAbAAAACAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA//7+/v/+/v7//v7+/wAAAP8AAAA9AAAAGwAAAAgAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD//v7+//7+/v8AAAD/AAAAPAAAABoAAAAIAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/+/v7/AAAA/wAAADsAAAAZAAAACAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/wAAAP8AAAAXAAAAGAAAAAcAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD/AAAABgAAAAYAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA////////////9////4f///8H////B////g////4P//98H///LB///wAf//8AH///AAf//wAB//8AA///AAf//wAP//8AH///AD///wB///8A////Af///wP///8H////D////x////8/////f/////////////////////////8='), auto;
-}
-</style>
-
 <style>
-/* GLOBAL STYLE -------------------------------------------------- */
-body {
-  font-family: 'Orbitron', sans-serif;
-  background: url('cloud.jpg') no-repeat center center fixed;
-  background-size: cover;
-  color: #00f7ff;
-  margin: 0;
-  padding: 0;
-  text-align: center;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Orbitron',sans-serif;
+  background:url('cloud.jpg') center/cover fixed;
+  color:#00f7ff;
+  overflow-x:hidden;
 }
 
-/* GLASS EFFECT */
-.glass {
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(0,255,255,0.3);
-  border-radius: 18px;
-  box-shadow: 0 0 30px rgba(0,255,255,0.4);
-  padding: 20px;
+/* ===== CHAOS ===== */
+@keyframes megaShake{
+  0%{transform:translate(0,0) rotate(0)}
+  10%{transform:translate(-15px,10px) rotate(-3deg)}
+  20%{transform:translate(15px,-10px) rotate(3deg)}
+  30%{transform:translate(-20px,15px) rotate(-4deg)}
+  40%{transform:translate(20px,-15px) rotate(4deg)}
+  50%{transform:translate(-25px,20px) rotate(-5deg)}
+  60%{transform:translate(25px,-20px) rotate(5deg)}
+  70%{transform:translate(-20px,15px) rotate(-4deg)}
+  80%{transform:translate(20px,-15px) rotate(4deg)}
+  90%{transform:translate(-10px,8px) rotate(-2deg)}
+  100%{transform:translate(0,0) rotate(0)}
+}
+.chaos{animation:megaShake .07s infinite}
+
+.flash{
+  position:fixed;
+  inset:0;
+  background:white;
+  opacity:0;
+  pointer-events:none;
+  z-index:9999;
 }
 
-/* HEADER --------------------------------------------------------- */
-.header-image {
-  width: 320px;
-  margin-top: 25px;
-  border-radius: 14px;
-  box-shadow: 0 0 30px #00eaff;
+header{text-align:center;padding:24px}
+header img{
+  width:260px;
+  border-radius:16px;
+  box-shadow:0 0 30px #00eaff;
+}
+header h1{
+  color:white;
+  text-shadow:0 0 15px #00eaff,0 0 25px #ff00ff;
 }
 
-h2 {
-  color: #ffffff;
-  font-size: 42px;
-  text-shadow: 0 0 15px #00eaff, 0 0 25px #ff00ff;
-  margin-top: 10px;
+.app{padding:20px}
+.main{display:flex;gap:20px}
+
+#search{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:none;
+  font-family:'Orbitron';
+  margin-bottom:12px;
 }
 
-/* BUTTON GRID ---------------------------------------------------- */
-.gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 15px;
-  width: 90%;
-  margin: 30px auto;
+.gallery{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:12px;
 }
 
-.game-button {
-  display: block;
-  padding: 14px;
-  border-radius: 14px;
-  font-weight: bold;
-  font-size: 18px;
-  text-decoration: none;
-  color: white;
-  background: linear-gradient(145deg, #00aaff, #ff00ff);
-  box-shadow: 0 0 15px #00eaff;
-  transition: 0.25s;
+.game{
+  padding:12px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#00aaff,#ff00ff);
+  color:white;
+  font-weight:bold;
+  text-align:center;
+  text-decoration:none;
+  box-shadow:0 0 14px #00eaff;
+  transition:.2s;
+}
+.game:hover{transform:scale(1.07)}
+
+.side{
+  width:360px;
+  padding:16px;
+  background:rgba(0,0,0,.6);
+  border-radius:16px;
+  border:1px solid #00eaff;
 }
 
-.game-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 25px #ff00ff, 0 0 40px #00eaff;
+input,textarea,button{
+  width:100%;
+  margin-top:6px;
+  padding:8px;
+  border-radius:10px;
+  border:none;
+  font-family:'Orbitron';
+}
+button{cursor:pointer;font-weight:bold}
+
+.comment{
+  background:rgba(0,0,0,.7);
+  border:1px solid #00eaff;
+  padding:8px;
+  border-radius:10px;
+  margin-top:8px;
 }
 
-/* WIDGET BUTTONS ------------------------------------------------- */
-#widgetBtn, #musicToggle, #chaosButton {
-  position: fixed;
-  right: 25px;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  z-index: 99999;
-}
-
-#widgetBtn {
-  bottom: 130px;
-  background: #0080ff;
-  color: white;
-}
-
-#musicToggle {
-  bottom: 70px;
-  background: #00ffcc;
-}
-
-#chaosButton {
-  bottom: 20px;
-  background: #ff0080;
-  color: white;
-}
-
-/* PANEL ---------------------------------------------------------- */
-#widgetPanel {
-  display: none;
-  width: 90%;
-  max-width: 650px;
-  margin: 30px auto;
-  padding: 25px;
-  border-radius: 20px;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(15px);
-  box-shadow: 0 0 25px #00eaff;
-}
-
-/* CARDS */
-.card {
-  margin: 20px auto;
-  padding: 20px;
-  border-radius: 14px;
-  background: rgba(0,0,0,0.55);
-  border: 1px solid #00eaff;
-  box-shadow: 0 0 20px #00eaff;
-  width: 85%;
-}
-
-/* COMMENTS */
-.comment-box {
-  background: rgba(0,0,0,0.65);
-  padding: 12px;
-  border-radius: 10px;
-  margin-top: 10px;
-  border: 1px solid #00eaff;
-}
-
-/* FOOTER --------------------------------------------------------- */
-#copyright {
-  margin-top: 40px;
-  background: rgba(0,0,0,0.6);
-  padding: 15px;
-  font-size: 14px;
-  border-top: 1px solid #00eaff;
-  text-shadow: 0 0 8px #00eaff;
+footer{
+  margin-top:30px;
+  padding:14px;
+  text-align:center;
+  background:rgba(0,0,0,.6);
+  border-top:1px solid #00eaff;
 }
 </style>
 </head>
 
 <body>
 
-<img src="Kareemweb.png" class="header-image">
-<h2>Welcome to KareemWeb ッ</h2>
+<div id="flash" class="flash"></div>
 
-<!-- ==================== BUTTON GRID ==================== -->
-<div class="gallery">
-  <a href="about me.html" class="game-button" target="_blank">About Me</a>
-<a href="MusicPlayer.html" class="game-button" target="_blank">Kareem's Music Player</a>
-<a href="vidtube.html" class="game-button" target="_blank">Vidtube</a>
-<a href="Bullet Dodger 1.html" class="game-button" target="_blank">Bullet Dodger 1</a>
-<a href="2dPlat.html" class="game-button" target="_blank">2dPlat</a>
-<a href="algonquin_apples.html" class="game-button" target="_blank">Algonquin Apples</a>
-<a href="minecraft.html" class="game-button" target="_blank">Minecraft</a>
-<a href="netkareem.html" class="game-button" target="_blank">NetKareem</a>
-<a href="solar.html" class="game-button" target="_blank">Solar System Sandbox</a>
-<a href="the thing.html" class="game-button" target="_blank">Sandbox</a>
-<a href="Tsunami Survival!.html" class="game-button" target="_blank">Tsunami Survival!</a>
-<a href="citysim.html" class="game-button" target="_blank">Kareem's City Simulator</a>
-<a href="banana.html" class="game-button" target="_blank">Banana World</a>
-<a href="Posters.html" class="game-button" target="_blank">Posters Broke lol</a>
-<a href="downloadtablet.html" class="game-button" target="_blank">Download Tablet Code</a>
-<a href="tablet_interface.html" class="game-button" target="_blank">Check Out The Tablet!</a>
-<a href="https://kareemiismail.itch.io/the-ice-cream-quiz" class="game-button" target="_blank">Ice Cream!</a>
-<a href="SM64-PC_PORT.exe" class="game-button" target="_blank">Super Mario 64!</a>
-<a href="Eaglercraft.html" class="game-button" target="_blank">Eaglercraft</a>
-<a href="watch_paint_dry.html" class="game-button" target="_blank">Watch Paint Dry</a>
-<a href="hi.html" class="game-button" target="_blank">RPG</a>
-<a href="https://github.com/kareemiismail/CoolStuff" class="game-button" target="_blank">Python exe</a>
-<a href="https://github.com/kareemiismail/Comic-Sansifier-For-Chrome/" class="game-button" target="_blank">Comic Sansifier</a>
-<a href="Jump Over Cars.html" class="game-button" target="_blank">Jump Over Cars</a>
-<a href="text to speech.html" class="game-button" target="_blank">Text to Speech</a>
-<a href="Fireworks Show.html" class="game-button" target="_blank">Fireworks</a>
-<a href="multi_chat_server_gui.7z" class="game-button" target="_blank">Chat App</a>
-<a href="OS.html" class="game-button" target="_blank">ClunckOS</a>
-<a href="Corn.html" class="game-button" target="_blank">Corn.</a>
-<a href="Goff.html" class="game-button" target="_blank">Bullet Dodger Remastered</a>
-<a href="https://www.mediafire.com/file/940dytzm0cxmyvx/E-Bunny.exe/file" class="game-button" target="_blank">The E-Bunny</a>
-<a href="minesweeper.html" class="game-button" target="_blank">Minesweeper</a>
-<a href="https://www.mediafire.com/file/hn14a2knzsfblvb/The_Flashing_Screen.exe/file" class="game-button" target="_blank">Not a Virus</a>
-<a href="kareem music lab.html" class="game-button" target="_blank">Kareem Music Lab (NEW!)</a>
-<a href="https://www.youtube.com/@karemeon" class="game-button" target="_blank">YouTube</a>
+<div id="app" class="app">
 
+<header>
+<img src="Kareemweb.png">
+<h1>KareemWeb ッ</h1>
+</header>
+
+<div class="main">
+
+<div style="flex:1">
+<input id="search" placeholder="🔍 Search games">
+<div id="games" class="gallery"></div>
 </div>
 
-<!-- MUSIC & CHAOS -->
-<audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop autoplay></audio>
-<audio id="chaosMusic" src="Spazzmatica Polka.mp3"></audio>
+<div class="side">
+<h3>🎵 Music</h3>
+<button onclick="toggleMusic()">Toggle Music</button>
 
-<button id="musicToggle">MUSIC: OFF</button>
-<button id="chaosButton">CHAOS MODE</button>
-<button id="widgetBtn">🛠 Widgets</button>
+<h3>🌪 Chaos Mode</h3>
+<button onclick="toggleChaos()">CHAOS MODE</button>
 
-<!-- ==================== WIDGET PANEL ==================== -->
-<div id="widgetPanel">
-
-<div class="card glass">
-<h2>📌 Widgets</h2>
-<p><b>Time: </b><span id="clock"></span></p>
-</div>
-
-<div class="card glass" id="weather-box">
-<h3>Weather</h3>
-<input id="cityInput" placeholder="Enter city…" />
-<button id="getWeather">Search</button>
-<button id="getLocation">Location (double-click)</button>
-<div id="choices"></div>
-<div id="weatherResult"></div>
-</div>
-
-<div class="card glass" id="comments-section">
 <h3>💬 Comments</h3>
 <form id="commentForm">
-<input id="name" placeholder="Your name" required>
-<textarea id="comment" placeholder="Your comment..." required></textarea>
-<button type="submit">Post Comment</button>
+<input id="name" placeholder="Name" required>
+<textarea id="comment" placeholder="Comment..." required></textarea>
+<button>Post</button>
 </form>
 <div id="commentsList"></div>
 </div>
 
 </div>
 
-<!-- FOOTER -->
-<div id="copyright">© 2025 - kareemweb.com ッ</div>
+<footer>© 2025 KareemWeb</footer>
+</div>
 
-<!-- Your JavaScript stays the same -->
+<audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop></audio>
+<audio id="chaosMusic" src="Spazzmatica Polka.mp3"></audio>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
 <script>
-  <script>
-/* ======================================================
-   MUSIC + CHAOS MODE
-====================================================== */
-const musicToggle = document.getElementById("musicToggle");
-const chaosButton = document.getElementById("chaosButton");
-const widgetBtn = document.getElementById("widgetBtn");
-const widgetPanel = document.getElementById("widgetPanel");
-
-const bgMusic = document.getElementById("bgMusic");
+/* ===== DOM ===== */
+const games = document.getElementById("games");
+const search = document.getElementById("search");
+const app = document.getElementById("app");
+const flash = document.getElementById("flash");
 const chaosMusic = document.getElementById("chaosMusic");
 
-// Toggle Background Music
-musicToggle.onclick = () => {
-  bgMusic.paused ? bgMusic.play() : bgMusic.pause();
-  musicToggle.innerText = bgMusic.paused ? "MUSIC: OFF" : "MUSIC: ON";
-};
+/* ===== GAMES ===== */
+const gamesData=[
+["About Me","about me.html"],
+["Music Player","MusicPlayer.html"],
+["Vidtube","vidtube.html"],
+["Bullet Dodger 1","Bullet Dodger 1.html"],
+["2dPlat","2dPlat.html"],
+["Algonquin Apples","algonquin_apples.html"],
+["Minecraft","minecraft.html"],
+["NetKareem","netkareem.html"],
+["Solar Sandbox","solar.html"],
+["Sandbox","the thing.html"],
+["Tsunami Survival","Tsunami Survival!.html"],
+["City Simulator","citysim.html"],
+["Banana World","banana.html"],
+["Posters","Posters.html"],
+["Tablet Download","downloadtablet.html"],
+["Tablet","tablet_interface.html"],
+["Eaglercraft","Eaglercraft.html"],
+["Watch Paint Dry","watch_paint_dry.html"],
+["RPG","hi.html"],
+["Jump Over Cars","Jump Over Cars.html"],
+["Fireworks","Fireworks Show.html"],
+["Corn","Corn.html"],
+["Bullet Dodger Remastered","Goff.html"],
+["Minesweeper","minesweeper.html"],
+["Music Lab","kareem music lab.html"],
+["YouTube","https://www.youtube.com/@karemeon"]
+];
 
-// CHAOS MODE
-let chaos = false;
-let interval, textInterval;
-
-const chaosText = document.createElement("div");
-chaosText.innerText = "AAAAAAAAAAAAAAAAAAAAA";
-chaosText.style.position = "fixed";
-chaosText.style.fontSize = "40px";
-chaosText.style.fontWeight = "bold";
-chaosText.style.color = "lime";
-chaosText.style.pointerEvents = "none";
-chaosText.style.zIndex = "999999";
-chaosText.style.display = "none";
-document.body.appendChild(chaosText);
-
-function moveText() {
-  chaosText.style.left = Math.random() * (window.innerWidth - 200) + "px";
-  chaosText.style.top = Math.random() * (window.innerHeight - 200) + "px";
+function render(){
+  games.innerHTML="";
+  const q = search.value.toLowerCase();
+  gamesData.forEach(([name,link])=>{
+    if(!name.toLowerCase().includes(q)) return;
+    const a=document.createElement("a");
+    a.href=link;
+    a.target="_blank";
+    a.className="game";
+    a.textContent=name;
+    games.appendChild(a);
+  });
 }
+search.addEventListener("input",render);
+render();
 
-chaosButton.onclick = () => {
-  chaos = !chaos;
+/* ===== MUSIC ===== */
+const bg=document.getElementById("bgMusic");
+function toggleMusic(){bg.paused?bg.play():bg.pause()}
 
-  if (chaos) {
-    chaosText.style.display = "block";
-    moveText();
-    textInterval = setInterval(moveText, 200);
-
+/* ===== CHAOS ===== */
+let chaos=false,flashInt=null;
+function toggleChaos(){
+  chaos=!chaos;
+  app.classList.toggle("chaos",chaos);
+  if(chaos){
     chaosMusic.play();
-
-    interval = setInterval(() => {
-      document.body.style.transform = `rotate(${Math.random()*10 - 5}deg)`;
-      document.body.style.filter = `hue-rotate(${Math.random()*360}deg) contrast(200%)`;
-    }, 100);
-
-    chaosButton.innerText = "STOP CHAOS";
-  } else {
-    clearInterval(interval);
-    clearInterval(textInterval);
-
-    chaosText.style.display = "none";
-    chaosMusic.pause();
-    chaosMusic.currentTime = 0;
-
-    document.body.style.transform = "";
-    document.body.style.filter = "";
-
-    chaosButton.innerText = "CHAOS MODE";
+    flashInt=setInterval(()=>{
+      flash.style.opacity=Math.random()>.5?.9:0;
+      flash.style.background=Math.random()>.5?"white":"red";
+      setTimeout(()=>flash.style.opacity=0,60);
+    },110);
+  }else{
+    chaosMusic.pause();chaosMusic.currentTime=0;
+    clearInterval(flashInt);
+    flash.style.opacity=0;
   }
-};
-
-// Toggle Widget Panel
-widgetBtn.onclick = () => {
-  widgetPanel.style.display =
-    widgetPanel.style.display === "none" ? "block" : "none";
-};
-
-/* ======================================================
-   CLOCK
-====================================================== */
-function updateClock() {
-  document.getElementById("clock").innerText =
-    new Date().toLocaleTimeString();
-}
-setInterval(updateClock, 1000);
-updateClock();
-
-/* ======================================================
-   WEATHER
-====================================================== */
-const codes = {
-  0: "Clear sky",
-  1: "Mainly clear",
-  2: "Partly cloudy",
-  3: "Overcast",
-  45: "Fog",
-  48: "Depositing rime fog",
-  51: "Light drizzle",
-  61: "Light rain",
-  71: "Light snow",
-  95: "Thunderstorm"
-};
-
-async function searchCities(city) {
-  const resp = await fetch(
-    `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=10&language=en&format=json`
-  );
-  const data = await resp.json();
-  return data.results || [];
 }
 
-async function fetchWeather(lat, lon, name, country, admin) {
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
-  const resp = await fetch(url);
-  const data = await resp.json();
-  const weather = data.current_weather;
+/* ===== COMMENTS + REPLIES ===== */
+firebase.initializeApp({
+  apiKey:"AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
+  authDomain:"awesome-18f46.firebaseapp.com",
+  projectId:"awesome-18f46"
+});
+const db=firebase.firestore();
+const commentsList=document.getElementById("commentsList");
 
-  document.getElementById("weatherResult").innerHTML = `
-    <b>${name || "Your Location"}${admin ? ", " + admin : ""}${country ? ", " + country : ""}</b><br>
-    Temp: ${weather.temperature}°C<br>
-    Wind: ${weather.windspeed} km/h<br>
-    ${codes[weather.weathercode] || "Code " + weather.weathercode}
-  `;
+function buildComment(c,indent=0){
+  const d=document.createElement("div");
+  d.className="comment";
+  d.style.marginLeft=indent+"px";
+  d.innerHTML=`<b>${c.name}</b><br>${c.comment}<br><button>Reply</button><div></div>`;
+  d.querySelector("button").onclick=()=>{
+    const n=prompt("Name?");
+    const t=prompt("Reply?");
+    if(n&&t)db.collection("comments").add({name:n,comment:t,parentId:c.id,time:Date.now()});
+  };
+  c.children.forEach(r=>d.lastChild.appendChild(buildComment(r,indent+20)));
+  return d;
 }
 
-document.getElementById("getWeather").addEventListener("click", async () => {
-  const city = document.getElementById("cityInput").value.trim();
-  if (!city) return;
-
-  const results = await searchCities(city);
-  const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = "";
-
-  if (results.length === 0) {
-    choicesDiv.textContent = "No matches found.";
-    return;
-  }
-
-  if (results.length === 1) {
-    const r = results[0];
-    fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
-    return;
-  }
-
-  results.forEach(r => {
-    const btn = document.createElement("button");
-    btn.textContent = `${r.name}, ${r.admin1 || ""} ${r.country}`;
-    btn.addEventListener("click", () => {
-      choicesDiv.innerHTML = "";
-      fetchWeather(r.latitude, r.longitude, r.name, r.country, r.admin1);
-    });
-    choicesDiv.appendChild(btn);
-  });
+db.collection("comments").orderBy("time").onSnapshot(s=>{
+  commentsList.innerHTML="";
+  const map={};
+  s.forEach(d=>map[d.id]={id:d.id,...d.data(),children:[]});
+  Object.values(map).forEach(c=>c.parentId&&map[c.parentId]?.children.push(c));
+  Object.values(map).filter(c=>!c.parentId).forEach(c=>commentsList.appendChild(buildComment(c)));
 });
 
-document.getElementById("getLocation").addEventListener("dblclick", () => {
-  const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = "";
-
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      pos => {
-        fetchWeather(pos.coords.latitude, pos.coords.longitude);
-      },
-      err => {
-        document.getElementById("weatherResult").textContent =
-          "Location error: " + err.message;
-      }
-    );
-  } else {
-    document.getElementById("weatherResult").textContent =
-      "Geolocation not supported.";
-  }
-});
-
-/* ======================================================
-   FIREBASE COMMENTS
-====================================================== */
-const firebaseConfig = {
-  apiKey: "AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
-  authDomain: "awesome-18f46.firebaseapp.com",
-  projectId: "awesome-18f46"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-const commentsList = document.getElementById("commentsList");
-const commentForm = document.getElementById("commentForm");
-
-db.collection("comments")
-  .orderBy("time", "desc")
-  .onSnapshot(snapshot => {
-    commentsList.innerHTML = "";
-    snapshot.forEach(doc => {
-      const c = doc.data();
-      commentsList.innerHTML += `
-        <div class="comment-box">
-          <span class="comment-name">${c.name}</span>
-          <span class="comment-time"> (${new Date(c.time).toLocaleString()})</span><br>
-          ${c.comment}
-        </div>
-      `;
-    });
-  });
-
-commentForm.addEventListener("submit", e => {
+commentForm.onsubmit=e=>{
   e.preventDefault();
-  const name = document.getElementById("name").value.trim();
-  const comment = document.getElementById("comment").value.trim();
-
-  if (!name || !comment) return;
-
   db.collection("comments").add({
-    name,
-    comment,
-    time: Date.now()
+    name:name.value,
+    comment:comment.value,
+    parentId:null,
+    time:Date.now()
   });
-
   commentForm.reset();
-});
+};
 </script>
-
-</script>
-
 </body>
 </html>
-
