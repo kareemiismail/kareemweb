@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>KareemMusic Lab</title>
+<link rel="icon" href="kareemmusiclab.png">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+
+<style>
+body{
+    background:radial-gradient(#111,#000);
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
+#logo{
+    height:80px;
+    margin:10px auto;
+    display:block;
+    filter:drop-shadow(0 0 10px cyan);
+}
+.controls{margin:8px;}
+button,input{
+    padding:6px 10px;
+    font-size:14px;
+    border-radius:8px;
+    border:none;
+    margin:3px;
+}
+button{
+    background:#00ffee;
+    box-shadow:0 0 10px #00ffee;
+}
+canvas{
+    background:linear-gradient(#222,#111);
+    border-radius:12px;
+    box-shadow:0 0 20px #00ffee55;
+    margin-top:10px;
+}
+#drumPad{
+    margin:15px;
+}
+.drumBtn{
+    background:#ff8844;
+    box-shadow:0 0 10px #ff8844;
+}
+</style>
+</head>
+<body>
+
+<img id="logo" src="kareemmusiclab.png">
+
+<div class="controls">
+<button onclick="togglePlay()">▶ Play / ⏹ Stop</button>
+<button onclick="saveSong()">💾 Save</button>
+<button onclick="loadSong()">📂 Load</button>
+<button onclick="shareSong()">🌐 Share</button>
+<input type="color" id="colorPicker" value="#00ffee">
+</div>
+
+<div class="controls">
+Cols ➡️
+<input type="range" min="8" max="64" value="32"
+       oninput="resizeGrid(this.value, rows)">
+Rows ⬇️
+<input type="range" min="12" max="24" value="16"
+       oninput="resizeGrid(cols, this.value)">
+</div>
+
+<canvas id="grid" width="960" height="420"></canvas>
+
+<div id="drumPad">
+<button class="drumBtn" onclick="playDrum(0)">Z<br>Kick</button>
+<button class="drumBtn" onclick="playDrum(1)">X<br>Snare</button>
+<button class="drumBtn" onclick="playDrum(2)">C<br>Hi-Hat</button>
+<button class="drumBtn" onclick="playDrum(3)">V<br>Clap</button>
+</div>
+
+<script>
+const canvas=document.getElementById("grid");
+const ctx=canvas.getContext("2d");
+
+let cols=32;
+let rows=16;
+const pianoRows=12;
+const drumCount=4;
+
+const notes=[523,494,466,440,392,349,330,294,262,220,196,174];
+const audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+
+function makeGrid(c,r,old=[]){
+    return Array.from({length:r},(_,y)=>
+        Array.from({length:c},(_,x)=>old[y]?.[x]||null)
+    );
+}
+let grid=makeGrid(cols,rows);
+
+let cellW,cellH;
+function updateCellSize(){
+    cellW=canvas.width/cols;
+    cellH=canvas.height/rows;
+}
+updateCellSize();
+
+let mouseDown=false,startCol=0,startRow=0;
+let playing=false,step=0;
+
+canvas.oncontextmenu=e=>e.preventDefault();
+
+canvas.onmousedown=e=>{
+    const r=canvas.getBoundingClientRect();
+    const col=Math.floor((e.clientX-r.left)/cellW);
+    const row=Math.floor((e.clientY-r.top)/cellH);
+
+    if(e.button===2 || e.altKey){
+        grid[row][col]=null;
+        draw();
+        return;
+    }
+
+    mouseDown=true;
+    startCol=col;
+    startRow=row;
+    grid[row][col]=document.getElementById("colorPicker").value;
+    draw();
+};
+
+canvas.onmousemove=e=>{
+    if(!mouseDown) return;
+    const r=canvas.getBoundingClientRect();
+    const col=Math.floor((e.clientX-r.left)/cellW);
+    const color=document.getElementById("colorPicker").value;
+    const from=Math.min(startCol,col);
+    const to=Math.max(startCol,col);
+    for(let c=from;c<=to;c++) grid[startRow][c]=color;
+    draw();
+};
+
+canvas.onmouseup=()=>mouseDown=false;
+canvas.onmouseleave=()=>mouseDown=false;
+
+function draw(){
+    updateCellSize();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // drum background
+    ctx.fillStyle="rgba(255,100,50,0.08)";
+    ctx.fillRect(0,cellH*pianoRows,canvas.width,cellH*drumCount);
+
+    for(let y=0;y<rows;y++){
+        for(let x=0;x<cols;x++){
+            ctx.strokeStyle="#333";
+            ctx.strokeRect(x*cellW,y*cellH,cellW,cellH);
+            if(grid[y][x]){
+                ctx.fillStyle=y>=pianoRows?"#ff8844":grid[y][x];
+                ctx.shadowBlur=15;
+                ctx.shadowColor=ctx.fillStyle;
+                ctx.fillRect(x*cellW+2,y*cellH+2,cellW-4,cellH-4);
+                ctx.shadowBlur=0;
+            }
+        }
+    }
+
+    ctx.fillStyle="#ff8844";
+    ctx.fillText("DRUMS",5,cellH*pianoRows+12);
+}
+
+function playDrum(type){
+    const t=audioCtx.currentTime;
+    const g=audioCtx.createGain();
+    g.connect(audioCtx.destination);
+
+    if(type===0){ // kick
+        const o=audioCtx.createOscillator();
+        o.frequency.setValueAtTime(150,t);
+        o.frequency.exponentialRampToValueAtTime(50,t+0.3);
+        g.gain.setValueAtTime(1,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
+        o.connect(g);o.start();o.stop(t+0.3);
+    }
+    if(type===1){ // snare
+        const n=audioCtx.createBufferSource();
+        const b=audioCtx.createBuffer(1,audioCtx.sampleRate*0.2,audioCtx.sampleRate);
+        const d=b.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+        n.buffer=b;
+        g.gain.setValueAtTime(0.6,t);
+        n.connect(g);n.start();
+    }
+    if(type===2){ // hihat
+        const n=audioCtx.createBufferSource();
+        const b=audioCtx.createBuffer(1,audioCtx.sampleRate*0.05,audioCtx.sampleRate);
+        const d=b.getChannelData(0);
+        for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+        n.buffer=b;
+        g.gain.setValueAtTime(0.3,t);
+        n.connect(g);n.start();
+    }
+    if(type===3){ // clap
+        playDrum(1);
+        setTimeout(()=>playDrum(1),40);
+        setTimeout(()=>playDrum(1),80);
+    }
+}
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="z") playDrum(0);
+    if(e.key==="x") playDrum(1);
+    if(e.key==="c") playDrum(2);
+    if(e.key==="v") playDrum(3);
+});
+
+function playSound(row,len){
+    if(row<pianoRows){
+        const t=audioCtx.currentTime;
+        const o=audioCtx.createOscillator();
+        const g=audioCtx.createGain();
+        o.type="triangle";
+        o.frequency.value=notes[row]||220;
+        g.gain.setValueAtTime(0.35,t);
+        g.gain.exponentialRampToValueAtTime(0.001,t+len);
+        o.connect(g).connect(audioCtx.destination);
+        o.start();o.stop(t+len);
+    }else{
+        playDrum(row-pianoRows);
+    }
+}
+
+function loop(){
+    if(!playing) return;
+    const stepTime=0.2;
+    for(let r=0;r<rows;r++){
+        if(grid[r][step]){
+            let len=1;
+            while(step+len<cols && grid[r][step+len]) len++;
+            playSound(r,stepTime*len);
+        }
+    }
+    step=(step+1)%cols;
+    setTimeout(loop,stepTime*1000);
+}
+
+function togglePlay(){
+    playing=!playing;
+    if(playing){step=0;loop();}
+}
+
+function resizeGrid(newCols,newRows){
+    cols=+newCols;
+    rows=+newRows;
+    grid=makeGrid(cols,rows,grid);
+    draw();
+}
+
+function saveSong(){
+    localStorage.setItem("kml_song",JSON.stringify({cols,rows,grid}));
+    alert("Saved!");
+}
+
+function loadSong(){
+    const s=localStorage.getItem("kml_song");
+    if(!s) return;
+    const d=JSON.parse(s);
+    cols=d.cols;rows=d.rows;grid=d.grid;
+    draw();
+}
+
+function shareSong(){
+    const data=btoa(JSON.stringify({cols,rows,grid}));
+    const url=location.origin+location.pathname+"?song="+data;
+    navigator.clipboard.writeText(url);
+    alert("Link copied!");
+}
+
+draw();
+</script>
+
+
+<style>
+body{
+    margin:0;
+    background:radial-gradient(#111,#000);
+    color:white;
+    font-family:Arial;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+}
+#logo{
+    height:70px;
+    margin:10px;
+    filter:drop-shadow(0 0 10px cyan);
+}
+.panel{
+    width:90%;
+    max-width:800px;
+    background:#111;
+    border-radius:12px;
+    box-shadow:0 0 15px #00ffee55;
+    padding:10px;
+    margin:10px;
+}
+input,button{
+    padding:6px 10px;
+    border-radius:8px;
+    border:none;
+    margin:3px;
+    font-size:14px;
+}
+button{
+    background:#00ffee;
+    cursor:pointer;
+}
+#messages,#songs{
+    max-height:200px;
+    overflow-y:auto;
+    background:#000;
+    padding:6px;
+    border-radius:8px;
+}
+.msg{
+    margin:3px 0;
+}
+a{color:#00ffee}
+</style>
+</head>
+
+<body>
+
+<img id="logo" src="kareemmusiclab.png">
+
+<!-- SONG SHARING -->
+<div class="panel">
+  <h3>🌐 Share Songs</h3>
+  <input id="songTitle" placeholder="Song name">
+  <button onclick="shareSong()">Share Link</button>
+  <div id="songs"></div>
+</div>
+
+<!-- CHAT -->
+<div class="panel">
+  <h3>💬 Live Chat</h3>
+  <input id="chatName" placeholder="Name">
+  <input id="chatMsg" placeholder="Message">
+  <button onclick="sendChat()">Send</button>
+  <div id="messages"></div>
+</div>
+
+<script>
+/* ================= FIREBASE ================= */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCjML67utFmOHZk3T5HZL5NlIR9YFd_5lU",
+  authDomain: "kareemmusiclab.firebaseapp.com",
+  databaseURL: "https://kareemmusiclab-default-rtdb.firebaseio.com",
+  projectId: "kareemmusiclab",
+  storageBucket: "kareemmusiclab.firebasestorage.app",
+  messagingSenderId: "806725007038",
+  appId: "1:806725007038:web:0cb6671ef3a4cf82ae90ef"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+/* ================= CHAT ================= */
+
+function sendChat(){
+  const name = chatName.value || "Anonymous";
+  const text = chatMsg.value.trim();
+  if(!text) return;
+
+  db.ref("chat").push({
+    name,
+    text,
+    time: Date.now()
+  });
+
+  chatMsg.value="";
+}
+
+db.ref("chat").limitToLast(50).on("child_added", snap=>{
+  const m = snap.val();
+  const div = document.createElement("div");
+  div.className="msg";
+  div.textContent = m.name + ": " + m.text;
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+});
+
+/* ================= SONG SHARING ================= */
+
+function shareSong(){
+  const title = songTitle.value || "Untitled Song";
+  const link = location.href;
+
+  db.ref("songs").push({
+    title,
+    link,
+    time: Date.now()
+  });
+
+  songTitle.value="";
+}
+
+db.ref("songs").limitToLast(50).on("child_added", snap=>{
+  const s = snap.val();
+  const div = document.createElement("div");
+  const a = document.createElement("a");
+  a.href = s.link;
+  a.textContent = "🎵 " + s.title;
+  a.target = "_blank";
+  div.appendChild(a);
+  songs.appendChild(div);
+});
+</script>
+</body>
+</html>
