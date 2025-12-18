@@ -8,6 +8,30 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
+  .canada-side {
+    position: absolute;
+    top: 0;
+    width: 270px; /* keep full strip width */
+    height: 100%;
+    background-image: url('/web/20250907212733im_/https://kareemweb.com/Canada.gif');
+    background-repeat: repeat-y;
+    background-position: center;
+    background-size: 30% auto; /* scale GIF to 30% of original size */
+  }
+  .canada-side.left {
+    left: 0;
+  }
+  .canada-side.right {
+    right: 0;
+    transform: scaleX(-1);       /* flip horizontally */
+    transform-origin: center;    /* pivot for flip */
+  }
+
+
+
+
+
+
 
 
   
@@ -327,6 +351,7 @@ commentForm.onsubmit=e=>{
 </div>
 </body>
 </html>
+
 
 
 
