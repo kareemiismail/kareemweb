@@ -8,6 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
+
+
+  
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -117,6 +120,38 @@ footer{
   background:rgba(0,0,0,.6);
   border-top:1px solid #00eaff;
 }
+  <link id="favicon" rel="icon" href="frame_apngframe15.png">
+  <script>
+const frames = [
+  'frame_apngframe01.png',
+  'frame_apngframe02.png',
+  'frame_apngframe03.png',
+  'frame_apngframe04.png',
+  'frame_apngframe05.png',
+  'frame_apngframe06.png',
+  'frame_apngframe07.png',
+  'frame_apngframe08.png',
+  'frame_apngframe09.png',
+  'frame_apngframe10.png',
+  'frame_apngframe11.png',
+  'frame_apngframe12.png',
+  'frame_apngframe13.png',
+  'frame_apngframe14.png',
+  'frame_apngframe15.png',
+  'frame_apngframe16.png',
+  'frame_apngframe17.png',
+  'frame_apngframe18.png',
+  'frame_apngframe19.png',
+  'frame_apngframe20.png',
+  'frame_apngframe21.png'
+];
+
+let i = 0;
+setInterval(() => {
+  document.getElementById('favicon').href = frames[i % frames.length];
+  i++;
+}, 15);
+</script>
 </style>
 </head>
 
@@ -292,6 +327,7 @@ commentForm.onsubmit=e=>{
 </div>
 </body>
 </html>
+
 
 
 
