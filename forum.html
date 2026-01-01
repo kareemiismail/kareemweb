@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WebForum</title>
+<link rel="icon" type="image/png" href="webforum.png">
+<style>
+:root{
+  --bg1:#180461;
+  --bg2:#2b0a8f;
+  --card:#0f172a;
+  --card2:#1e293b;
+  --accent:#2ed6dc;
+  --accent2:#7c7cff;
+  --border:#334155;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2));
+  color:white;
+  font-family:Arial, sans-serif;
+}
+
+header{
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  padding:16px;
+  text-align:center;
+  font-size:24px;
+  font-weight:bold;
+  letter-spacing:1px;
+  box-shadow:0 4px 15px rgba(0,0,0,.3);
+}
+
+.container{
+  max-width:900px;
+  margin:30px auto;
+  padding:20px;
+}
+
+/* Cards */
+#authBox,#forum{
+  background:rgba(15,23,42,.85);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:20px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+}
+
+/* Inputs */
+input, textarea{
+  width:100%;
+  padding:10px;
+  margin-top:8px;
+  background:#020617;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:8px;
+  font-size:14px;
+}
+input:focus,textarea:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(46,214,220,.2);
+}
+
+/* Buttons */
+button{
+  margin-top:10px;
+  padding:10px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  color:black;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s;
+}
+button:hover{
+  transform:translateY(-1px);
+  box-shadow:0 5px 15px rgba(46,214,220,.4);
+}
+button:active{
+  transform:translateY(0);
+}
+
+/* Threads */
+.thread{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:15px;
+  margin-top:15px;
+  border-radius:12px;
+}
+.thread b{
+  font-size:18px;
+}
+.thread p{
+  margin:8px 0;
+  line-height:1.5;
+}
+
+/* Replies */
+.reply{
+  background:var(--card2);
+  padding:8px 10px;
+  margin-top:6px;
+  border-radius:8px;
+  margin-left:20px;
+  border-left:3px solid var(--accent);
+}
+
+/* Like */
+.like{
+  display:inline-block;
+  margin-top:6px;
+  cursor:pointer;
+  color:#ff6b81;
+  font-weight:bold;
+  user-select:none;
+}
+.like.disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+/* Misc */
+small{color:#9ca3af}
+.hidden{display:none}
+h2{margin-top:0}
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+}
+
+.logo{
+  width:50px;
+  height:50px;
+  box-shadow:0 0 10px rgba(0,0,0,.3);
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="webforum.png" class="logo">
+  <span>WebForum</span>
+</header>
+
+
+<div class="container">
+
+<!-- AUTH -->
+<div id="authBox">
+  <h2>Login / Register</h2>
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+  <button onclick="register()">Register</button>
+  <p id="authStatus"></p>
+</div>
+
+<!-- FORUM -->
+<div id="forum" class="hidden">
+  <button onclick="logout()">Logout</button>
+
+  <h2>Create Thread (post once to see all!)</h2>
+  <input id="title" placeholder="Thread title">
+  <textarea id="content" placeholder="Thread content"></textarea>
+  <button onclick="postThread()">Post Thread</button>
+
+  <h2>Threads</h2>
+  <div id="threads"></div>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, doc, updateDoc,
+  query, orderBy, onSnapshot, serverTimestamp, arrayUnion
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, createUserWithEmailAndPassword,
+  signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCAmOGTVlKGZljNyEGO7rKyFkCBkhyUrsU",
+  authDomain: "forum-681ef.firebaseapp.com",
+  projectId: "forum-681ef",
+  storageBucket: "forum-681ef.firebasestorage.app",
+  messagingSenderId: "648263609848",
+  appId: "1:648263609848:web:da6df1250dd5f16ed97a0d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+let currentUser = null;
+
+window.register = async () => {
+  try{
+    await createUserWithEmailAndPassword(auth,email.value,password.value);
+  }catch(e){authStatus.textContent=e.message;}
+};
+
+window.login = async () => {
+  try{
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+  }catch(e){authStatus.textContent=e.message;}
+};
+
+window.logout = () => signOut(auth);
+
+onAuthStateChanged(auth,user=>{
+  currentUser=user;
+  authBox.classList.toggle("hidden",!!user);
+  forum.classList.toggle("hidden",!user);
+});
+
+window.postThread = async () => {
+  if(!title.value||!content.value)return;
+  await addDoc(collection(db,"threads"),{
+    title:title.value,
+    content:content.value,
+    user:currentUser.email,
+    uid:currentUser.uid,
+    likedBy:[],
+    time:serverTimestamp()
+  });
+  title.value="";content.value="";
+};
+
+const q=query(collection(db,"threads"),orderBy("time","desc"));
+onSnapshot(q,snap=>{
+  threads.innerHTML="";
+  snap.forEach(d=>{
+    const t=d.data();
+    const liked=t.likedBy.includes(currentUser.uid);
+    const div=document.createElement("div");
+    div.className="thread";
+    div.innerHTML=`
+      <b>${t.title}</b><br>
+      <small>${t.user}</small>
+      <p>${t.content}</p>
+      <span class="like ${liked?"disabled":""}">❤️ ${t.likedBy.length}</span>
+      <div id="replies-${d.id}"></div>
+      <input id="r-${d.id}" placeholder="Reply...">
+      <button onclick="reply('${d.id}')">Reply</button>
+    `;
+    const likeBtn=div.querySelector(".like");
+    if(!liked){
+      likeBtn.onclick=()=>updateDoc(doc(db,"threads",d.id),{
+        likedBy:arrayUnion(currentUser.uid)
+      });
+    }
+    threads.appendChild(div);
+
+    const rq=query(collection(db,"threads",d.id,"replies"),orderBy("time"));
+    onSnapshot(rq,rs=>{
+      const box=document.getElementById("replies-"+d.id);
+      box.innerHTML="";
+      rs.forEach(r=>{
+        const p=r.data();
+        box.innerHTML+=`
+          <div class="reply"><b>${p.user}</b>: ${p.text}</div>`;
+      });
+    });
+  });
+});
+
+window.reply = async id=>{
+  const input=document.getElementById("r-"+id);
+  if(!input.value)return;
+  await addDoc(collection(db,"threads",id,"replies"),{
+    user:currentUser.email,
+    text:input.value,
+    time:serverTimestamp()
+  });
+  input.value="";
+};
+</script>
+
+</body>
+</html>
