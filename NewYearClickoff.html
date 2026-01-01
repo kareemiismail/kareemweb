@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>🎆 New Year Fireworks 🎆</title>
+
+<style>
+body{
+  margin:0;
+  background: radial-gradient(circle, #001, #000);
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  overflow:hidden;
+}
+h1{margin:10px}
+#hud{
+  display:flex;
+  justify-content:center;
+  gap:25px;
+  font-size:18px;
+}
+.firework{
+  position:absolute;
+  font-size:50px;
+  cursor:pointer;
+  user-select:none;
+}
+.gold{filter:drop-shadow(0 0 10px gold)}
+.timefw{filter:drop-shadow(0 0 10px cyan)}
+.confetti{
+  position:absolute;
+  width:8px;
+  height:8px;
+  animation:fall 1s linear forwards;
+}
+@keyframes fall{
+  to{transform:translateY(120px);opacity:0}
+}
+#end{
+  display:none;
+  font-size:34px;
+  margin-top:40px;
+}
+button{
+  padding:8px 15px;
+  font-size:16px;
+  cursor:pointer;
+}
+.shake{
+  animation:shake 0.2s;
+}
+@keyframes shake{
+  0%{transform:translateX(0)}
+  25%{transform:translateX(-5px)}
+  50%{transform:translateX(5px)}
+  75%{transform:translateX(-5px)}
+  100%{transform:translateX(0)}
+}
+#musicName{font-size:14px;opacity:0.8}
+</style>
+</head>
+
+<body>
+<a href="https://kareemweb.com" target="_blank" style="color:#0af">kareemweb.com</a>
+
+<h1>🎆 Click the Fireworks! 🎆</h1>
+
+<div id="hud">
+  <div id="score">Score: 0</div>
+  <div id="combo">Combo: x1</div>
+  <div id="time">Time: 30</div>
+  <div id="high">High: 0</div>
+</div>
+
+<br>
+<button onclick="switchMusic()">🎵 Switch Music</button>
+<div id="musicName"></div>
+
+<div id="end">
+  🎉 HAPPY NEW YEAR! 🎉<br>
+  Score: <span id="finalScore"></span><br>
+  High Score: <span id="finalHigh"></span><br><br>
+  <button onclick="location.reload()">Play Again</button>
+</div>
+
+<audio id="music" loop></audio>
+
+<script>
+let score=0,time=30,combo=1,lastClick=0,gameOver=false;
+let highScore=localStorage.getItem("ny_high")||0;
+document.getElementById("high").innerText="High: "+highScore;
+
+const tracks=[
+  "Hyperfun 4.mp3",
+  "Move Forward 4.mp3",
+  "M.U.L.E.mp3"
+];
+let trackIndex=0;
+const music=document.getElementById("music");
+const musicName=document.getElementById("musicName");
+music.volume=0.5;
+music.src=tracks[0];
+musicName.innerText="Now Playing: "+tracks[0];
+
+let musicStarted=false;
+document.body.addEventListener("click",()=>{
+  if(!musicStarted){
+    music.play();
+    musicStarted=true;
+  }
+},{once:true});
+
+function switchMusic(){
+  trackIndex=(trackIndex+1)%tracks.length;
+  music.src=tracks[trackIndex];
+  music.play();
+  musicName.innerText="Now Playing: "+tracks[trackIndex];
+}
+
+function confetti(x,y){
+  for(let i=0;i<20;i++){
+    const c=document.createElement("div");
+    c.className="confetti";
+    c.style.left=x+"px";
+    c.style.top=y+"px";
+    c.style.background=`hsl(${Math.random()*360},100%,50%)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),1000);
+  }
+}
+
+function spawnFirework(){
+  if(gameOver) return;
+
+  const fw=document.createElement("div");
+  fw.className="firework";
+  let type=Math.random();
+
+  if(type>0.9){
+    fw.innerText="✨";
+    fw.classList.add("gold");
+    fw.dataset.value=5;
+  }else if(type>0.8){
+    fw.innerText="⏱️";
+    fw.classList.add("timefw");
+    fw.dataset.time=5;
+  }else{
+    fw.innerText="🎆";
+    fw.dataset.value=1;
+  }
+
+  fw.style.left=Math.random()*(window.innerWidth-50)+"px";
+  fw.style.top=Math.random()*(window.innerHeight-160)+"px";
+
+  fw.onclick=(e)=>{
+    const now=Date.now();
+    combo=(now-lastClick<500)?combo+1:1;
+    lastClick=now;
+
+    score+=Number(fw.dataset.value||0)*combo;
+    if(fw.dataset.time) time+=Number(fw.dataset.time);
+
+    document.getElementById("score").innerText="Score: "+score;
+    document.getElementById("combo").innerText="Combo: x"+combo;
+    document.getElementById("time").innerText="Time: "+time;
+
+    if(combo>=5){
+      document.body.classList.add("shake");
+      setTimeout(()=>document.body.classList.remove("shake"),200);
+    }
+
+    confetti(e.clientX,e.clientY);
+    fw.remove();
+  };
+
+  document.body.appendChild(fw);
+  setTimeout(()=>fw.remove(),1200);
+}
+
+let fwSpeed=450;
+let fwInt=setInterval(spawnFirework,fwSpeed);
+
+let timer=setInterval(()=>{
+  time--;
+  document.getElementById("time").innerText="Time: "+time;
+
+  if(time===10){
+    clearInterval(fwInt);
+    fwInt=setInterval(spawnFirework,250);
+  }
+
+  if(time<=0){
+    clearInterval(timer);
+    clearInterval(fwInt);
+    gameOver=true;
+    document.querySelectorAll(".firework").forEach(f=>f.remove());
+
+    if(score>highScore){
+      highScore=score;
+      localStorage.setItem("ny_high",highScore);
+    }
+
+    document.getElementById("finalScore").innerText=score;
+    document.getElementById("finalHigh").innerText=highScore;
+    document.getElementById("end").style.display="block";
+  }
+},1000);
+
+// SPACE = click nearest firework
+document.addEventListener("keydown",e=>{
+  if(e.code==="Space"){
+    const fw=document.querySelector(".firework");
+    if(fw) fw.click();
+  }
+});
+</script>
+</body>
+</html>
