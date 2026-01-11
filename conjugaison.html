@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Conjugaison Française</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f0f0;
+    padding: 20px;
+    max-width: 600px;
+    margin: auto;
+}
+input {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+}
+button {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.result {
+    background: white;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 6px;
+}
+.suggestions {
+    background: white;
+    border: 1px solid #ccc;
+}
+.suggestions div {
+    padding: 8px;
+    cursor: pointer;
+}
+.suggestions div:hover {
+    background: #eee;
+}
+h3 {
+    margin-top: 15px;
+}
+.note {
+    font-size: 13px;
+    color: #555;
+}
+</style>
+</head>
+<body>
+
+<h1>Conjugaison Française</h1>
+
+<input id="verbInput" placeholder="Entrer un verbe (ex: aller)">
+<div class="suggestions" id="suggestions"></div>
+<button onclick="conjugate()">Conjuguer</button>
+
+<div class="result" id="output"></div>
+
+<script>
+const pronouns = ["Je", "Tu", "Il/Elle", "Nous", "Vous", "Ils/Elles"];
+
+const avoir = ["ai", "as", "a", "avons", "avez", "ont"];
+const etre = ["suis", "es", "est", "sommes", "êtes", "sont"];
+
+const irregulars = {
+    etre: {
+        present: ["suis","es","est","sommes","êtes","sont"],
+        future: ["serai","seras","sera","serons","serez","seront"],
+        past: "été",
+        aux: "avoir"
+    },
+    avoir: {
+        present: ["ai","as","a","avons","avez","ont"],
+        future: ["aurai","auras","aura","aurons","aurez","auront"],
+        past: "eu",
+        aux: "avoir"
+    },
+    aller: {
+        present: ["vais","vas","va","allons","allez","vont"],
+        future: ["irai","iras","ira","irons","irez","iront"],
+        past: "allé",
+        aux: "etre"
+    },
+    faire: {
+        present: ["fais","fais","fait","faisons","faites","font"],
+        future: ["ferai","feras","fera","ferons","ferez","feront"],
+        past: "fait",
+        aux: "avoir"
+    },
+    venir: {
+        present: ["viens","viens","vient","venons","venez","viennent"],
+        future: ["viendrai","viendras","viendra","viendrons","viendrez","viendront"],
+        past: "venu",
+        aux: "etre"
+    },
+    prendre: {
+        present: ["prends","prends","prend","prenons","prenez","prennent"],
+        future: ["prendrai","prendras","prendra","prendrons","prendrez","prendront"],
+        past: "pris",
+        aux: "avoir"
+    }
+};
+
+const knownVerbs = Object.keys(irregulars)
+    .concat(["manger","parler","finir","choisir","vendre","attendre","aimer"]);
+
+const input = document.getElementById("verbInput");
+const suggestionsBox = document.getElementById("suggestions");
+
+input.addEventListener("input", () => {
+    const value = input.value.toLowerCase();
+    suggestionsBox.innerHTML = "";
+    if (!value) return;
+
+    knownVerbs.filter(v => v.startsWith(value)).forEach(v => {
+        const div = document.createElement("div");
+        div.textContent = v;
+        div.onclick = () => {
+            input.value = v;
+            suggestionsBox.innerHTML = "";
+        };
+        suggestionsBox.appendChild(div);
+    });
+});
+
+function formatPronoun(p, verb) {
+    if (p === "Je" && /^[aeiouh]/.test(verb)) return "J’";
+    return p + " ";
+}
+
+function conjugate() {
+    const verb = input.value.toLowerCase().trim();
+    const output = document.getElementById("output");
+
+    if (!verb) {
+        output.innerHTML = "❌ Entrez un verbe.";
+        return;
+    }
+
+    let present = [], future = [], past, aux;
+
+    if (irregulars[verb]) {
+        present = irregulars[verb].present;
+        future = irregulars[verb].future;
+        past = irregulars[verb].past;
+        aux = irregulars[verb].aux === "etre" ? etre : avoir;
+    } else {
+        let stem;
+        if (verb.endsWith("er")) {
+            stem = verb.slice(0,-2);
+            present = ["e","es","e","ons","ez","ent"].map(e => stem+e);
+            future = ["erai","eras","era","erons","erez","eront"].map(e => verb+e);
+            past = stem + "é";
+            aux = avoir;
+        } else if (verb.endsWith("ir")) {
+            stem = verb.slice(0,-2);
+            present = ["is","is","it","issons","issez","issent"].map(e => stem+e);
+            future = ["irai","iras","ira","irons","irez","iront"].map(e => stem+e);
+            past = stem + "i";
+            aux = avoir;
+        } else if (verb.endsWith("re")) {
+            stem = verb.slice(0,-2);
+            present = ["s","s","","ons","ez","ent"].map(e => stem+e);
+            future = ["rai","ras","ra","rons","rez","ront"].map(e => stem+e);
+            past = stem + "u";
+            aux = avoir;
+        } else {
+            output.innerHTML = "❌ Verbe non supporté.";
+            return;
+        }
+    }
+
+    let html = `<h2>${verb}</h2>`;
+
+    html += "<h3>Présent</h3>";
+    present.forEach((v,i)=> {
+        html += `${formatPronoun(pronouns[i], v)}${v}<br>`;
+    });
+
+    html += "<h3>Futur simple</h3>";
+    future.forEach((v,i)=> {
+        html += `${formatPronoun(pronouns[i], v)}${v}<br>`;
+    });
+
+    html += "<h3>Passé composé</h3>";
+    pronouns.forEach((p,i)=> {
+        html += `${formatPronoun(p, aux[i])}${aux[i]} ${past}<br>`;
+    });
+
+    if (aux === etre) {
+        html += `<div class="note">⚠ Avec <b>être</b>, le participe passé s’accorde (ex: allée, allés).</div>`;
+    }
+
+    output.innerHTML = html;
+}
+</script>
+
+</body>
+</html>
