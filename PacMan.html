@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Html-Man</title>
+<style>
+body{
+    margin:0;
+    background:black;
+    overflow:hidden;
+    font-family:Arial;
+    color:white;
+    text-align:center;
+}
+canvas{
+    display:block;
+    margin:auto;
+    background:black;
+}
+#message{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:48px;
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<h2>Score: <span id="score">0</span> | Lives: <span id="lives">3</span></h2>
+<h6>Music by Arsenic1987 (press f11 for best experience)</h6>
+<div id="message"></div>
+<canvas id="game"></canvas>
+
+<audio id="music" loop>
+<source src="theme.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const rawMap = [
+"############################",
+"#............##............#",
+"#.####.#####.##.#####.####.#",
+"#O...#.#####.##.#####.#...O#",
+"#.##.#.#####.##.#####.#.##.#",
+"#..........................#",
+"#.####.##.########.##.####.#",
+"#.####.##.########.##.####.#",
+"#......##....##....##......#",
+"######.##### ## #####.######",
+"     #.#    G G     #.#     ",
+"     #.# ###DD##### #.#     ",
+"######.# #        # #.######",
+"      .  # ggg    # #.      ",
+"######.# ########## #.######",
+"     #.#            #.#     ",
+"     #.# ########## #.#     ",
+"######.# ########## #.######",
+"#............##............#",
+"#.####.#####.##.#####.####.#",
+"#.####.#####.##.#####.####.#",
+"#O..##................##..O#",
+"###.##.##.########.##.##.###",
+"###.##.##.        .##.##.###",
+"#......##....##....##......#",
+"#.##########.##.##########.#",
+"#.##########.##.##########.#",
+"#..........................#",
+"############################"
+];
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const tileSize=16;
+
+canvas.width=rawMap[0].length*tileSize;
+canvas.height=rawMap.length*tileSize;
+
+let grid=rawMap.map(r=>r.split(""));
+let score=0;
+let lives=3;
+let frightened=false;
+let frightTimer=0;
+let pelletsLeft=0;
+let gameWon=false;
+
+const scoreEl=document.getElementById("score");
+const livesEl=document.getElementById("lives");
+const messageEl=document.getElementById("message");
+
+grid.forEach(r=>r.forEach(c=>{
+    if(c==="."||c==="O") pelletsLeft++;
+}));
+
+let pacman={
+    x:14*tileSize,
+    y:23*tileSize,
+    dir:{x:0,y:0},
+    nextDir:{x:0,y:0},
+    speed:2
+};
+
+let ghosts=[
+    {x:13*tileSize,y:11*tileSize,color:"red",dir:{x:1,y:0}},
+    {x:14*tileSize,y:11*tileSize,color:"pink",dir:{x:-1,y:0}},
+    {x:13*tileSize,y:12*tileSize,color:"cyan",dir:{x:0,y:1}},
+    {x:14*tileSize,y:12*tileSize,color:"orange",dir:{x:0,y:-1}}
+];
+
+function isWall(tx,ty){
+    if(ty<0||ty>=grid.length) return true;
+    if(tx<0||tx>=grid[0].length) return true;
+    return grid[ty][tx]==="#";
+}
+
+function canMove(obj,dir){
+    let cx=obj.x+tileSize/2;
+    let cy=obj.y+tileSize/2;
+    let nextX=Math.floor((cx+dir.x*tileSize)/tileSize);
+    let nextY=Math.floor((cy+dir.y*tileSize)/tileSize);
+    return !isWall(nextX,nextY);
+}
+
+function updatePacman(){
+    if(gameWon) return;
+
+    let cx=pacman.x+tileSize/2;
+    let cy=pacman.y+tileSize/2;
+
+    let atCenter=
+    Math.abs((cx%tileSize)-tileSize/2)<pacman.speed &&
+    Math.abs((cy%tileSize)-tileSize/2)<pacman.speed;
+
+    if(atCenter){
+        if(canMove(pacman,pacman.nextDir)) pacman.dir=pacman.nextDir;
+        if(!canMove(pacman,pacman.dir)) pacman.dir={x:0,y:0};
+    }
+
+    pacman.x+=pacman.dir.x*pacman.speed;
+    pacman.y+=pacman.dir.y*pacman.speed;
+
+    eatDots();
+}
+
+function eatDots(){
+    let tx=Math.floor((pacman.x+tileSize/2)/tileSize);
+    let ty=Math.floor((pacman.y+tileSize/2)/tileSize);
+
+    if(grid[ty][tx]==="."||grid[ty][tx]==="O"){
+        if(grid[ty][tx]==="O"){
+            frightened=true;
+            frightTimer=600;
+            score+=50;
+        } else score+=10;
+
+        grid[ty][tx]=" ";
+        pelletsLeft--;
+    }
+
+    if(pelletsLeft<=0){
+        gameWon=true;
+        messageEl.innerText="YOU WIN!";
+        messageEl.style.display="block";
+    }
+
+    scoreEl.textContent=score;
+}
+
+function updateGhosts(){
+    if(gameWon) return;
+
+    ghosts.forEach(g=>{
+        let speed=frightened?1:2;
+        let dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+
+        if(Math.random()<0.05||!canMove(g,g.dir)){
+            let options=dirs.filter(d=>canMove(g,d));
+            if(options.length>0)
+                g.dir=options[Math.floor(Math.random()*options.length)];
+        }
+
+        g.x+=g.dir.x*speed;
+        g.y+=g.dir.y*speed;
+
+        if(Math.abs(g.x-pacman.x)<tileSize/2 &&
+           Math.abs(g.y-pacman.y)<tileSize/2){
+            if(frightened){
+                g.x=13*tileSize;
+                g.y=11*tileSize;
+                score+=200;
+            }else{
+                lives--;
+                livesEl.textContent=lives;
+                pacman.x=14*tileSize;
+                pacman.y=23*tileSize;
+            }
+        }
+    });
+
+    if(frightened){
+        frightTimer--;
+        if(frightTimer<=0) frightened=false;
+    }
+}
+
+function drawMap(){
+    for(let y=0;y<grid.length;y++){
+        for(let x=0;x<grid[y].length;x++){
+            let t=grid[y][x];
+            if(t==="#"){
+                ctx.fillStyle="blue";
+                ctx.fillRect(x*tileSize,y*tileSize,tileSize,tileSize);
+            }
+            if(t==="."){
+                ctx.fillStyle="white";
+                ctx.beginPath();
+                ctx.arc(x*tileSize+tileSize/2,y*tileSize+tileSize/2,3,0,Math.PI*2);
+                ctx.fill();
+            }
+            if(t==="O"){
+                ctx.fillStyle="white";
+                ctx.beginPath();
+                ctx.arc(x*tileSize+tileSize/2,y*tileSize+tileSize/2,6,0,Math.PI*2);
+                ctx.fill();
+            }
+        }
+    }
+}
+
+let mouth=0,opening=true;
+
+function drawPacman(){
+    if(opening) mouth+=0.08; else mouth-=0.08;
+    if(mouth>0.6) opening=false;
+    if(mouth<0.05) opening=true;
+
+    let angle=0;
+    if(pacman.dir.x===1) angle=0;
+    if(pacman.dir.x===-1) angle=Math.PI;
+    if(pacman.dir.y===-1) angle=-Math.PI/2;
+    if(pacman.dir.y===1) angle=Math.PI/2;
+
+    ctx.save();
+    ctx.translate(pacman.x+tileSize/2,pacman.y+tileSize/2);
+    ctx.rotate(angle);
+    ctx.fillStyle="yellow";
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.arc(0,0,tileSize/2,mouth,Math.PI*2-mouth);
+    ctx.fill();
+    ctx.restore();
+}
+
+function drawGhosts(){
+    ghosts.forEach(g=>{
+        let angle=0;
+        if(g.dir.x===1) angle=0;
+        if(g.dir.x===-1) angle=Math.PI;
+        if(g.dir.y===-1) angle=-Math.PI/2;
+        if(g.dir.y===1) angle=Math.PI/2;
+
+        ctx.save();
+        ctx.translate(g.x+tileSize/2,g.y+tileSize/2);
+        ctx.rotate(angle);
+
+        ctx.fillStyle=frightened?"blue":g.color;
+        ctx.beginPath();
+        ctx.arc(0,0,tileSize/2,Math.PI,0);
+        ctx.lineTo(tileSize/2,tileSize/2);
+        ctx.lineTo(-tileSize/2,tileSize/2);
+        ctx.closePath();
+        ctx.fill();
+
+        // eyes
+        ctx.fillStyle="white";
+        ctx.beginPath();
+        ctx.arc(-6,-2,4,0,Math.PI*2);
+        ctx.arc(6,-2,4,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.fillStyle="black";
+        ctx.beginPath();
+        ctx.arc(-6,-2,2,0,Math.PI*2);
+        ctx.arc(6,-2,2,0,Math.PI*2);
+        ctx.fill();
+
+        ctx.restore();
+    });
+}
+
+document.addEventListener("keydown",e=>{
+    document.getElementById("music").play();
+    if(e.key==="ArrowLeft") pacman.nextDir={x:-1,y:0};
+    if(e.key==="ArrowRight") pacman.nextDir={x:1,y:0};
+    if(e.key==="ArrowUp") pacman.nextDir={x:0,y:-1};
+    if(e.key==="ArrowDown") pacman.nextDir={x:0,y:1};
+});
+
+function gameLoop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawMap();
+    updatePacman();
+    updateGhosts();
+    drawPacman();
+    drawGhosts();
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+</body>
+</html>
