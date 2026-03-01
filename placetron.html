@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>PLACETRON</title>
+<style>
+body { margin:0; overflow:hidden; font-family:sans-serif; }
+
+#ui {
+    position:fixed;
+    top:10px;
+    left:10px;
+    background:rgba(0,0,0,0.85);
+    padding:15px;
+    color:white;
+    border-radius:12px;
+    width:230px;
+}
+
+button { margin:3px; }
+
+#pauseBtn {
+    position:fixed;
+    top:10px;
+    right:10px;
+    padding:10px 15px;
+    display:none;
+}
+
+#hotbar {
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    display:none;
+    background:rgba(0,0,0,0.8);
+    padding:10px;
+    border-radius:10px;
+    color:white;
+}
+
+.slot {
+    display:inline-block;
+    padding:10px 20px;
+    border:2px solid white;
+    margin:5px;
+}
+
+.active { border-color:yellow; }
+
+img { width:200px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<div id="ui">
+<img src="placetron.jpg">
+<b>Mode:</b> <span id="modeLabel">Build</span><br>
+<button onclick="setMode('build')">Build</button>
+<button onclick="setMode('play')">Play</button>
+<hr>
+<b>Shape:</b><br>
+<button onclick="shape='box'">Square</button>
+<button onclick="shape='circle'">Circle</button>
+<hr>
+<b>Size (cm):</b><br>
+<input type="number" id="sizeInput" value="100">
+<hr>
+<b>Tools:</b><br>
+<button onclick="tool='place'">Place</button>
+<button onclick="tool='delete'">Delete</button>
+<button onclick="tool='anchor'">Anchor</button>
+<hr>
+<b>Color:</b><br>
+<input type="color" id="colorPicker" value="#00ff00">
+<hr>
+<button onclick="setSpawn()">Set Spawn</button>
+</div>
+
+<button id="pauseBtn" onclick="setMode('build')">Pause</button>
+
+<div id="hotbar">
+<div class="slot active" id="slot1">1 Build</div>
+<div class="slot" id="slot2">2 Delete</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+
+let camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 2000);
+let renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+scene.add(new THREE.AmbientLight(0xffffff,0.4));
+let light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(10,20,10);
+scene.add(light);
+
+let ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(500,500),
+    new THREE.MeshStandardMaterial({color:0x555555})
+);
+ground.rotation.x = -Math.PI/2;
+scene.add(ground);
+
+let objects=[];
+let raycaster=new THREE.Raycaster();
+let mouse=new THREE.Vector2();
+
+let player=null;
+let velocityY=0;
+let onGround=false;
+
+let mode="build";
+let tool="place";
+let shape="box";
+let spawnPoint=new THREE.Vector3(0,3,0);
+let keys={};
+
+let cameraDistance=10;
+let cameraAngleX=0.5;
+let cameraAngleY=0.5;
+let cameraTarget=new THREE.Vector3();
+let isRightMouse=false;
+
+let gravity=0.01;
+let cmScale=0.01;
+
+/* CAMERA */
+function updateCamera(){
+    let x = cameraTarget.x + cameraDistance * Math.cos(cameraAngleY) * Math.sin(cameraAngleX);
+    let y = cameraTarget.y + cameraDistance * Math.sin(cameraAngleY);
+    let z = cameraTarget.z + cameraDistance * Math.cos(cameraAngleY) * Math.cos(cameraAngleX);
+    camera.position.set(x,y,z);
+    camera.lookAt(cameraTarget);
+}
+
+renderer.domElement.addEventListener("contextmenu", e=>e.preventDefault());
+renderer.domElement.addEventListener("mousedown", e=>{ if(e.button===2) isRightMouse=true; });
+renderer.domElement.addEventListener("mouseup", e=>{ if(e.button===2) isRightMouse=false; });
+renderer.domElement.addEventListener("mousemove", e=>{
+    if(isRightMouse){
+        cameraAngleX -= e.movementX*0.005;
+        cameraAngleY -= e.movementY*0.005;
+        cameraAngleY=Math.max(-1.5,Math.min(1.5,cameraAngleY));
+    }
+});
+renderer.domElement.addEventListener("wheel", e=>{
+    cameraDistance+=e.deltaY*0.01;
+    cameraDistance=Math.max(5,Math.min(50,cameraDistance));
+});
+
+/* BUILD CLICK FIX */
+window.addEventListener("click", e=>{
+    if(mode!=="build") return;
+
+    mouse.x=(e.clientX/window.innerWidth)*2-1;
+    mouse.y=-(e.clientY/window.innerHeight)*2+1;
+    raycaster.setFromCamera(mouse,camera);
+
+    let intersects=raycaster.intersectObjects([ground,...objects]);
+
+    if(tool==="place"){
+        let hit=raycaster.intersectObject(ground)[0];
+        if(!hit) return;
+
+        let size=parseInt(document.getElementById("sizeInput").value);
+        let geo = shape==="box"
+            ? new THREE.BoxGeometry(size*cmScale,size*cmScale,size*cmScale)
+            : new THREE.CylinderGeometry(size*cmScale/2,size*cmScale/2,size*cmScale,32);
+
+        let mat=new THREE.MeshStandardMaterial({color:document.getElementById("colorPicker").value});
+        let mesh=new THREE.Mesh(geo,mat);
+        mesh.position.copy(hit.point);
+        mesh.position.y+=size*cmScale/2;
+        mesh.userData={anchored:false};
+        scene.add(mesh);
+        objects.push(mesh);
+    }
+
+    if(tool==="delete" && intersects.length>0){
+        let obj=intersects[0].object;
+        if(obj!==ground && !obj.userData.anchored){
+            scene.remove(obj);
+            objects=objects.filter(o=>o!==obj);
+        }
+    }
+
+    if(tool==="anchor" && intersects.length>0){
+        let obj=intersects[0].object;
+        if(obj!==ground){
+            obj.userData.anchored=!obj.userData.anchored;
+            obj.material.emissive=new THREE.Color(obj.userData.anchored?0x222222:0x000000);
+        }
+    }
+});
+
+/* PLAYER */
+function createStickman(){
+    let g=new THREE.Group();
+    let mat=new THREE.MeshBasicMaterial({color:0x000000});
+    let head=new THREE.Mesh(new THREE.SphereGeometry(0.3,16,16),mat);
+    head.position.y=0.3;
+    let body=new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.1,1),mat);
+    body.position.y=-0.5;
+    g.add(head); g.add(body);
+    return g;
+}
+
+function setMode(m){
+    mode=m;
+    document.getElementById("modeLabel").innerText=m;
+
+    if(m==="play"){
+        document.getElementById("ui").style.display="none";
+        document.getElementById("pauseBtn").style.display="block";
+        document.getElementById("hotbar").style.display="block";
+        startPlay();
+    } else {
+        document.getElementById("ui").style.display="block";
+        document.getElementById("pauseBtn").style.display="none";
+        document.getElementById("hotbar").style.display="none";
+        if(player){ scene.remove(player); player=null; }
+    }
+}
+
+function startPlay(){
+    player=createStickman();
+    player.position.copy(spawnPoint);
+    scene.add(player);
+}
+
+window.addEventListener("keydown",e=>{
+    keys[e.key.toLowerCase()]=true;
+    if(e.key==="1") setHotbar(1);
+    if(e.key==="2") setHotbar(2);
+    if(e.key==="Escape") setMode("build");
+});
+window.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
+
+function setHotbar(n){
+    document.getElementById("slot1").classList.remove("active");
+    document.getElementById("slot2").classList.remove("active");
+    document.getElementById("slot"+n).classList.add("active");
+    tool = n===1 ? "place":"delete";
+}
+
+function updatePlayer(){
+    if(!player) return;
+
+    let speed = keys["shift"] ? 0.25 : 0.12;
+
+    let forward=new THREE.Vector3();
+    camera.getWorldDirection(forward);
+    forward.y=0; forward.normalize();
+
+    let right=new THREE.Vector3();
+    right.crossVectors(forward,new THREE.Vector3(0,1,0)).normalize();
+
+    if(keys["w"]) player.position.add(forward.clone().multiplyScalar(speed));
+    if(keys["s"]) player.position.add(forward.clone().multiplyScalar(-speed));
+    if(keys["a"]) player.position.add(right.clone().multiplyScalar(-speed));
+    if(keys["d"]) player.position.add(right.clone().multiplyScalar(speed));
+
+    velocityY -= gravity;
+    player.position.y += velocityY;
+
+    if(player.position.y <= 1){
+        player.position.y = 1;
+        velocityY = 0;
+        onGround = true;
+    }
+
+    if(keys[" "] && onGround){
+        velocityY = 0.2;
+        onGround=false;
+    }
+
+    objects.forEach(obj=>{
+        let box1=new THREE.Box3().setFromObject(player);
+        let box2=new THREE.Box3().setFromObject(obj);
+        if(box1.intersectsBox(box2)){
+            player.position.y = box2.max.y + 1;
+            velocityY = 0;
+            onGround=true;
+        }
+    });
+
+    cameraTarget.copy(player.position);
+}
+
+/* LOOP */
+function animate(){
+    requestAnimationFrame(animate);
+    if(mode==="play") updatePlayer();
+    updateCamera();
+    renderer.render(scene,camera);
+}
+animate();
+
+</script>
+</body>
+</html>
