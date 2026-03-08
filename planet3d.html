@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Random Planet Generator</title>
+
+<style>
+body{
+margin:0;
+overflow:hidden;
+background:black;
+font-family:sans-serif;
+}
+
+#ui{
+position:absolute;
+top:10px;
+left:10px;
+color:white;
+}
+
+button{
+padding:10px;
+font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+<button onclick="generatePlanet()">Generate Planet</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+const scene = new THREE.Scene()
+
+const camera = new THREE.PerspectiveCamera(
+75,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+)
+
+camera.position.z = 3
+
+const renderer = new THREE.WebGLRenderer({antialias:true})
+renderer.setSize(window.innerWidth,window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
+scene.add(new THREE.AmbientLight(0x666666))
+
+const light = new THREE.DirectionalLight(0xffffff,1)
+light.position.set(5,5,5)
+scene.add(light)
+
+let planet
+let clouds
+let rings
+
+function rand(a,b){
+return Math.random()*(b-a)+a
+}
+
+function choice(arr){
+return arr[Math.floor(Math.random()*arr.length)]
+}
+
+function createStars(){
+
+const geo = new THREE.BufferGeometry()
+const count = 7000
+const pos=[]
+
+for(let i=0;i<count;i++){
+pos.push(rand(-200,200))
+pos.push(rand(-200,200))
+pos.push(rand(-200,200))
+}
+
+geo.setAttribute("position",
+new THREE.Float32BufferAttribute(pos,3))
+
+const mat = new THREE.PointsMaterial({
+color:0xffffff,
+size:0.7
+})
+
+const stars = new THREE.Points(geo,mat)
+scene.add(stars)
+
+}
+
+createStars()
+
+function noise(x,y,z,scale){
+
+return (
+Math.sin(x*scale)+
+Math.sin(y*scale)+
+Math.sin(z*scale)
+)/3
+
+}
+
+function generatePlanet(){
+
+if(planet) scene.remove(planet)
+if(clouds) scene.remove(clouds)
+if(rings) scene.remove(rings)
+
+const planetType = choice([
+"earth",
+"desert",
+"lava",
+"ice",
+"ocean",
+"forest"
+])
+
+const oceanLevel = rand(-0.04,0.02)
+const mountainHeight = rand(0.05,0.15)
+const noiseScale = rand(3,8)
+
+const geo = new THREE.SphereGeometry(1,200,200)
+
+const pos = geo.attributes.position
+const colors=[]
+
+for(let i=0;i<pos.count;i++){
+
+const v = new THREE.Vector3().fromBufferAttribute(pos,i)
+
+let n = noise(v.x,v.y,v.z,noiseScale)
+
+let height = n*mountainHeight
+
+v.normalize().multiplyScalar(1+height)
+
+pos.setXYZ(i,v.x,v.y,v.z)
+
+let color
+
+if(planetType==="lava"){
+
+if(height>0.02 && Math.random()<0.1)
+color=new THREE.Color(0xff3300)
+else
+color=new THREE.Color(0x2b0000)
+
+}
+
+else if(planetType==="ice"){
+
+color=new THREE.Color(choice([
+0xffffff,
+0xddeeff,
+0xcfe9ff
+]))
+
+}
+
+else if(planetType==="desert"){
+
+color=new THREE.Color(choice([
+0xd9c27a,
+0xc2a15a,
+0xe6d39a
+]))
+
+}
+
+else if(planetType==="ocean"){
+
+if(height<0.02)
+color=new THREE.Color(0x1b4fd1)
+else
+color=new THREE.Color(0x2ecc71)
+
+}
+
+else if(planetType==="forest"){
+
+color=new THREE.Color(choice([
+0x1f7a1f,
+0x145214,
+0x2e8b57
+]))
+
+}
+
+else{
+
+if(height<oceanLevel)
+color=new THREE.Color(0x1b4fd1)
+else if(height<0.02)
+color=new THREE.Color(0x2ecc71)
+else if(height<0.05)
+color=new THREE.Color(0x3d8b3d)
+else
+color=new THREE.Color(0xaaaaaa)
+
+}
+
+colors.push(color.r,color.g,color.b)
+
+}
+
+geo.setAttribute(
+"color",
+new THREE.Float32BufferAttribute(colors,3)
+)
+
+geo.computeVertexNormals()
+
+const mat = new THREE.MeshStandardMaterial({
+vertexColors:true,
+roughness:1
+})
+
+planet = new THREE.Mesh(geo,mat)
+scene.add(planet)
+
+createClouds()
+
+if(Math.random()<0.6) createRings()
+
+}
+
+function createClouds(){
+
+const geo = new THREE.SphereGeometry(1.03,100,100)
+
+const mat = new THREE.MeshStandardMaterial({
+color:0xffffff,
+transparent:true,
+opacity:rand(0.2,0.5)
+})
+
+clouds = new THREE.Mesh(geo,mat)
+scene.add(clouds)
+
+}
+
+function createRings(){
+
+const geo = new THREE.RingGeometry(1.4,2.1,128)
+
+const mat = new THREE.MeshStandardMaterial({
+color:choice([
+0xd8cfa8,
+0xb5a642,
+0xcccccc
+]),
+side:THREE.DoubleSide
+})
+
+rings = new THREE.Mesh(geo,mat)
+
+rings.rotation.x = Math.PI/2
+rings.rotation.z = rand(-0.7,0.7)
+
+scene.add(rings)
+
+}
+
+generatePlanet()
+
+let dragging=false
+let prevX=0
+let prevY=0
+
+document.addEventListener("mousedown",e=>{
+dragging=true
+prevX=e.clientX
+prevY=e.clientY
+})
+
+document.addEventListener("mouseup",()=>{
+dragging=false
+})
+
+document.addEventListener("mousemove",e=>{
+
+if(!dragging || !planet) return
+
+const dx = e.clientX-prevX
+const dy = e.clientY-prevY
+
+prevX=e.clientX
+prevY=e.clientY
+
+planet.rotation.y += dx*0.005
+planet.rotation.x += dy*0.005
+
+})
+
+document.addEventListener("wheel",e=>{
+camera.position.z += e.deltaY*0.002
+})
+
+function animate(){
+
+requestAnimationFrame(animate)
+
+if(clouds) clouds.rotation.y += 0.0007
+
+renderer.render(scene,camera)
+
+}
+
+animate()
+
+window.addEventListener("resize",()=>{
+
+camera.aspect=window.innerWidth/window.innerHeight
+camera.updateProjectionMatrix()
+renderer.setSize(window.innerWidth,window.innerHeight)
+
+})
+
+</script>
+
+</body>
+</html>
