@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Press f11 to make fullscreen btw</title>
+<style>
+  body {
+    margin: 0;
+    font-family: monospace;
+    background: black;
+    color: lime;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  #container {
+    max-width: 700px;
+    text-align: center;
+    display: none;
+  }
+
+  #menu {
+    text-align: center;
+  }
+
+  h1 { color: red; }
+
+  #terminal {
+    display: none;
+    background: black;
+    border: 1px solid lime;
+    padding: 10px;
+    height: 250px;
+    overflow-y: auto;
+    white-space: pre;
+    margin-top: 15px;
+    text-align: left;
+    font-family: Consolas, "Courier New", monospace;
+  }
+
+  #progressBar {
+    width: 100%;
+    background: #222;
+    border: 1px solid lime;
+    margin-top: 20px;
+  }
+
+  #progress {
+    width: 0%;
+    height: 20px;
+    background: lime;
+  }
+
+  button {
+    margin: 10px;
+    padding: 10px 15px;
+    background: black;
+    color: lime;
+    border: 1px solid lime;
+    cursor: pointer;
+    font-family: Consolas, "Courier New", monospace;
+  }
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <h1>Choose Mode</h1>
+  <button onclick="start(false)">Normal Mode</button>
+  <button onclick="start(true)">Terminal Mode</button>
+</div>
+
+<div id="container">
+  <h1>⚠ SECURITY ALERT ⚠</h1>
+
+  <div id="terminal"></div>
+
+  <div id="progressBar">
+    <div id="progress"></div>
+  </div>
+  <p id="percent">0%</p>
+</div>
+
+<script>
+let percent = 0;
+let terminalEnabled = false;
+
+const progress = document.getElementById("progress");
+const percentText = document.getElementById("percent");
+const terminal = document.getElementById("terminal");
+
+function start(enableTerminal) {
+  terminalEnabled = enableTerminal;
+
+  document.getElementById("menu").style.display = "none";
+  document.getElementById("container").style.display = "block";
+
+  if (terminalEnabled) {
+    terminal.style.display = "block";
+    startTerminal();
+  } else {
+    showNormalText();
+  }
+
+  startProgress();
+}
+
+function showNormalText() {
+  const text = document.createElement("div");
+  text.innerHTML = `
+    <p>You left your computer open!</p>
+    <p>I will punish you for this!</p>
+    <p>Downloading personal data.</p>
+    <p>Typing the n word.</p>
+  `;
+  document.getElementById("container").insertBefore(text, terminal);
+}
+
+// Terminal lines (instant, real terminal style)
+const lines = [
+  "Boohoo! You left your computer open!",
+  "Time to punish you.",
+  "Accessing system files...",
+  "Uninstalling every app...",
+  "Uploading data to remote server.",
+  "Counting to 1.",
+  "Disabling security protocols.",
+  "Extracting passwords.",
+  "Finalizing attack."
+];
+
+function startTerminal() {
+  let i = 0;
+
+  const interval = setInterval(() => {
+    if (i < lines.length) {
+      terminal.textContent += lines[i] + "\n";
+      terminal.scrollTop = terminal.scrollHeight;
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 500);
+}
+
+function startProgress() {
+  const interval = setInterval(() => {
+    percent++;
+    progress.style.width = percent + "%";
+    percentText.textContent = percent + "%";
+
+    if (percent >= 100) {
+      clearInterval(interval);
+      document.body.innerHTML = "<h1 style='color:white'>Access Granted...</h1>";
+      setTimeout(() => {
+        window.location.href = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+      }, 2000);
+    }
+  }, 1000);
+}
+</script>
+</body>
+</html>
