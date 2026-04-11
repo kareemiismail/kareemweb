@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calculator Chaos</title>
+
+<!-- Digital Font -->
+<link href="https://fonts.cdnfonts.com/css/digital-7-mono" rel="stylesheet">
+
+<!-- Math.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<style>
+  body {
+    background: black;
+    color: lime;
+    text-align: center;
+    font-family: 'Digital-7 Mono', monospace;
+  }
+
+  #calc {
+    display: inline-block;
+    border: 3px solid lime;
+    padding: 15px;
+  }
+
+  #display {
+    width: 260px;
+    height: 50px;
+    font-size: 28px;
+    background: black;
+    color: lime;
+    border: 2px solid lime;
+    text-align: right;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 50px);
+    gap: 5px;
+  }
+
+  button {
+    height: 40px;
+    font-size: 16px;
+    background: black;
+    color: lime;
+    border: 1px solid lime;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: lime;
+    color: black;
+  }
+
+  #threeCanvas {
+    display: none;
+  }
+
+  #result {
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div id="calc">
+  <input id="display" readonly>
+
+  <div class="grid">
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button onclick="press('/')">/</button>
+    <button onclick="press('sqrt(')">√</button>
+
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button onclick="press('*')">*</button>
+    <button onclick="press('^')">^</button>
+
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button onclick="press('-')">-</button>
+    <button onclick="press('pi')">π</button>
+
+    <button onclick="press('0')">0</button>
+    <button onclick="press('.')">.</button>
+    <button onclick="clearDisplay()">C</button>
+    <button onclick="press('+')">+</button>
+    <button onclick="press('sin(')">sin</button>
+
+    <button onclick="press('cos(')">cos</button>
+    <button onclick="press('tan(')">tan</button>
+    <button onclick="press('(')">(</button>
+    <button onclick="press(')')">)</button>
+    <button onclick="calculate()">=</button>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<canvas id="threeCanvas"></canvas>
+
+<script>
+function press(v){ display.value += v; }
+function clearDisplay(){ display.value = ""; }
+
+function calculate(){
+  let input = display.value;
+
+  try {
+    let result = math.evaluate(input);
+
+    // Detect cursed math
+    if (!isFinite(result) || isNaN(result)) {
+      enterMathHell();
+      return;
+    }
+
+    result = Math.round(result * 1000) / 1000;
+    resultText("= " + result);
+
+  } catch {
+    // invalid math also triggers chaos sometimes 😈
+    if (Math.random() < 0.5) {
+      enterMathHell();
+    } else {
+      resultText("💀 invalid");
+    }
+  }
+}
+
+function resultText(t){
+  document.getElementById("result").innerText = t;
+}
+
+function enterMathHell(){
+  document.getElementById("calc").style.display="none";
+  document.getElementById("threeCanvas").style.display="block";
+  start3D();
+}
+
+/* ================= 3D MATH HELL ================= */
+
+function start3D(){
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({canvas: threeCanvas});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  camera.position.z = 5;
+
+  // platform
+  const geo = new THREE.BoxGeometry(10, 0.5, 10);
+  const mat = new THREE.MeshBasicMaterial({color: 0x550000});
+  const platform = new THREE.Mesh(geo, mat);
+  platform.position.y = -2;
+  scene.add(platform);
+
+  // floating numbers
+  let numbers = [];
+
+  for(let i=0;i<80;i++){
+    let sprite = makeTextSprite(randomNumber());
+    sprite.position.set(rand(-6,6), rand(-2,6), rand(-6,6));
+    scene.add(sprite);
+    numbers.push(sprite);
+  }
+
+  function animate(){
+    requestAnimationFrame(animate);
+
+    numbers.forEach(n=>{
+      n.position.y += 0.03;
+      n.rotation.y += 0.03;
+
+      if(n.position.y > 6){
+        n.position.y = -2;
+        n.position.x = rand(-6,6);
+      }
+    });
+
+    renderer.render(scene, camera);
+  }
+
+  animate();
+}
+
+function randomNumber(){
+  return Math.floor(Math.random()*10000000).toString();
+}
+
+function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+
+function makeTextSprite(message){
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+
+  ctx.font = "30px Arial";
+  ctx.fillStyle = "yellow";
+  ctx.fillText(message, 0, 30);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const material = new THREE.SpriteMaterial({ map: texture });
+
+  return new THREE.Sprite(material);
+}
+</script>
+
+</body>
+</html>
