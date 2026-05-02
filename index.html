@@ -5,151 +5,284 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>KareemWeb</title>
 <link id="favicon" rel="icon" href="frame_apngframe01.png">
-<script> 
-  const frames = [
-    'frame_apngframe01.png',
-    'frame_apngframe02.png',
-    'frame_apngframe03.png',
-    'frame_apngframe04.png',
-    'frame_apngframe05.png',
-    'frame_apngframe06.png',
-    'frame_apngframe07.png',
-    'frame_apngframe08.png',
-    'frame_apngframe09.png',
-    'frame_apngframe10.png',
-    'frame_apngframe11.png',
-    'frame_apngframe12.png',
-    'frame_apngframe13.png',
-    'frame_apngframe14.png',
-    'frame_apngframe15.png',
-    'frame_apngframe16.png',
-    'frame_apngframe17.png',
-    'frame_apngframe18.png',
-    'frame_apngframe19.png',
-    'frame_apngframe20.png',
-    'frame_apngframe21.png'
-  ]
-;
-</script>
-
-  
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
-  body{
-    margin:0;
-    font-family:'Orbitron',sans-serif;
-    background:url('cloud.jpg') center/cover fixed;
-    color:#00f7ff;
-    overflow-x:hidden;
+  :root {
+    --cyan: #00f7ff;
+    --magenta: #ff00ff;
+    --dark: rgba(0,0,0,0.7);
+    --border: rgba(0,247,255,0.4);
   }
 
-/* ===== CHAOS ===== */
-@keyframes megaShake{
-  0%{transform:translate(0,0) rotate(0)}
-  10%{transform:translate(-15px,10px) rotate(-3deg)}
-  20%{transform:translate(15px,-10px) rotate(3deg)}
-  30%{transform:translate(-20px,15px) rotate(-4deg)}
-  40%{transform:translate(20px,-15px) rotate(4deg)}
-  50%{transform:translate(-25px,20px) rotate(-5deg)}
-  60%{transform:translate(25px,-20px) rotate(5deg)}
-  70%{transform:translate(-20px,15px) rotate(-4deg)}
-  80%{transform:translate(20px,-15px) rotate(4deg)}
-  90%{transform:translate(-10px,8px) rotate(-2deg)}
-  100%{transform:translate(0,0) rotate(0)}
-}
-.chaos{animation:megaShake .07s infinite}
+  * { box-sizing: border-box; }
 
-.flash{
-  position:fixed;
-  inset:0;
-  background:white;
-  opacity:0;
-  pointer-events:none;
-  z-index:9999;
-}
+  body {
+    margin: 0;
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    background: url('cloud.jpg') center/cover fixed;
+    color: var(--cyan);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
 
-header{text-align:center;padding:24px}
-header img{
-  width:260px;
-  border-radius:16px;
-  box-shadow:0 0 30px #00eaff;
-}
-header h1{
-  color:white;
-  text-shadow:0 0 15px #00eaff,0 0 25px #ff00ff;
-}
+  /* Overlay to darken bg slightly for readability */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,10,0.45);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-.app{padding:20px}
-.main{display:flex;gap:20px}
+  /* ===== CHAOS ===== */
+  @keyframes megaShake {
+    0%  { transform: translate(0,0) rotate(0) }
+    10% { transform: translate(-15px,10px) rotate(-3deg) }
+    20% { transform: translate(15px,-10px) rotate(3deg) }
+    30% { transform: translate(-20px,15px) rotate(-4deg) }
+    40% { transform: translate(20px,-15px) rotate(4deg) }
+    50% { transform: translate(-25px,20px) rotate(-5deg) }
+    60% { transform: translate(25px,-20px) rotate(5deg) }
+    70% { transform: translate(-20px,15px) rotate(-4deg) }
+    80% { transform: translate(20px,-15px) rotate(4deg) }
+    90% { transform: translate(-10px,8px) rotate(-2deg) }
+    100%{ transform: translate(0,0) rotate(0) }
+  }
+  .chaos { animation: megaShake .07s infinite }
 
-#search{
-  width:100%;
-  padding:10px;
-  border-radius:12px;
-  border:none;
-  font-family:'Orbitron';
-  margin-bottom:12px;
-}
+  .flash {
+    position: fixed;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9999;
+  }
 
-.gallery{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:12px;
-}
+  /* ===== HEADER ===== */
+  header {
+    text-align: center;
+    padding: 32px 20px 16px;
+    position: relative;
+    z-index: 1;
+  }
+  header img {
+    width: 200px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px var(--cyan), 0 0 60px rgba(0,234,255,0.3);
+    transition: transform 0.3s;
+  }
+  header img:hover { transform: scale(1.05) rotate(-1deg); }
+  header h1 {
+    color: white;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 900;
+    text-shadow: 0 0 15px var(--cyan), 0 0 30px var(--magenta), 0 0 60px var(--cyan);
+    margin: 10px 0 0;
+    letter-spacing: 2px;
+  }
 
-.game{
-  padding:12px;
-  border-radius:14px;
-  background:linear-gradient(145deg,#00aaff,#ff00ff);
-  color:white;
-  font-weight:bold;
-  text-align:center;
-  text-decoration:none;
-  box-shadow:0 0 14px #00eaff;
-  transition:.2s;
-}
-.game:hover{transform:scale(1.07)}
+  /* ===== MAIN LAYOUT ===== */
+  .app {
+    padding: 16px 20px 30px;
+    position: relative;
+    z-index: 1;
+  }
 
-.side{
-  width:360px;
-  padding:16px;
-  background:rgba(0,0,0,.6);
-  border-radius:16px;
-  border:1px solid #00eaff;
-}
+  .main {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
 
-input,textarea,button{
-  width:100%;
-  margin-top:6px;
-  padding:8px;
-  border-radius:10px;
-  border:none;
-  font-family:'Orbitron';
-}
-button{cursor:pointer;font-weight:bold}
+  .content { flex: 1; min-width: 0; }
 
-.comment{
-  background:rgba(0,0,0,.7);
-  border:1px solid #00eaff;
-  padding:8px;
-  border-radius:10px;
-  margin-top:8px;
-}
+  /* ===== SEARCH ===== */
+  #search {
+    width: 100%;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: rgba(0,0,0,0.6);
+    color: var(--cyan);
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-size: 0.85rem;
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  #search:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 16px rgba(0,247,255,0.4);
+  }
+  #search::placeholder { color: rgba(0,247,255,0.45); }
 
-footer{
-  margin-top:30px;
-  padding:14px;
-  text-align:center;
-  background:rgba(0,0,0,.6);
-  border-top:1px solid #00eaff;
-}
-let i = 0;
-setInterval(() => {
-  document.getElementById('favicon').href = frames[i % frames.length];
-  i++;
-}, 15);
-</script>
+  /* ===== GAME GRID ===== */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+  }
+
+  .game {
+    padding: 14px 10px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, rgba(0,100,200,0.7), rgba(180,0,200,0.5));
+    border: 1px solid rgba(0,247,255,0.25);
+    color: white;
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: 0 0 10px rgba(0,234,255,0.25);
+    transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60px;
+    word-break: break-word;
+    letter-spacing: 0.5px;
+  }
+  .game:hover {
+    transform: scale(1.08) translateY(-2px);
+    box-shadow: 0 0 22px rgba(0,247,255,0.6), 0 0 40px rgba(255,0,255,0.3);
+    border-color: var(--cyan);
+  }
+
+  /* ===== SIDEBAR ===== */
+  .side {
+    width: 320px;
+    flex-shrink: 0;
+    padding: 18px;
+    background: rgba(0,0,0,0.65);
+    border-radius: 18px;
+    border: 1px solid var(--border);
+    box-shadow: 0 0 20px rgba(0,247,255,0.1);
+  }
+
+  .side h3 {
+    margin: 16px 0 8px;
+    font-size: 0.85rem;
+    color: white;
+    text-shadow: 0 0 10px var(--cyan);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .side h3:first-child { margin-top: 0; }
+
+  /* ===== BUTTONS ===== */
+  .btn {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1.5px solid var(--border);
+    background: linear-gradient(135deg, rgba(0,100,200,0.5), rgba(180,0,200,0.4));
+    color: white;
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-weight: 700;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: box-shadow 0.2s, transform 0.15s, border-color 0.2s;
+    letter-spacing: 1px;
+  }
+  .btn:hover {
+    box-shadow: 0 0 14px rgba(0,247,255,0.5);
+    border-color: var(--cyan);
+    transform: translateY(-1px);
+  }
+
+  /* ===== MARQUEE ===== */
+  .marquee-wrap {
+    background: rgba(0,247,255,0.08);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px 0;
+    margin-top: 8px;
+    font-size: 0.72rem;
+    overflow: hidden;
+  }
+
+  /* ===== COUNTER ===== */
+  .counter-wrap {
+    text-align: center;
+    margin-top: 10px;
+  }
+  .counter-wrap p {
+    font-size: 0.6rem;
+    color: rgba(0,247,255,0.5);
+    margin: 4px 0 0;
+  }
+
+  /* ===== COMMENT FORM ===== */
+  .comment-form input,
+  .comment-form textarea {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(0,0,0,0.5);
+    color: var(--cyan);
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-size: 0.72rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .comment-form input:focus,
+  .comment-form textarea:focus {
+    border-color: var(--cyan);
+  }
+  .comment-form textarea { resize: vertical; min-height: 64px; }
+  .comment-form input::placeholder,
+  .comment-form textarea::placeholder { color: rgba(0,247,255,0.35); }
+
+  /* ===== COMMENTS LIST ===== */
+  .comment {
+    background: rgba(0,0,0,0.6);
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-top: 8px;
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+  .comment b { color: white; }
+  .comment .reply-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--cyan);
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    font-size: 0.65rem;
+    border-radius: 6px;
+    padding: 2px 8px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: border-color 0.2s;
+  }
+  .comment .reply-btn:hover { border-color: var(--cyan); }
+
+  /* ===== FOOTER ===== */
+  footer {
+    margin-top: 40px;
+    padding: 16px;
+    text-align: center;
+    background: rgba(0,0,0,0.6);
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: rgba(0,247,255,0.7);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 700px) {
+    .main { flex-direction: column; }
+    .side { width: 100%; }
+  }
 </style>
 </head>
 
@@ -159,40 +292,51 @@ setInterval(() => {
 
 <div id="app" class="app">
 
-<header>
-<img src="Kareemweb.png">
-<h1>KareemWeb ッ</h1>
-</header>
+  <header>
+    <img src="Kareemweb.png" alt="KareemWeb Logo">
+    <h1>KareemWeb ッ</h1>
+  </header>
 
-<div class="main">
+  <div class="main">
 
-<div style="flex:1">
-<input id="search" placeholder="🔍 Search games">
-<div id="games" class="gallery"></div>
-</div>
-<div class="side">
-<h3>🎵 Music</h3>
-<button onclick="toggleMusic()">Toggle Music</button>
-<marquee direction="right" scrollamount="50">You spin me round and round</marquee>
-<h3>🌪 Chaos Mode</h3>
-<button onclick="toggleChaos()">CHAOS MODE</button>
-  
-<!-- hitwebcounter Code START -->
-<a href="https://www.hitwebcounter.com/" target="_blank">
-<img src="https://hitwebcounter.com/counter/counter.php?page=21486790&style=0005&nbdigits=8&type=ip&initCount=0" title="Free Tools" Alt="Free Tools"   border="0" /></a>            
-<p>Thank you, https://hitwebcounter.com for the counter.</p>
-<h3>💬 Comments</h3>
-<form id="commentForm">
-<input id="name" placeholder="Name" required>
-<textarea id="comment" placeholder="Comment..." required></textarea>
-<button>Post</button>
-</form>
-<div id="commentsList"></div>
-</div>
+    <!-- GAMES SECTION -->
+    <div class="content">
+      <input id="search" placeholder="🔍 Search games & apps...">
+      <div id="games" class="gallery"></div>
+    </div>
 
-</div>
+    <!-- SIDEBAR -->
+    <div class="side">
 
-<footer>© 2025-2026 KareemWeb</footer>
+      <h3>🎵 Music</h3>
+      <button class="btn" onclick="toggleMusic()">▶ Toggle Music</button>
+      <div class="marquee-wrap">
+        <marquee direction="right" scrollamount="50">You spin me round and round 🌀</marquee>
+      </div>
+
+      <h3>🌪 Chaos Mode</h3>
+      <button class="btn" onclick="toggleChaos()">⚡ CHAOS MODE ⚡</button>
+
+      <h3>📊 Visitors</h3>
+      <div class="counter-wrap">
+        <a href="https://www.hitwebcounter.com/" target="_blank">
+          <img src="https://hitwebcounter.com/counter/counter.php?page=21486790&style=0005&nbdigits=8&type=ip&initCount=0" title="Free Tools" alt="Visitor Counter" border="0">
+        </a>
+        <p>powered by hitwebcounter.com</p>
+      </div>
+
+      <h3>💬 Comments</h3>
+      <form id="commentForm" class="comment-form">
+        <input id="name" placeholder="Name" required>
+        <textarea id="comment" placeholder="Leave a comment..." required></textarea>
+        <button class="btn" style="margin-top:8px">📤 Post Comment</button>
+      </form>
+      <div id="commentsList"></div>
+
+    </div>
+  </div>
+
+  <footer>© 2025–2026 KareemWeb</footer>
 </div>
 
 <audio id="bgMusic" src="Kevin MacLeod - Airport Lounge.mp3" loop></audio>
@@ -202,136 +346,165 @@ setInterval(() => {
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
 <script>
+/* ===== ANIMATED FAVICON ===== */
+// (runs immediately, no Firebase needed here)
+const frames = [
+  'frame_apngframe01.png','frame_apngframe02.png','frame_apngframe03.png',
+  'frame_apngframe04.png','frame_apngframe05.png','frame_apngframe06.png',
+  'frame_apngframe07.png','frame_apngframe08.png','frame_apngframe09.png',
+  'frame_apngframe10.png','frame_apngframe11.png','frame_apngframe12.png',
+  'frame_apngframe13.png','frame_apngframe14.png','frame_apngframe15.png',
+  'frame_apngframe16.png','frame_apngframe17.png','frame_apngframe18.png',
+  'frame_apngframe19.png','frame_apngframe20.png','frame_apngframe21.png'
+];
+let fi = 0;
+setInterval(() => {
+  document.getElementById('favicon').href = frames[fi % frames.length];
+  fi++;
+}, 80);
+
 /* ===== DOM ===== */
-const games = document.getElementById("games");
-const search = document.getElementById("search");
-const app = document.getElementById("app");
-const flash = document.getElementById("flash");
+const gamesEl  = document.getElementById("games");
+const searchEl = document.getElementById("search");
+const app      = document.getElementById("app");
+const flash    = document.getElementById("flash");
 const chaosMusic = document.getElementById("chaosMusic");
 
-/* ===== GAMES ===== */
-const gamesData=[
-["About Me","about me"],
-["Music Player","MusicPlayer"],
-["Vidtube","vidtube"],
-["Bullet Dodger 1","Bullet Dodger 1"],
-["2dPlat","2dPlat"],
-["Algonquin Apples","algonquin_apples"],
-["Minecraft","minecraft"],
-["NetKareem","netkareem"],
-["Solar Sandbox","solar"],
-["Sandbox","the thing"],
-["Tsunami Survival","Tsunami Survival!"],
-["City Simulator","citysim"],
-["Banana World","banana"],
-["Posters","Posters"],
-["Tablet Download","downloadtablet"],
-["Tablet","tablet_interface"],
-["Eaglercraft","Eaglercraft"],
-["Watch Paint Dry","watch_paint_dry"],
-["RPG","hi"],
-["Jump Over Cars","Jump Over Cars"],
-["Fireworks","Fireworks Show"],
-["Corn","Corn"],
-["Bullet Dodger Remastered","Goff"],
-["Minesweeper","minesweeper"],
-["Music Lab","kareem music lab"],
-["Feer","Feer.zip"],
-["Password Generator","password generator"],
-["TypeNet","https://www.mediafire.com/file/37u4ndas01opfsr/typenet.exe/file"],
-["HView","https://www.mediafire.com/file/49wkcqw4fukj3rb/HView.exe/file"],
-["New Year Click Off","NewYearClickoff"],
-["WebForum","forum"],
-["Conjugaison","conjugaison"],
-["Canadian Computer Animation Software","https://www.mediafire.com/file/zwdbt5xt5xum6qj/CCAS.exe/file"],
-["Pac-Man","PacMan"],
-["Placetron","placetron"],
-["3D Planet Generator","planet3d"],
-["Punish your friend for keeping his computer open!","Put in f11"],
-["Calculator! (NEW! April 4th 2026)","Calc"],
-["YouTube","https://www.youtube.com/@karemeon"],
+/* ===== GAMES DATA ===== */
+const gamesData = [
+  ["About Me","about me"],
+  ["Music Player","MusicPlayer"],
+  ["Vidtube","vidtube"],
+  ["Bullet Dodger 1","Bullet Dodger 1"],
+  ["2dPlat","2dPlat"],
+  ["Algonquin Apples","algonquin_apples"],
+  ["Minecraft","minecraft"],
+  ["NetKareem","netkareem"],
+  ["Solar Sandbox","solar"],
+  ["Sandbox","the thing"],
+  ["Tsunami Survival","Tsunami Survival!"],
+  ["City Simulator","citysim"],
+  ["Banana World","banana"],
+  ["Posters","Posters"],
+  ["Tablet Download","downloadtablet"],
+  ["Tablet","tablet_interface"],
+  ["Eaglercraft","Eaglercraft"],
+  ["Watch Paint Dry","watch_paint_dry"],
+  ["RPG","hi"],
+  ["Jump Over Cars","Jump Over Cars"],
+  ["Fireworks","Fireworks Show"],
+  ["Corn","Corn"],
+  ["Bullet Dodger Remastered","Goff"],
+  ["Minesweeper","minesweeper"],
+  ["Music Lab","kareem music lab"],
+  ["Feer","Feer.zip"],
+  ["Password Generator","password generator"],
+  ["TypeNet","https://www.mediafire.com/file/37u4ndas01opfsr/typenet.exe/file"],
+  ["HView","https://www.mediafire.com/file/49wkcqw4fukj3rb/HView.exe/file"],
+  ["New Year Click Off","NewYearClickoff"],
+  ["WebForum","forum"],
+  ["Conjugaison","conjugaison"],
+  ["Canadian Computer Animation Software","https://www.mediafire.com/file/zwdbt5xt5xum6qj/CCAS.exe/file"],
+  ["Pac-Man","PacMan"],
+  ["Placetron","placetron"],
+  ["3D Planet Generator","planet3d"],
+  ["Punish your friend for keeping his computer open!","Put in f11"],
+  ["Calculator! (NEW! April 4th 2026)","Calc"],
+  ["YouTube","https://www.youtube.com/@karemeon"],
 ];
 
-function render(){
-  games.innerHTML="";
-  const q = search.value.toLowerCase();
-  gamesData.forEach(([name,link])=>{
-    if(!name.toLowerCase().includes(q)) return;
-    const a=document.createElement("a");
-    a.href=link;
-    a.target="_blank";
-    a.className="game";
-    a.textContent=name;
-    games.appendChild(a);
+function render() {
+  gamesEl.innerHTML = "";
+  const q = searchEl.value.toLowerCase();
+  gamesData.forEach(([name, link]) => {
+    if (!name.toLowerCase().includes(q)) return;
+    const a = document.createElement("a");
+    a.href = link.startsWith("http") ? link : link;
+    a.target = "_blank";
+    a.className = "game";
+    a.textContent = name;
+    gamesEl.appendChild(a);
   });
 }
-search.addEventListener("input",render);
+searchEl.addEventListener("input", render);
 render();
 
 /* ===== MUSIC ===== */
-const bg=document.getElementById("bgMusic");
-function toggleMusic(){bg.paused?bg.play():bg.pause()}
+const bg = document.getElementById("bgMusic");
+function toggleMusic() { bg.paused ? bg.play() : bg.pause(); }
 
 /* ===== CHAOS ===== */
-let chaos=false,flashInt=null;
-function toggleChaos(){
-  chaos=!chaos;
-  app.classList.toggle("chaos",chaos);
-  if(chaos){
+let chaos = false, flashInt = null;
+function toggleChaos() {
+  chaos = !chaos;
+  app.classList.toggle("chaos", chaos);
+  if (chaos) {
     chaosMusic.play();
-    flashInt=setInterval(()=>{
-      flash.style.opacity=Math.random()>.5?.9:0;
-      flash.style.background=Math.random()>.5?"white":"red";
-      setTimeout(()=>flash.style.opacity=0,60);
-    },110);
-  }else{
-    chaosMusic.pause();chaosMusic.currentTime=0;
+    flashInt = setInterval(() => {
+      flash.style.opacity = Math.random() > .5 ? .9 : 0;
+      flash.style.background = Math.random() > .5 ? "white" : "red";
+      setTimeout(() => flash.style.opacity = 0, 60);
+    }, 110);
+  } else {
+    chaosMusic.pause();
+    chaosMusic.currentTime = 0;
     clearInterval(flashInt);
-    flash.style.opacity=0;
+    flash.style.opacity = 0;
   }
 }
 
-/* ===== COMMENTS + REPLIES ===== */
-firebase.initializeApp({
-  apiKey:"AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
-  authDomain:"awesome-18f46.firebaseapp.com",
-  projectId:"awesome-18f46"
-});
-const db=firebase.firestore();
-const commentsList=document.getElementById("commentsList");
+/* ===== FIREBASE COMMENTS ===== */
+window.addEventListener('DOMContentLoaded', () => {
+  if (typeof firebase === 'undefined') {
+    console.error('Firebase failed to load. Check your internet connection or ad blocker.');
+    document.getElementById("commentsList").innerHTML = '<div class="comment">⚠️ Comments unavailable — Firebase failed to load.</div>';
+    return;
+  }
 
-function buildComment(c,indent=0){
-  const d=document.createElement("div");
-  d.className="comment";
-  d.style.marginLeft=indent+"px";
-  d.innerHTML=`<b>${c.name}</b><br>${c.comment}<br><button>Reply</button><div></div>`;
-  d.querySelector("button").onclick=()=>{
-    const n=prompt("Name?");
-    const t=prompt("Reply?");
-    if(n&&t)db.collection("comments").add({name:n,comment:t,parentId:c.id,time:Date.now()});
-  };
-  c.children.forEach(r=>d.lastChild.appendChild(buildComment(r,indent+20)));
-  return d;
-}
+  if (!firebase.apps.length) {
+    firebase.initializeApp({
+      apiKey: "AIzaSyCKlWFT-IEzSS5wLjuDrAX7C8o0XgMDNBA",
+      authDomain: "awesome-18f46.firebaseapp.com",
+      projectId: "awesome-18f46"
+    });
+  }
 
-db.collection("comments").orderBy("time").onSnapshot(s=>{
-  commentsList.innerHTML="";
-  const map={};
-  s.forEach(d=>map[d.id]={id:d.id,...d.data(),children:[]});
-  Object.values(map).forEach(c=>c.parentId&&map[c.parentId]?.children.push(c));
-  Object.values(map).filter(c=>!c.parentId).forEach(c=>commentsList.appendChild(buildComment(c)));
-});
+  const db = firebase.firestore();
+  const commentsList = document.getElementById("commentsList");
 
-commentForm.onsubmit=e=>{
-  e.preventDefault();
-  db.collection("comments").add({
-    name:name.value,
-    comment:comment.value,
-    parentId:null,
-    time:Date.now()
+  function buildComment(c, indent = 0) {
+    const d = document.createElement("div");
+    d.className = "comment";
+    d.style.marginLeft = indent + "px";
+    d.innerHTML = `<b>${c.name}</b><br>${c.comment}<br><button class="reply-btn">↩ Reply</button><div></div>`;
+    d.querySelector(".reply-btn").onclick = () => {
+      const n = prompt("Name?");
+      const t = prompt("Reply?");
+      if (n && t) db.collection("comments").add({ name: n, comment: t, parentId: c.id, time: Date.now() });
+    };
+    c.children.forEach(r => d.lastChild.appendChild(buildComment(r, indent + 16)));
+    return d;
+  }
+
+  db.collection("comments").orderBy("time").onSnapshot(s => {
+    commentsList.innerHTML = "";
+    const map = {};
+    s.forEach(d => map[d.id] = { id: d.id, ...d.data(), children: [] });
+    Object.values(map).forEach(c => c.parentId && map[c.parentId]?.children.push(c));
+    Object.values(map).filter(c => !c.parentId).forEach(c => commentsList.appendChild(buildComment(c)));
   });
-  commentForm.reset();
-};
+
+  document.getElementById("commentForm").onsubmit = e => {
+    e.preventDefault();
+    db.collection("comments").add({
+      name: document.getElementById("name").value,
+      comment: document.getElementById("comment").value,
+      parentId: null,
+      time: Date.now()
+    });
+    document.getElementById("commentForm").reset();
+  };
+});
 </script>
 </body>
 </html>
