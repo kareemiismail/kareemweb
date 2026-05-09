@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>STEEL EPOCH — Grand Strategy</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+  :root {
+    --bg:#0c0d10;--panel:#13141a;--panel2:#1a1b24;--border:#2c2f3e;
+    --gold:#d4a843;--gold2:#f0c860;--red:#c0392b;--green:#2ecc71;
+    --text:#c8c4b8;--dim:#5a5650;--white:#eceae4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'VT323',monospace;font-size:18px;overflow:hidden;user-select:none;image-rendering:pixelated;}
+
+  /* ── TITLE ── */
+  #title-screen{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#08090c;}
+  #title-screen::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);pointer-events:none;z-index:2;}
+  .title-bg-canvas{position:absolute;inset:0;opacity:0.2;image-rendering:pixelated;}
+  .title-logo{font-family:'Press Start 2P',monospace;font-size:clamp(18px,3.5vw,46px);color:var(--gold);text-shadow:4px 4px 0 #000,0 0 40px rgba(212,168,67,0.5);animation:blink-in 0.9s steps(1) forwards;position:relative;z-index:3;text-align:center;line-height:1.5;}
+  .title-sub{font-family:'VT323',monospace;font-size:22px;letter-spacing:.3em;color:var(--dim);margin-top:14px;animation:fadeIn 1s ease .6s both;position:relative;z-index:3;}
+  .pixel-divider{width:400px;height:4px;background:repeating-linear-gradient(90deg,var(--gold) 0,var(--gold) 8px,transparent 8px,transparent 16px);margin:28px auto;position:relative;z-index:3;animation:fadeIn 1s ease .8s both;}
+  .title-btn{font-family:'Press Start 2P',monospace;font-size:10px;padding:13px 28px;margin:7px;background:var(--panel2);border:3px solid var(--border);color:var(--text);cursor:pointer;transition:all .1s;position:relative;z-index:3;}
+  .title-btn:hover{border-color:var(--gold);color:var(--gold);transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--gold);}
+  .title-btn.primary{background:var(--gold);border-color:var(--gold2);color:#000;}
+  .title-btn.primary:hover{background:var(--gold2);box-shadow:3px 3px 0 #000;}
+  .title-buttons{animation:fadeIn 1s ease 1s both;position:relative;z-index:3;}
+
+  /* ── COUNTRY SELECT ── */
+  #country-select{position:fixed;inset:0;z-index:99;display:none;background:rgba(8,9,12,.97);flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+  #country-select h2{font-family:'Press Start 2P',monospace;color:var(--gold);font-size:14px;margin-bottom:8px;text-shadow:2px 2px 0 #000;}
+  #country-select>p{color:var(--dim);margin-bottom:20px;font-size:16px;}
+  .country-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;max-width:1000px;width:100%;}
+  .country-card{border:3px solid var(--border);padding:14px;cursor:pointer;transition:all .1s;background:var(--panel);}
+  .country-card:hover{border-color:var(--gold);transform:translate(-2px,-2px);box-shadow:3px 3px 0 var(--gold);}
+  .country-card.selected{border-color:var(--gold);background:rgba(212,168,67,.1);box-shadow:3px 3px 0 var(--gold);}
+  .country-flag{width:100%;height:40px;margin-bottom:8px;border:2px solid var(--border);image-rendering:pixelated;}
+  .country-card h3{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--white);margin-bottom:7px;line-height:1.6;}
+  .country-card .stats{font-size:13px;color:var(--dim);line-height:1.7;}
+  .country-card .ideology{font-size:12px;padding:1px 6px;display:inline-block;margin-top:5px;border:2px solid;}
+
+  /* ── GAME ── */
+  #game{display:none;width:100vw;height:100vh;position:relative;}
+  #map-canvas{position:absolute;top:44px;left:0;image-rendering:pixelated;cursor:crosshair;}
+
+  /* TOP BAR */
+  #topbar{position:absolute;top:0;left:0;right:0;height:44px;background:var(--panel);border-bottom:3px solid var(--border);display:flex;align-items:center;padding:0 12px;gap:16px;z-index:10;}
+  .top-nation{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--gold);}
+  .top-resource{display:flex;align-items:center;gap:4px;font-size:16px;}
+  .res-val{color:var(--white);}
+  .res-rate{color:var(--green);font-size:13px;}
+  .top-date{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);margin-left:auto;}
+  .speed-btns{display:flex;gap:3px;}
+  .speed-btn{background:var(--panel2);border:2px solid var(--border);color:var(--text);cursor:pointer;padding:2px 9px;font-size:14px;font-family:'VT323',monospace;transition:all .1s;}
+  .speed-btn:hover,.speed-btn.active{background:var(--gold);color:#000;border-color:var(--gold);}
+
+  /* BOTTOM BAR */
+  #bottombar{position:absolute;bottom:0;left:0;right:0;height:108px;background:var(--panel);border-top:3px solid var(--border);display:flex;z-index:10;}
+  #province-info{flex:1;padding:9px 13px;border-right:2px solid var(--border);}
+  #province-info h4{font-family:'Press Start 2P',monospace;font-size:8px;color:var(--gold);margin-bottom:5px;}
+  #province-info .prov-stats{font-size:15px;color:var(--dim);line-height:1.7;}
+  #army-panel{width:250px;padding:9px;border-right:2px solid var(--border);overflow-y:auto;}
+  #army-panel h4{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);margin-bottom:5px;}
+  .army-item{display:flex;align-items:center;gap:6px;padding:3px 5px;margin-bottom:2px;background:var(--panel2);border:2px solid transparent;cursor:pointer;font-size:13px;transition:border-color .1s;}
+  .army-item:hover,.army-item.selected{border-color:var(--gold);}
+  .army-dot{width:8px;height:8px;flex-shrink:0;}
+  .army-name{color:var(--white);flex:1;}
+  .army-str{color:var(--dim);font-size:12px;}
+  #log-panel{width:230px;padding:7px 9px;overflow-y:auto;}
+  #log-panel h4{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);margin-bottom:5px;}
+  .log-entry{font-size:13px;color:var(--dim);padding:1px 0;border-bottom:1px solid rgba(255,255,255,.03);line-height:1.4;}
+  .log-entry.war{color:#e74c3c;}
+  .log-entry.capture{color:var(--gold);}
+  .log-entry.peace{color:var(--green);}
+
+  /* RIGHT PANEL */
+  #rightpanel{position:absolute;top:44px;right:0;bottom:108px;width:196px;background:var(--panel);border-left:3px solid var(--border);z-index:10;display:flex;flex-direction:column;overflow:hidden;}
+  #rightpanel h3{font-family:'Press Start 2P',monospace;font-size:7px;color:var(--gold);padding:7px 9px;border-bottom:2px solid var(--border);}
+  #nations-list{flex:1;overflow-y:auto;}
+  .nation-entry{display:flex;align-items:center;gap:5px;padding:4px 9px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.03);cursor:pointer;transition:background .1s;}
+  .nation-entry:hover{background:rgba(255,255,255,.03);}
+  .nation-dot{width:9px;height:9px;flex-shrink:0;}
+  .nation-name{color:var(--text);flex:1;font-size:12px;}
+  .nation-provs{color:var(--dim);font-size:11px;}
+  .nation-rel{font-size:10px;padding:1px 3px;border:1px solid;}
+  .rel-war{border-color:var(--red);color:var(--red);}
+  .rel-neutral{border-color:var(--border);color:var(--dim);}
+  .diplo-section{border-top:2px solid var(--border);padding:3px 0;}
+  .action-btn{display:block;width:calc(100% - 14px);margin:3px 7px;padding:5px 7px;font-family:'VT323',monospace;font-size:15px;background:var(--panel2);border:2px solid var(--border);color:var(--text);cursor:pointer;text-align:left;transition:all .1s;}
+  .action-btn:hover{border-color:var(--gold);color:var(--gold);}
+  .war-btn{border-color:rgba(192,57,43,.5);color:var(--red);}
+  .war-btn:hover{background:rgba(192,57,43,.15);border-color:var(--red);}
+  .peace-btn{border-color:rgba(46,204,113,.5);color:var(--green);}
+  .peace-btn:hover{background:rgba(46,204,113,.1);border-color:var(--green);}
+
+  /* TOOLTIP */
+  #tooltip{position:fixed;pointer-events:none;background:var(--panel);border:3px solid var(--gold);padding:7px 11px;font-size:14px;z-index:50;display:none;max-width:170px;box-shadow:4px 4px 0 #000;}
+  #tooltip h5{font-family:'Press Start 2P',monospace;color:var(--gold);font-size:8px;margin-bottom:3px;}
+  #tooltip p{color:var(--dim);line-height:1.6;}
+
+  /* MINIMAP */
+  #minimap{position:absolute;bottom:115px;left:8px;width:160px;height:96px;border:3px solid var(--border);z-index:10;cursor:pointer;image-rendering:pixelated;}
+
+  /* NOTIF */
+  .notification{position:fixed;top:54px;right:206px;background:var(--panel);border:3px solid var(--gold);padding:7px 13px;font-size:15px;z-index:20;animation:notifSlide .2s steps(4);max-width:250px;box-shadow:4px 4px 0 #000;}
+  .notification.war-notif{border-color:var(--red);}
+  .battle-flash{position:absolute;pointer-events:none;animation:battlePop .7s steps(4) forwards;z-index:5;font-size:22px;}
+
+  @keyframes battlePop{0%{opacity:1;transform:scale(1) translateY(0);}50%{opacity:1;transform:scale(1.8) translateY(-10px);}100%{opacity:0;transform:scale(2.5) translateY(-24px);}}
+  @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+  @keyframes blink-in{0%,20%,40%{opacity:0;}10%,30%,50%,100%{opacity:1;}}
+  @keyframes notifSlide{from{transform:translateX(16px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+</style>
+</head>
+<body>
+
+<div id="title-screen">
+  <canvas class="title-bg-canvas" id="title-bg"></canvas>
+  <div class="title-logo">STEEL<br>EPOCH</div>
+  <div class="title-sub">GRAND STRATEGY · 1936</div>
+  <div class="pixel-divider"></div>
+  <div class="title-buttons">
+    <button class="title-btn primary" onclick="showCountrySelect()">▶ NEW CAMPAIGN</button><br>
+    <button class="title-btn" onclick="showCredits()" style="margin-top:4px">? ABOUT</button>
+  </div>
+</div>
+
+<div id="country-select">
+  <h2>CHOOSE YOUR NATION</h2>
+  <p>Select a power and reshape history — 1936</p>
+  <div class="country-grid" id="country-grid"></div>
+  <br>
+  <button class="title-btn primary" id="start-btn" onclick="startGame()" style="display:none">▶ BEGIN CAMPAIGN</button>
+  <button class="title-btn" onclick="backToTitle()" style="margin-top:8px">← BACK</button>
+</div>
+
+<div id="game">
+  <canvas id="map-canvas"></canvas>
+  <canvas id="minimap"></canvas>
+  <div id="topbar">
+    <span class="top-nation" id="player-nation-name">—</span>
+    <div class="top-resource">⚙<span class="res-val" id="res-industry">0</span><span class="res-rate" id="res-irate">+0</span></div>
+    <div class="top-resource">👥<span class="res-val" id="res-manpower">0</span></div>
+    <div class="top-resource">⛽<span class="res-val" id="res-fuel">0</span></div>
+    <div class="top-resource">⚔<span class="res-val" id="res-armies">0</span></div>
+    <div class="speed-btns">
+      <button class="speed-btn" id="sp0" onclick="setSpeed(0)">⏸</button>
+      <button class="speed-btn active" id="sp1" onclick="setSpeed(1)">▶</button>
+      <button class="speed-btn" id="sp2" onclick="setSpeed(2)">▶▶</button>
+      <button class="speed-btn" id="sp3" onclick="setSpeed(3)">▶▶▶</button>
+    </div>
+    <div class="top-date" id="game-date">1 JAN 1936</div>
+  </div>
+  <div id="rightpanel">
+    <h3>[ NATIONS ]</h3>
+    <div id="nations-list"></div>
+    <div class="diplo-section">
+      <button class="action-btn" onclick="recruitArmy()">+ RECRUIT DIVISION</button>
+      <button class="action-btn war-btn" id="war-btn" onclick="declareWar()" style="display:none">⚔ DECLARE WAR</button>
+      <button class="action-btn peace-btn" id="peace-btn" onclick="offerPeace()" style="display:none">✓ OFFER PEACE</button>
+    </div>
+  </div>
+  <div id="bottombar">
+    <div id="province-info">
+      <h4 id="prov-name">— SELECT TERRITORY —</h4>
+      <div class="prov-stats" id="prov-stats">Click a territory to inspect. Select an army then click to move it.</div>
+    </div>
+    <div id="army-panel"><h4>[ ARMIES ]</h4><div id="army-list"></div></div>
+    <div id="log-panel"><h4>[ WAR LOG ]</h4><div id="log-entries"></div></div>
+  </div>
+  <div id="tooltip"><h5 id="tt-title"></h5><p id="tt-body"></p></div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//   STEEL EPOCH — ENGINE
+// ══════════════════════════════════════════════
+
+const GRID_W=128, GRID_H=72, PS=6; // PS = pixel scale (each grid cell = 6x6 screen px)
+const MAP_W=GRID_W*PS, MAP_H=GRID_H*PS;
+
+const NATION_DEFS=[
+  {id:'GER',name:'Germany',     color:[74,103,65],  ideology:'Fascist',   manpower:500,industry:80,fuel:60},
+  {id:'SOV',name:'U.S.S.R.',    color:[160,60,60],  ideology:'Communist', manpower:900,industry:70,fuel:80},
+  {id:'USA',name:'U.S.A.',      color:[58,94,160],  ideology:'Democratic',manpower:400,industry:100,fuel:100},
+  {id:'ENG',name:'Britain',     color:[100,120,150],ideology:'Democratic',manpower:350,industry:85,fuel:70},
+  {id:'FRA',name:'France',      color:[160,130,60], ideology:'Democratic',manpower:300,industry:65,fuel:50},
+  {id:'JAP',name:'Japan',       color:[160,55,90],  ideology:'Fascist',   manpower:450,industry:60,fuel:40},
+  {id:'ITA',name:'Italy',       color:[80,140,70],  ideology:'Fascist',   manpower:250,industry:50,fuel:35},
+  {id:'POL',name:'Poland',      color:[130,90,160], ideology:'Democratic',manpower:200,industry:40,fuel:20},
+];
+
+// Territory grid coordinates (col,row,w,h) in GRID units
+const TERR_DEFS=[
+  // Britain
+  {id:'scotland', name:'Scotland',    col:31,row:4,  w:7,h:7,  nat:'ENG'},
+  {id:'england',  name:'England',     col:32,row:11, w:7,h:6,  nat:'ENG'},
+  {id:'ireland',  name:'Ireland',     col:27,row:9,  w:5,h:7,  nat:'ENG'},
+  // France
+  {id:'normandy', name:'Normandy',    col:33,row:18, w:6,h:5,  nat:'FRA'},
+  {id:'paris',    name:'Paris',       col:36,row:23, w:7,h:5,  nat:'FRA'},
+  {id:'bordeaux', name:'Bordeaux',    col:32,row:28, w:6,h:5,  nat:'FRA'},
+  {id:'marseille',name:'Marseille',   col:38,row:28, w:6,h:5,  nat:'FRA'},
+  // Germany
+  {id:'hamburg',  name:'Hamburg',     col:43,row:11, w:6,h:5,  nat:'GER'},
+  {id:'berlin',   name:'Berlin',      col:46,row:16, w:8,h:6,  nat:'GER'},
+  {id:'munich',   name:'Munich',      col:44,row:22, w:6,h:5,  nat:'GER'},
+  {id:'rhineland',name:'Rhineland',   col:40,row:18, w:5,h:5,  nat:'GER'},
+  // Poland
+  {id:'warsaw',   name:'Warsaw',      col:54,row:15, w:7,h:6,  nat:'POL'},
+  {id:'krakow',   name:'Krakow',      col:53,row:21, w:6,h:5,  nat:'POL'},
+  // Italy
+  {id:'milan',    name:'Milan',       col:41,row:27, w:6,h:5,  nat:'ITA'},
+  {id:'rome',     name:'Rome',        col:43,row:32, w:6,h:6,  nat:'ITA'},
+  {id:'sicily',   name:'Sicily',      col:45,row:38, w:6,h:4,  nat:'ITA'},
+  // USSR
+  {id:'leningrd', name:'Leningrad',   col:60,row:6,  w:10,h:8, nat:'SOV'},
+  {id:'moscow',   name:'Moscow',      col:65,row:14, w:10,h:8, nat:'SOV'},
+  {id:'kiev',     name:'Kiev',        col:60,row:22, w:9,h:7,  nat:'SOV'},
+  {id:'stalingd', name:'Stalingrad',  col:70,row:24, w:9,h:7,  nat:'SOV'},
+  {id:'urals',    name:'Urals',       col:78,row:10, w:11,h:11,nat:'SOV'},
+  {id:'siberia',  name:'Siberia',     col:89,row:4,  w:16,h:13,nat:'SOV'},
+  {id:'caucasus', name:'Caucasus',    col:71,row:31, w:9,h:7,  nat:'SOV'},
+  // Japan
+  {id:'manchuria',name:'Manchuria',   col:90,row:13, w:10,h:8, nat:'JAP'},
+  {id:'korea',    name:'Korea',       col:97,row:21, w:5,h:6,  nat:'JAP'},
+  {id:'kyushu',   name:'Kyushu',      col:100,row:27,w:6,h:5,  nat:'JAP'},
+  {id:'honshu',   name:'Honshu',      col:100,row:15,w:7,h:7,  nat:'JAP'},
+  // USA
+  {id:'newyork',  name:'New York',    col:8,row:18,  w:5,h:4,  nat:'USA'},
+  {id:'washington',name:'Washington', col:9,row:22,  w:5,h:3,  nat:'USA'},
+  {id:'chicago',  name:'Chicago',     col:5,row:13,  w:6,h:5,  nat:'USA'},
+  {id:'losangel', name:'L.A.',        col:1,row:21,  w:5,h:5,  nat:'USA'},
+  {id:'texas',    name:'Texas',       col:4,row:27,  w:7,h:5,  nat:'USA'},
+  {id:'florida',  name:'Florida',     col:10,row:28, w:5,h:5,  nat:'USA'},
+  // Neutrals
+  {id:'scandin',  name:'Scandinavia', col:42,row:1,  w:14,h:11,nat:null},
+  {id:'iberia',   name:'Iberia',      col:29,row:28, w:9,h:10, nat:null},
+  {id:'balkans',  name:'Balkans',     col:50,row:26, w:9,h:10, nat:null},
+  {id:'benelux',  name:'Low Cntrs.',  col:38,row:14, w:5,h:5,  nat:null},
+  {id:'alps',     name:'Alps',        col:40,row:22, w:5,h:5,  nat:null},
+  {id:'canada',   name:'Canada',      col:1,row:2,   w:20,h:12,nat:null},
+  {id:'mexico',   name:'Mexico',      col:2,row:32,  w:9,h:6,  nat:null},
+  {id:'samerica', name:'S. America',  col:9,row:37,  w:13,h:14,nat:null},
+  {id:'mideast',  name:'Middle East', col:62,row:35, w:10,h:8, nat:null},
+  {id:'northafr', name:'N. Africa',   col:34,row:38, w:16,h:8, nat:null},
+  {id:'egypt',    name:'Egypt',       col:56,row:37, w:8,h:8,  nat:null},
+  {id:'china',    name:'China',       col:82,row:20, w:15,h:13,nat:null},
+  {id:'indochina',name:'Indochina',   col:85,row:32, w:9,h:9,  nat:null},
+  {id:'india',    name:'India',       col:70,row:38, w:12,h:10,nat:null},
+];
+
+// ── STATE ──────────────────────────────────────
+let nations={},territories={},armies=[],selectedArmy=null,selectedNation=null;
+let playerNationId=null,gameSpeed=1;
+let gameDay=1,gameMonth=0,gameYear=1936;
+const MONTHS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+let lastTick=0,logEntries=[];
+let canvas,ctx,miniCanvas,miniCtx;
+let hoveredTerr=null,selectedTerr=null;
+let camX=0,camY=0,camScale=1;
+let isDragging=false,dragStart={x:0,y:0},camStart={x:0,y:0},didDrag=false;
+let mapBuffer=null,mapCtx2=null,mapDirty=true;
+
+// ── HELPERS ──────────────────────────────────
+function rgb(r,g,b){return`rgb(${r},${g},${b})`;}
+function rgba(r,g,b,a){return`rgba(${r},${g},${b},${a})`;}
+function natRgb(nid,dim=false){
+  if(!nid)return dim?'#1a1b20':'#1e2028';
+  const c=nations[nid].color;
+  return dim?rgb(Math.max(0,c[0]-35),Math.max(0,c[1]-35),Math.max(0,c[2]-35)):rgb(c[0],c[1],c[2]);
+}
+function hexCol(nid){if(!nid)return'#1e2028';const c=nations[nid].color;return'#'+c.map(v=>v.toString(16).padStart(2,'0')).join('');}
+
+// ── INIT ────────────────────────────────────
+function initGame(){
+  nations={};territories={};armies=[];logEntries=[];
+  selectedArmy=null;selectedNation=null;selectedTerr=null;
+  gameDay=1;gameMonth=0;gameYear=1936;
+
+  NATION_DEFS.forEach(nd=>{
+    nations[nd.id]={...nd,territories:[],armies:[],wars:new Set(),manpower:nd.manpower,industry:nd.industry,fuel:nd.fuel,armyIdCounter:0,isPlayer:false,
+      ai:{aggression:nd.ideology==='Fascist'?.75:nd.ideology==='Communist'?.55:.25,expansion:nd.ideology==='Fascist'?.9:.5,expandTimer:40+Math.floor(Math.random()*60)}};
+  });
+
+  TERR_DEFS.forEach(td=>{
+    const px=td.col*PS,py=td.row*PS,pw=td.w*PS,ph=td.h*PS;
+    territories[td.id]={...td,controller:td.nat,owner:td.nat,
+      industry:td.nat?Math.floor(td.w*td.h*.5)+3:Math.floor(td.w*td.h*.25)+1,
+      defense:(td.w*td.h)+8,px,py,pw,ph,cx:px+pw/2,cy:py+ph/2};
+    if(td.nat)nations[td.nat].territories.push(td.id);
+  });
+
+  Object.values(nations).forEach(n=>{
+    if(!n.territories.length)return;
+    for(let i=0;i<2;i++)spawnArmy(n.id,n.territories[i%n.territories.length]);
+  });
+  mapDirty=true;
+}
+
+function spawnArmy(nid,terrId){
+  const n=nations[nid],t=territories[terrId];
+  n.armyIdCounter++;
+  const ords=['1st','2nd','3rd','4th','5th','6th','7th','8th'];
+  const army={id:`${nid}_${n.armyIdCounter}`,nation:nid,terr:terrId,
+    strength:80+Math.floor(Math.random()*40),maxStrength:120,
+    name:`${n.name} ${ords[n.armyIdCounter-1]||n.armyIdCounter+'th'} Army`,
+    moving:false,x:t.cx,y:t.cy,targetX:t.cx,targetY:t.cy};
+  armies.push(army);n.armies.push(army.id);return army;
+}
+
+// ── MAP BUFFER ───────────────────────────────
+function buildMapBuffer(){
+  if(!mapBuffer){mapBuffer=document.createElement('canvas');mapBuffer.width=MAP_W;mapBuffer.height=MAP_H;mapCtx2=mapBuffer.getContext('2d');mapCtx2.imageSmoothingEnabled=false;}
+  // Ocean
+  mapCtx2.fillStyle='#0d1018';
+  mapCtx2.fillRect(0,0,MAP_W,MAP_H);
+  // Ocean dots
+  for(let x=0;x<MAP_W;x+=PS*2)for(let y=0;y<MAP_H;y+=PS*2){mapCtx2.fillStyle='#0a0c14';mapCtx2.fillRect(x,y,PS,PS);}
+
+  Object.values(territories).forEach(t=>{
+    const isHov=hoveredTerr===t.id,isSel=selectedTerr===t.id;
+    const ctrl=t.controller;
+
+    // Base fill
+    mapCtx2.fillStyle=natRgb(ctrl,!isHov&&!isSel);
+    mapCtx2.fillRect(t.px,t.py,t.pw,t.ph);
+
+    // Pixel noise overlay
+    const nc=ctrl?nations[ctrl].color:[30,32,38];
+    const [r,g,b]=nc;
+    // Use a cheap hash per territory for consistent noise
+    const seed=t.id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+    for(let gx=0;gx<t.w;gx++){
+      for(let gy=0;gy<t.h;gy++){
+        const h=Math.sin(gx*127.1+gy*311.7+seed*73.156)*43758.5453;
+        const noise=h-Math.floor(h);
+        if(noise>0.62||noise<0.22){
+          const v=noise>0.62?12:-10;
+          const bright=ctrl?1:0.5;
+          mapCtx2.fillStyle=rgba(
+            Math.max(0,Math.min(255,r+v))*bright+(1-bright)*20,
+            Math.max(0,Math.min(255,g+v))*bright+(1-bright)*22,
+            Math.max(0,Math.min(255,b+v))*bright+(1-bright)*28,1);
+          mapCtx2.fillRect(t.px+gx*PS,t.py+gy*PS,PS,PS);
+        }
+      }
+    }
+
+    // War tint
+    if(ctrl&&playerNationId&&nations[playerNationId]?.wars.has(ctrl)){
+      mapCtx2.fillStyle='rgba(220,50,50,0.2)';
+      mapCtx2.fillRect(t.px,t.py,t.pw,t.ph);
+    }
+
+    // Border
+    const bc=isSel?'#d4a843':isHov?'rgba(212,168,67,.7)':ctrl?'rgba(0,0,0,.75)':'rgba(0,0,0,.4)';
+    mapCtx2.strokeStyle=bc;
+    mapCtx2.lineWidth=isSel?3:2;
+    mapCtx2.strokeRect(t.px+1,t.py+1,t.pw-2,t.ph-2);
+
+    // Country abbreviation (big enough tiles)
+    if(ctrl&&t.pw>=PS*7&&t.ph>=PS*5){
+      const fs=Math.max(7,Math.min(10,Math.floor(t.pw/9)));
+      mapCtx2.font=`bold ${fs}px "Press Start 2P",monospace`;
+      mapCtx2.textAlign='center';
+      mapCtx2.fillStyle='rgba(0,0,0,.55)';
+      mapCtx2.fillText(ctrl,t.cx+1,t.cy-fs*.5+1);
+      mapCtx2.fillStyle='rgba(255,255,255,.65)';
+      mapCtx2.fillText(ctrl,t.cx,t.cy-fs*.5);
+    }
+
+    // Territory name
+    const labelFs=Math.max(8,Math.min(13,Math.floor(t.pw/7)));
+    mapCtx2.font=`${labelFs}px "VT323",monospace`;
+    mapCtx2.textAlign='center';
+    // Shadow
+    mapCtx2.fillStyle='rgba(0,0,0,.85)';
+    mapCtx2.fillText(t.name,t.cx+1,t.cy+labelFs*.5+4+1);
+    // Label
+    mapCtx2.fillStyle=isSel||isHov?'#f0c860':'rgba(235,230,220,.9)';
+    mapCtx2.fillText(t.name,t.cx,t.cy+labelFs*.5+4);
+  });
+  mapDirty=false;
+}
+
+// ── DRAW ─────────────────────────────────────
+function drawMap(){
+  if(mapDirty)buildMapBuffer();
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,canvas.width,canvas.height);ctx.restore();
+  ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(mapBuffer,0,0);ctx.restore();
+
+  // Armies
+  armies.forEach(a=>{
+    const n=nations[a.nation];
+    const isSel=selectedArmy===a.id;
+    a.x+=(a.targetX-a.x)*.14;
+    a.y+=(a.targetY-a.y)*.14;
+    const s=isSel?11:8;
+    const [r,g,b]=n.color;
+    // Drop shadow
+    ctx.fillStyle='rgba(0,0,0,.6)';
+    ctx.fillRect(Math.floor(a.x-s/2+2),Math.floor(a.y-s/2+2),s,s);
+    // Body
+    ctx.fillStyle=rgb(r,g,b);
+    ctx.fillRect(Math.floor(a.x-s/2),Math.floor(a.y-s/2),s,s);
+    // Highlight pixel
+    ctx.fillStyle='rgba(255,255,255,.45)';
+    ctx.fillRect(Math.floor(a.x-s/2),Math.floor(a.y-s/2),2,2);
+    // Selected ring
+    if(isSel){ctx.strokeStyle='#d4a843';ctx.lineWidth=2;ctx.strokeRect(Math.floor(a.x-s/2-2),Math.floor(a.y-s/2-2),s+4,s+4);}
+    // Star for player
+    if(a.nation===playerNationId){ctx.fillStyle='#fff';ctx.font='7px monospace';ctx.textAlign='center';ctx.fillText('★',a.x,a.y+2.5);}
+    // HP bar
+    const bw=16,bh=2,bx=Math.floor(a.x-bw/2),by=Math.floor(a.y+s/2+2);
+    ctx.fillStyle='#000';ctx.fillRect(bx,by,bw,bh);
+    const ratio=a.strength/a.maxStrength;
+    ctx.fillStyle=ratio>.6?'#2ecc71':ratio>.3?'#f39c12':'#e74c3c';
+    ctx.fillRect(bx,by,Math.floor(bw*ratio),bh);
+  });
+}
+
+function drawMinimap(){
+  const mw=miniCanvas.width,mh=miniCanvas.height,sx=mw/MAP_W,sy=mh/MAP_H;
+  miniCtx.imageSmoothingEnabled=false;
+  miniCtx.fillStyle='#0c0d10';miniCtx.fillRect(0,0,mw,mh);
+  Object.values(territories).forEach(t=>{
+    miniCtx.fillStyle=natRgb(t.controller);
+    miniCtx.fillRect(t.px*sx,t.py*sy,Math.max(1,t.pw*sx),Math.max(1,t.ph*sy));
+  });
+  miniCtx.strokeStyle='rgba(212,168,67,.8)';miniCtx.lineWidth=1;
+  const vx=-camX/camScale,vy=-camY/camScale,vw=canvas.width/camScale,vh=canvas.height/camScale;
+  miniCtx.strokeRect(vx*sx,vy*sy,vw*sx,vh*sy);
+}
+
+// ── GAME LOOP ────────────────────────────────
+function gameTick(ts){
+  requestAnimationFrame(gameTick);
+  const ms=[0,1800,700,220][gameSpeed];
+  if(gameSpeed>0&&ts-lastTick>ms){lastTick=ts;advanceDay();}
+  drawMap();drawMinimap();
+}
+
+function advanceDay(){
+  gameDay++;
+  if(gameDay>30){gameDay=1;gameMonth=(gameMonth+1)%12;if(gameMonth===0)gameYear++;}
+  document.getElementById('game-date').textContent=`${gameDay} ${MONTHS[gameMonth]} ${gameYear}`;
+  Object.values(nations).forEach(n=>{
+    if(!n.territories.length)return;
+    const ti=n.territories.reduce((s,tid)=>s+(territories[tid]?.industry||0),0);
+    n.manpower=Math.min(n.manpower+n.territories.length*.4,999);
+    n.industry=Math.min(n.industry+ti*.04,999);
+    n.fuel=Math.min(n.fuel+.25,200);
+  });
+  armies.forEach(a=>{a.strength=Math.min(a.strength+.15,a.maxStrength);});
+  if(gameDay%3===0)Object.keys(nations).forEach(nid=>{if(nid!==playerNationId)aiTick(nid);});
+  updateTopBar();renderArmyList();renderNationsList();
+}
+
+// ── AI ───────────────────────────────────────
+function aiTick(nid){
+  const n=nations[nid];if(!n||!n.territories.length)return;
+  const ai=n.ai;ai.expandTimer--;
+  const myArms=armies.filter(a=>a.nation===nid&&!a.moving);
+  myArms.forEach(army=>{
+    if(Math.random()>.35)return;
+    const myT=territories[army.terr];
+    const cands=Object.values(territories).filter(t=>{
+      if(t.controller===nid)return false;
+      return Math.abs(t.cx-myT.cx)<PS*22&&Math.abs(t.cy-myT.cy)<PS*22;
+    });
+    if(!cands.length)return;
+    let tgt=null;
+    if(n.wars.size>0){const et=cands.filter(t=>t.controller&&n.wars.has(t.controller));if(et.length)tgt=et[Math.floor(Math.random()*et.length)];}
+    if(!tgt&&Math.random()<ai.expansion){const nt=cands.filter(t=>!t.controller);if(nt.length)tgt=nt[Math.floor(Math.random()*nt.length)];}
+    if(!tgt&&Math.random()<ai.aggression*.3)tgt=cands[Math.floor(Math.random()*cands.length)];
+    if(!tgt)return;
+    if(tgt.controller&&tgt.controller!==nid&&!n.wars.has(tgt.controller)){
+      if(Math.random()<ai.aggression*.4)declareWarBetween(nid,tgt.controller);else return;
+    }
+    if(tgt.controller&&!n.wars.has(tgt.controller))return;
+    moveArmyTo(army,tgt.id);
+  });
+  if(ai.expandTimer<=0&&Math.random()<ai.aggression*.15){
+    ai.expandTimer=50+Math.floor(Math.random()*80);
+    const others=Object.keys(nations).filter(id=>id!==nid&&!n.wars.has(id)&&nations[id].territories.length>0);
+    if(others.length&&Math.random()<ai.aggression)declareWarBetween(nid,others[Math.floor(Math.random()*others.length)]);
+  }
+  if(n.armies.length===0&&n.wars.size>0)n.wars.forEach(eid=>{if(Math.random()<.3)peaceBetween(nid,eid);});
+}
+
+function moveArmyTo(army,terrId){
+  const t=territories[terrId],st=territories[army.terr];
+  army.moving=true;army.moveTo=terrId;army.targetX=t.cx;army.targetY=t.cy;
+  const dx=t.cx-st.cx,dy=t.cy-st.cy;
+  const delay=Math.max(400,Math.sqrt(dx*dx+dy*dy)*2.5);
+  setTimeout(()=>arriveArmy(army,terrId),delay);
+}
+
+function arriveArmy(army,terrId){
+  army.moving=false;const t=territories[terrId];const an=nations[army.nation];
+  army.terr=terrId;army.targetX=t.cx;army.targetY=t.cy;
+  if(!t.controller||t.controller===army.nation){
+    if(!an.territories.includes(terrId)){t.controller=army.nation;an.territories.push(terrId);addLog(`${an.name} occupies ${t.name}`,'capture');mapDirty=true;}
+  } else {battle(army,t,nations[t.controller]);}
+}
+
+function battle(army,terr,defender){
+  showBattleFlash(terr.cx,terr.cy);
+  const defArms=armies.filter(a=>a.nation===terr.controller&&a.terr===terr.id);
+  const atk=army.strength*(0.6+Math.random()*.8);
+  const def=(terr.defense+defArms.reduce((s,a)=>s+a.strength,0))*(0.6+Math.random()*.8);
+  const an=nations[army.nation],prevCtrl=terr.controller,prevNat=nations[prevCtrl];
+  if(atk>def){
+    army.strength=Math.max(5,army.strength-Math.floor(def*.25+Math.random()*15));
+    defArms.forEach(da=>{da.strength=Math.max(0,da.strength-Math.floor(Math.random()*45));if(da.strength<=0)removeArmy(da);});
+    if(prevNat)prevNat.territories.splice(prevNat.territories.indexOf(terr.id),1);
+    terr.controller=army.nation;an.territories.push(terr.id);
+    addLog(`${an.name} CAPTURES ${terr.name}!`,'capture');
+    if(army.nation===playerNationId)showNotif(`Victory! ${terr.name} captured!`);
+    if(prevCtrl===playerNationId)showNotif(`${terr.name} lost to ${an.name}!`,'war');
+    if(prevNat&&prevNat.territories.length===0){addLog(`${prevNat.name} ELIMINATED!`,'war');peaceBetween(army.nation,prevCtrl);}
+    mapDirty=true;
+  } else {
+    army.strength=Math.max(0,army.strength-Math.floor(atk*.35+Math.random()*12));
+    addLog(`${an.name} attack on ${terr.name} REPELLED!`,'war');
+    if(army.strength<=0)removeArmy(army);
+    if(army.nation===playerNationId)showNotif(`Attack on ${terr.name} failed!`,'war');
+  }
+  renderNationsList();updateTopBar();
+}
+
+function removeArmy(army){
+  const i=armies.indexOf(army);if(i>-1)armies.splice(i,1);
+  const n=nations[army.nation],ni=n.armies.indexOf(army.id);if(ni>-1)n.armies.splice(ni,1);
+  if(selectedArmy===army.id)selectedArmy=null;
+}
+
+function showBattleFlash(x,y){
+  const el=document.createElement('div');el.className='battle-flash';el.textContent='💥';
+  el.style.left=(x-12)+'px';el.style.top=(y-12+44)+'px';
+  document.getElementById('game').appendChild(el);setTimeout(()=>el.remove(),700);
+}
+
+// ── DIPLOMACY ───────────────────────────────
+function declareWarBetween(a,b){
+  if(!nations[a]||!nations[b]||nations[a].wars.has(b))return;
+  nations[a].wars.add(b);nations[b].wars.add(a);
+  addLog(`WAR: ${nations[a].name} vs ${nations[b].name}!`,'war');
+  if(a===playerNationId||b===playerNationId)showNotif(`⚔ WAR with ${nations[a===playerNationId?b:a].name}!`,'war');
+  renderNationsList();mapDirty=true;
+}
+function peaceBetween(a,b){
+  if(!nations[a]||!nations[b])return;
+  nations[a].wars.delete(b);nations[b].wars.delete(a);
+  addLog(`PEACE: ${nations[a].name} & ${nations[b].name}`,'peace');
+  renderNationsList();mapDirty=true;
+}
+function declareWar(){if(!selectedNation||!playerNationId||selectedNation===playerNationId)return;declareWarBetween(playerNationId,selectedNation);updateDiplomacyBtns();}
+function offerPeace(){if(!selectedNation||!playerNationId||!nations[playerNationId].wars.has(selectedNation))return;peaceBetween(playerNationId,selectedNation);updateDiplomacyBtns();}
+function recruitArmy(){
+  const n=nations[playerNationId];if(!n||n.manpower<100){showNotif('Not enough manpower!','war');return;}
+  n.manpower-=100;const a=spawnArmy(playerNationId,n.territories[0]);
+  showNotif(`Recruited ${a.name}!`);renderArmyList();updateTopBar();
+}
+
+// ── UI ───────────────────────────────────────
+function updateTopBar(){
+  if(!playerNationId)return;
+  const n=nations[playerNationId];
+  document.getElementById('player-nation-name').textContent=n.name;
+  document.getElementById('res-industry').textContent=Math.floor(n.industry);
+  document.getElementById('res-manpower').textContent=Math.floor(n.manpower);
+  document.getElementById('res-fuel').textContent=Math.floor(n.fuel);
+  document.getElementById('res-armies').textContent=armies.filter(a=>a.nation===playerNationId).length;
+  document.getElementById('res-irate').textContent='+'+n.territories.reduce((s,tid)=>s+(territories[tid]?.industry||0),0).toFixed(0);
+}
+
+function renderNationsList(){
+  const c=document.getElementById('nations-list');c.innerHTML='';
+  const pn=nations[playerNationId];
+  Object.values(nations).forEach(n=>{
+    const isWar=pn&&pn.wars.has(n.id);
+    const el=document.createElement('div');el.className='nation-entry';
+    el.innerHTML=`<div class="nation-dot" style="background:${hexCol(n.id)}"></div><span class="nation-name">${n.name}</span><span class="nation-provs">${n.territories.length}t</span><span class="nation-rel ${isWar?'rel-war':'rel-neutral'}">${isWar?'WAR':'—'}</span>`;
+    el.onclick=()=>{selectedNation=n.id;updateDiplomacyBtns();document.querySelectorAll('.nation-entry').forEach(e=>e.style.background='');el.style.background='rgba(212,168,67,.07)';};
+    c.appendChild(el);
+  });
+}
+
+function updateDiplomacyBtns(){
+  const wb=document.getElementById('war-btn'),pb=document.getElementById('peace-btn');
+  if(!selectedNation||selectedNation===playerNationId){wb.style.display='none';pb.style.display='none';return;}
+  const atWar=nations[playerNationId].wars.has(selectedNation);
+  wb.style.display=atWar?'none':'block';pb.style.display=atWar?'block':'none';
+}
+
+function renderArmyList(){
+  const c=document.getElementById('army-list');c.innerHTML='';
+  armies.filter(a=>a.nation===playerNationId).forEach(army=>{
+    const el=document.createElement('div');el.className='army-item'+(selectedArmy===army.id?' selected':'');
+    el.innerHTML=`<div class="army-dot" style="background:${hexCol(army.nation)}"></div><span class="army-name">${army.name}</span><span class="army-str">${Math.floor(army.strength)}/${army.maxStrength}</span>`;
+    el.onclick=()=>{selectedArmy=selectedArmy===army.id?null:army.id;renderArmyList();};
+    c.appendChild(el);
+  });
+}
+
+function addLog(msg,type=''){
+  logEntries.unshift({msg,type});if(logEntries.length>60)logEntries.pop();
+  const c=document.getElementById('log-entries');
+  c.innerHTML=logEntries.slice(0,25).map(e=>`<div class="log-entry ${e.type}">${e.msg}</div>`).join('');
+}
+
+let notifTimer=null;
+function showNotif(msg,type=''){
+  document.querySelector('.notification')?.remove();
+  const el=document.createElement('div');el.className='notification'+(type==='war'?' war-notif':'');el.textContent=msg;
+  document.getElementById('game').appendChild(el);
+  if(notifTimer)clearTimeout(notifTimer);notifTimer=setTimeout(()=>el.remove(),3000);
+}
+
+// ── INPUT ───────────────────────────────────
+function setupMapEvents(){
+  canvas.addEventListener('mousemove',e=>{
+    if(isDragging){
+      camX=camStart.x+(e.clientX-dragStart.x);camY=camStart.y+(e.clientY-dragStart.y);
+      constrainCamera();return;
+    }
+    const rect=canvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left-camX)/camScale,my=(e.clientY-rect.top-camY)/camScale;
+    const prev=hoveredTerr;hoveredTerr=null;
+    for(const[id,t]of Object.entries(territories)){if(mx>=t.px&&mx<=t.px+t.pw&&my>=t.py&&my<=t.py+t.ph){hoveredTerr=id;break;}}
+    if(hoveredTerr!==prev)mapDirty=true;
+    if(hoveredTerr){
+      const t=territories[hoveredTerr];
+      const ctrl=t.controller?nations[t.controller].name:'Neutral';
+      document.getElementById('tt-title').textContent=t.name;
+      document.getElementById('tt-body').textContent=`Owner: ${ctrl}\nIndustry: ${t.industry}\nDefense: ${Math.floor(t.defense)}`;
+      const tt=document.getElementById('tooltip');tt.style.display='block';tt.style.left=(e.clientX+14)+'px';tt.style.top=(e.clientY+14)+'px';
+    } else document.getElementById('tooltip').style.display='none';
+  });
+
+  canvas.addEventListener('mousedown',e=>{
+    didDrag=false;dragStart={x:e.clientX,y:e.clientY};camStart={x:camX,y:camY};
+    const mm=ev=>{if(Math.abs(ev.clientX-dragStart.x)>4||Math.abs(ev.clientY-dragStart.y)>4){isDragging=true;didDrag=true;}};
+    const mu=()=>{canvas.removeEventListener('mousemove',mm);window.removeEventListener('mouseup',mu);setTimeout(()=>isDragging=false,10);};
+    canvas.addEventListener('mousemove',mm);window.addEventListener('mouseup',mu);
+  });
+
+  canvas.addEventListener('click',()=>{if(!didDrag&&hoveredTerr)handleTerrClick(hoveredTerr);});
+
+  canvas.addEventListener('mouseleave',()=>{
+    document.getElementById('tooltip').style.display='none';
+    if(hoveredTerr){hoveredTerr=null;mapDirty=true;}
+  });
+
+  canvas.addEventListener('wheel',e=>{
+    e.preventDefault();
+    const rect=canvas.getBoundingClientRect();
+    const mx=e.clientX-rect.left,my=e.clientY-rect.top;
+    const delta=e.deltaY>0?.85:1.18;
+    const ns=Math.max(.45,Math.min(4,camScale*delta));
+    camX=mx-(mx-camX)*(ns/camScale);camY=my-(my-camY)*(ns/camScale);camScale=ns;
+    applyCamera();constrainCamera();
+  },{passive:false});
+
+  miniCanvas.addEventListener('click',e=>{
+    const rect=miniCanvas.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)/miniCanvas.width*MAP_W;
+    const my=(e.clientY-rect.top)/miniCanvas.height*MAP_H;
+    camX=-(mx*camScale-canvas.width/2);camY=-(my*camScale-canvas.height/2);constrainCamera();
+  });
+}
+
+function handleTerrClick(terrId){
+  const prev=selectedTerr;selectedTerr=terrId;if(prev!==terrId)mapDirty=true;
+  const t=territories[terrId];
+  if(selectedArmy){
+    const army=armies.find(a=>a.id===selectedArmy);
+    if(army&&army.nation===playerNationId&&!army.moving){
+      const ec=t.controller;
+      if(ec&&ec!==playerNationId&&!nations[playerNationId].wars.has(ec)){showNotif(`Not at war with ${nations[ec].name}!`,'war');return;}
+      moveArmyTo(army,terrId);showNotif(`${army.name} → ${t.name}`);return;
+    }
+  }
+  const ctrl=t.controller?nations[t.controller].name:'Neutral';
+  const here=armies.filter(a=>a.terr===terrId).map(a=>a.name).join(', ')||'None';
+  document.getElementById('prov-name').textContent=t.name.toUpperCase();
+  document.getElementById('prov-stats').innerHTML=`Owner: <b style="color:${natRgb(t.controller)}">${ctrl}</b> &nbsp; Ind: ${t.industry} &nbsp; Def: ${Math.floor(t.defense)}<br>Armies: ${here}`;
+}
+
+function applyCamera(){ctx.setTransform(camScale,0,0,camScale,camX,camY);}
+function constrainCamera(){
+  camX=Math.max(-(MAP_W*camScale-canvas.width),Math.min(0,camX));
+  camY=Math.max(-(MAP_H*camScale-canvas.height),Math.min(0,camY));
+  applyCamera();
+}
+
+// ── SCREENS ──────────────────────────────────
+function showCountrySelect(){
+  document.getElementById('title-screen').style.display='none';
+  document.getElementById('country-select').style.display='flex';
+  const grid=document.getElementById('country-grid');grid.innerHTML='';
+  NATION_DEFS.forEach(nd=>{
+    const card=document.createElement('div');card.className='country-card';
+    const ic=nd.ideology==='Fascist'?'#c0392b':nd.ideology==='Communist'?'#e74c3c':'#3498db';
+    card.innerHTML=`<canvas class="country-flag" id="flag-${nd.id}" width="160" height="40"></canvas><h3>${nd.name}</h3><div class="stats">⚙ Industry: ${nd.industry}<br>👥 Manpower: ${nd.manpower}<br>⛽ Fuel: ${nd.fuel}</div><span class="ideology" style="background:${ic}22;color:${ic};border-color:${ic}66">${nd.ideology}</span>`;
+    card.onclick=()=>{document.querySelectorAll('.country-card').forEach(c=>c.classList.remove('selected'));card.classList.add('selected');playerNationId=nd.id;document.getElementById('start-btn').style.display='inline-block';};
+    grid.appendChild(card);
+    // Pixel flag
+    const fc=card.querySelector('.country-flag'),fctx=fc.getContext('2d');
+    fctx.imageSmoothingEnabled=false;
+    const[r,g,b]=nd.color;
+    fctx.fillStyle=rgb(r,g,b);fctx.fillRect(0,0,160,40);
+    fctx.fillStyle=rgb(Math.max(0,r-35),Math.max(0,g-35),Math.max(0,b-35));fctx.fillRect(0,13,160,14);
+    fctx.fillStyle='rgba(255,255,255,.1)';fctx.fillRect(0,0,160,7);
+    fctx.fillStyle='rgba(0,0,0,.5)';fctx.font='bold 13px "Press Start 2P",monospace';fctx.textAlign='center';fctx.fillText(nd.id,81,26);
+    fctx.fillStyle='rgba(255,255,255,.85)';fctx.fillText(nd.id,80,25);
+  });
+}
+
+function backToTitle(){document.getElementById('country-select').style.display='none';document.getElementById('title-screen').style.display='flex';}
+
+function startGame(){
+  if(!playerNationId)return;
+  document.getElementById('country-select').style.display='none';
+  document.getElementById('game').style.display='block';
+  initGame();nations[playerNationId].isPlayer=true;
+
+  canvas=document.getElementById('map-canvas');
+  canvas.width=window.innerWidth-196;canvas.height=window.innerHeight-44-108;
+  canvas.style.top='44px';canvas.style.left='0';
+  ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+
+  miniCanvas=document.getElementById('minimap');
+  miniCanvas.width=160;miniCanvas.height=96;
+  miniCtx=miniCanvas.getContext('2d');miniCtx.imageSmoothingEnabled=false;
+
+  camScale=Math.min(canvas.width/MAP_W,canvas.height/MAP_H)*.95;
+  camX=(canvas.width-MAP_W*camScale)/2;camY=(canvas.height-MAP_H*camScale)/2;
+  applyCamera();buildMapBuffer();setupMapEvents();
+  updateTopBar();renderNationsList();renderArmyList();
+  addLog(`Campaign starts — ${nations[playerNationId].name} rises. 1 JAN 1936`,'');
+  setSpeed(1);requestAnimationFrame(gameTick);
+}
+
+function setSpeed(s){gameSpeed=s;[0,1,2,3].forEach(i=>{const b=document.getElementById('sp'+i);if(b)b.classList.toggle('active',i===s);});}
+function showCredits(){alert('STEEL EPOCH\nGrand Strategy 1936\n\nFeatures:\n• Pixelated map — 45+ territories labeled\n• 8 playable nations with unique stats\n• AI armies with aggression & expansion logic\n• Full combat, diplomacy, and war\n• Resource management\n\nBuilt in pure HTML/JS.');}
+
+// Title background map preview
+window.addEventListener('load',()=>{
+  const bc=document.getElementById('title-bg');if(!bc)return;
+  bc.width=window.innerWidth;bc.height=window.innerHeight;
+  const bx=bc.getContext('2d');bx.imageSmoothingEnabled=false;
+  const sw=bc.width/GRID_W,sh=bc.height/GRID_H;
+  bx.fillStyle='#0a0c10';bx.fillRect(0,0,bc.width,bc.height);
+  TERR_DEFS.forEach(td=>{
+    if(!td.nat)return;
+    const nd=NATION_DEFS.find(n=>n.id===td.nat);if(!nd)return;
+    const[r,g,b]=nd.color;
+    bx.fillStyle=`rgba(${r},${g},${b},.5)`;
+    bx.fillRect(td.col*sw,td.row*sh,td.w*sw,td.h*sh);
+  });
+});
+
+window.addEventListener('resize',()=>{
+  if(!canvas)return;
+  canvas.width=window.innerWidth-196;canvas.height=window.innerHeight-44-108;
+  applyCamera();mapDirty=true;
+});
+</script>
+</body>
+</html>
